@@ -1,0 +1,345 @@
+/* ========================================= */
+/* 1. MODAL LAYOUT                           */
+/* ========================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6); /* Темное затемнение */
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90vh; /* Ограничение высоты */
+  overflow-y: auto; /* Скролл внутри */
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================= */
+/* 2. HEADER (Исправленный)                  */
+/* ========================================= */
+.modal-header-details {
+  display: flex;
+  justify-content: space-between; /* Разносит заголовок и крестик по краям */
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 15px;
+  margin-bottom: 5px;
+}
+
+.modal-header-details h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Стиль кнопки закрытия (крестик) */
+.btn-close-details {
+  border: none;
+  background: transparent;
+  font-size: 2rem; /* Крупный размер */
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-close-details:hover {
+  color: #ef4444; /* Красный при наведении */
+}
+
+/* ========================================= */
+/* 3. INFO BLOCK                             */
+/* ========================================= */
+.details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e2e8f0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.details-row strong {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Бейджи статусов */
+.status-badge-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.status-badge-pill.New {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.status-badge-pill.Work {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+.status-badge-pill.Done {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+/* Блок описания (Fix длинных строк) */
+.desc-box {
+  margin-top: 15px;
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.5;
+
+  /* Перенос длинного текста */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ========================================= */
+/* 4. PHOTOS                                 */
+/* ========================================= */
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.gallery-img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.gallery-img:hover {
+  transform: scale(1.05);
+}
+
+.btn-add-photo-small {
+  width: 70px;
+  height: 70px;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-add-photo-small:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: white;
+}
+
+/* ========================================= */
+/* 5. COMMENTS & ACTIONS                     */
+/* ========================================= */
+.comments-list {
+  background: #f1f5f9;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-bubble {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  color: #1e293b;
+}
+
+/* Input & Button group */
+.comment-input-group {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.input-glass {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.input-glass:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: white;
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 12px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* ========================================= */
+/* 5. COMMENTS & ACTIONS                     */
+/* ========================================= */
+
+.comments-section {
+  margin-top: 20px;
+}
+
+.comments-title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Контейнер списка с прокруткой */
+.comments-list {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+
+  /* Фиксированная высота и скролл */
+  max-height: 200px;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* Тень внутри для ощущения глубины (опционально) */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Стилизация скроллбара (Webkit: Chrome, Safari, Edge) */
+.comments-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 5px 0;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid transparent; /* Отступ от края */
+  background-clip: content-box;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Пузырь комментария */
+.comment-bubble {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  /* Небольшой "хвостик" или просто округлый блок */
+  border-bottom-left-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.comment-empty {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 10px;
+}
+
+/* Input & Button group */
+.comment-input-group {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}

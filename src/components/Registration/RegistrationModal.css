@@ -1,0 +1,205 @@
+/* ===== Modal Overlay & Container ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-card-reg {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== Header ===== */
+.modal-header-reg {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.btn-close-reg {
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0 5px;
+  line-height: 1;
+}
+.btn-close-reg:hover {
+  color: #ef4444;
+}
+
+/* ===== Photo Upload Section ===== */
+.photo-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.photo-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: 0.2s;
+}
+.photo-placeholder:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.photo-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #6366f1;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: 2px solid white;
+  pointer-events: none;
+}
+
+.photo-label-text {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ===== Form Fields ===== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-group-reg {
+  margin-bottom: 15px;
+}
+
+.form-label-reg {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.form-input-reg,
+.form-select-reg {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.form-input-reg:focus,
+.form-select-reg:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: white;
+}
+
+/* ===== Actions ===== */
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+}
+
+.btn-reg {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.btn-primary-reg {
+  background: #6366f1;
+  color: white;
+}
+.btn-primary-reg:hover {
+  background: #4f46e5;
+}
+.btn-primary-reg:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.btn-outline-reg {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+.btn-outline-reg:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}

@@ -1,0 +1,212 @@
+/* ... (Ваши существующие стили) ... */
+
+/* ===== TASKS MODAL STYLES ===== */
+.tasks-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.task-accordion-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.task-accordion-item.open {
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+}
+
+/* Header (Всегда виден) */
+.task-acc-header {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.task-acc-header:hover {
+  background: #f1f5f9;
+}
+
+.acc-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.acc-title {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+.acc-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.acc-id {
+  background: #e0e7ff;
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.btn-toggle-details {
+  background: white;
+  border: 1px solid #cbd5e1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  color: var(--text-muted);
+}
+.task-accordion-item.open .btn-toggle-details {
+  transform: rotate(180deg);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Body (Скрыт по умолчанию) */
+.task-acc-body {
+  padding: 0 20px 20px 20px;
+  border-top: 1px dashed #e2e8f0;
+  display: none;
+  animation: fadeIn 0.3s;
+}
+.task-accordion-item.open .task-acc-body {
+  display: block;
+}
+
+.detail-block {
+  margin-top: 15px;
+}
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.detail-text {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* Photos Grid */
+.detail-photos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+.detail-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+}
+
+/* Comments List */
+.detail-comments {
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.comment-row {
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.comment-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+  .task-acc-header {
+    flex-direction: row;
+    align-items: center;
+  } /* Keep row for toggle button */
+  .acc-meta {
+    flex-wrap: wrap;
+  }
+}
+/* Новая кнопка закрытия модалки */
+.btn-close-modal {
+  border: none;
+  background: none;
+  fontsize: 1.8rem;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+  padding: 0 5px;
+}
+.btn-close-modal:hover {
+  color: #ef4444;
+}
+
+/* Блок действий справа в заголовке */
+.acc-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Кнопка удаления (мусорка) */
+.btn-icon-delete {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-icon-delete:hover {
+  background: #fee2e2;
+}
+
+/* Пагинация внутри модалки */
+.pagination-modal {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}

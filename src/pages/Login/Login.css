@@ -1,0 +1,915 @@
+/* ===== CSS-переменные для гибкости ===== */
+:root {
+  --primary-dark: #1e3a5f;
+  --primary: #2d5a87;
+  --primary-light: #4a90c2;
+  --accent-yellow: #fbbf24;
+  --accent-pink: #f472b6;
+  --accent-purple: #a78bfa;
+  --accent-blue: #60a5fa;
+  --accent-teal: #7dd3c0;
+  --white: #ffffff;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --error: #ef4444;
+  --error-light: #fef2f2;
+
+  /* Адаптивные размеры */
+  --radius-sm: clamp(8px, 2vw, 12px);
+  --radius-md: clamp(12px, 3vw, 16px);
+  --radius-lg: clamp(16px, 4vw, 24px);
+
+  --space-xs: clamp(4px, 1vw, 8px);
+  --space-sm: clamp(8px, 2vw, 12px);
+  --space-md: clamp(12px, 3vw, 20px);
+  --space-lg: clamp(16px, 4vw, 32px);
+  --space-xl: clamp(24px, 5vw, 48px);
+
+  --font-xs: clamp(10px, 2.5vw, 12px);
+  --font-sm: clamp(12px, 3vw, 14px);
+  --font-base: clamp(14px, 3.5vw, 16px);
+  --font-lg: clamp(16px, 4vw, 20px);
+  --font-xl: clamp(20px, 5vw, 28px);
+  --font-2xl: clamp(24px, 6vw, 36px);
+}
+
+/* ===== Базовые настройки ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.login-page {
+  min-height: 100dvh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--space-md);
+  gap: var(--space-lg);
+}
+
+/* ===== Анимированный разноцветный фон ===== */
+.login-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    -45deg,
+    #1e3a5f,
+    #2d5a87,
+    #4a90c2,
+    #5bb5d9,
+    #7dd3c0,
+    #fbbf24,
+    #f59e0b
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  z-index: -1;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Плавающие разноцветные фигуры */
+.floating-shapes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.floating-shapes span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  animation: float 25s infinite linear;
+  opacity: 0.5;
+  filter: blur(1px);
+}
+
+.floating-shapes span:nth-child(1) {
+  left: 5%;
+  width: clamp(40px, 10vw, 80px);
+  height: clamp(40px, 10vw, 80px);
+  background: var(--accent-yellow);
+  animation-delay: 0s;
+  animation-duration: 20s;
+}
+.floating-shapes span:nth-child(2) {
+  left: 75%;
+  width: clamp(30px, 8vw, 60px);
+  height: clamp(30px, 8vw, 60px);
+  background: var(--accent-teal);
+  animation-delay: 4s;
+  animation-duration: 22s;
+}
+.floating-shapes span:nth-child(3) {
+  left: 25%;
+  width: clamp(50px, 12vw, 100px);
+  height: clamp(50px, 12vw, 100px);
+  background: var(--accent-pink);
+  animation-delay: 8s;
+  animation-duration: 18s;
+}
+.floating-shapes span:nth-child(4) {
+  left: 85%;
+  width: clamp(25px, 6vw, 50px);
+  height: clamp(25px, 6vw, 50px);
+  background: var(--accent-purple);
+  animation-delay: 12s;
+  animation-duration: 24s;
+}
+.floating-shapes span:nth-child(5) {
+  left: 45%;
+  width: clamp(35px, 9vw, 70px);
+  height: clamp(35px, 9vw, 70px);
+  background: var(--accent-blue);
+  animation-delay: 16s;
+  animation-duration: 21s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(110vh) rotate(0deg) scale(1);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.5;
+  }
+  95% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-10vh) rotate(720deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* ===== Карточка входа ===== */
+.login-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 5vw, 40px);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: min(440px, 92vw);
+  position: relative;
+  z-index: 1;
+  animation: cardSlideUp 0.6s ease-out;
+  overflow: hidden;
+}
+
+/* Цветная верхняя полоса */
+.login-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: clamp(4px, 1vw, 6px);
+  background: linear-gradient(
+    90deg,
+    var(--accent-yellow),
+    var(--accent-pink),
+    var(--accent-purple),
+    var(--accent-blue),
+    var(--accent-teal)
+  );
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Шапка ===== */
+.login-header {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.logo-ring {
+  width: clamp(70px, 18vw, 90px);
+  height: clamp(70px, 18vw, 90px);
+  margin: 0 auto var(--space-sm);
+  background: linear-gradient(
+    135deg,
+    var(--accent-yellow) 0%,
+    var(--accent-pink) 50%,
+    var(--accent-purple) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.4);
+  animation: colorPulse 3s ease infinite;
+}
+
+.logo-ring svg {
+  width: clamp(28px, 7vw, 40px);
+  height: clamp(28px, 7vw, 40px);
+}
+
+@keyframes colorPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 12px 30px rgba(244, 114, 182, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 16px 40px rgba(251, 191, 36, 0.5);
+  }
+}
+
+.institution-name {
+  color: var(--primary-dark);
+  font-size: clamp(18px, 4.5vw, 22px);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+  line-height: 1.3;
+}
+
+.system-tagline {
+  color: var(--gray-500);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ===== Выбор роли ===== */
+.role-selector {
+  margin-bottom: var(--space-md);
+}
+
+.role-label {
+  font-size: var(--font-xs);
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+}
+
+.role-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.role-tab {
+  flex: 1;
+  min-width: min(90px, 28vw);
+  padding: clamp(10px, 2.5vw, 14px) clamp(6px, 2vw, 10px);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.role-tab:nth-child(1):hover {
+  border-color: var(--accent-yellow);
+  background: #fffbeb;
+}
+.role-tab:nth-child(2):hover {
+  border-color: var(--accent-purple);
+  background: #f5f3ff;
+}
+.role-tab:nth-child(3):hover {
+  border-color: var(--accent-teal);
+  background: #f0fdfa;
+}
+
+.role-tab.active:nth-child(1) {
+  border-color: var(--accent-yellow);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+}
+.role-tab.active:nth-child(2) {
+  border-color: var(--accent-purple);
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
+}
+.role-tab.active:nth-child(3) {
+  border-color: var(--accent-teal);
+  background: linear-gradient(135deg, #7dd3c0 0%, #14b8a6 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(125, 211, 192, 0.4);
+}
+
+.role-icon {
+  font-size: clamp(18px, 4.5vw, 22px);
+}
+
+.role-tab span {
+  font-size: clamp(10px, 2.5vw, 12px);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ===== Поля формы ===== */
+.form-field {
+  position: relative;
+  margin-bottom: var(--space-sm);
+}
+
+.field-icon {
+  position: absolute;
+  left: clamp(12px, 3vw, 16px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  font-size: clamp(14px, 3.5vw, 16px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.field-input {
+  width: 100%;
+  padding: clamp(12px, 3vw, 16px) clamp(40px, 10vw, 48px);
+  padding-left: clamp(40px, 10vw, 48px);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+  color: var(--gray-800);
+  background: var(--gray-50);
+  transition: all 0.3s ease;
+}
+
+.field-input::placeholder {
+  color: var(--gray-400);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+  background: white;
+  color: black;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.12);
+}
+
+.form-field:focus-within .field-icon {
+  color: var(--accent-purple);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.password-toggle {
+  position: absolute;
+  right: clamp(10px, 2.5vw, 14px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  font-size: clamp(14px, 3.5vw, 16px);
+  cursor: pointer;
+  padding: var(--space-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.password-toggle:hover {
+  color: var(--accent-pink);
+  transform: translateY(-50%) scale(1.15);
+}
+
+.password-toggle:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* ===== Ошибки ===== */
+.field-error .field-input {
+  border-color: #f87171;
+  background: var(--error-light);
+}
+
+.field-error .field-icon {
+  color: #f87171;
+}
+
+.error-message {
+  display: block;
+  margin-top: var(--space-xs);
+  color: var(--error);
+  font-size: var(--font-xs);
+  padding-left: var(--space-xs);
+  font-weight: 500;
+}
+
+/* ===== Кнопка входа ===== */
+.login-button {
+  width: 100%;
+  padding: clamp(14px, 3.5vw, 18px);
+  background: linear-gradient(
+    90deg,
+    var(--accent-yellow),
+    var(--accent-pink),
+    var(--accent-purple),
+    var(--accent-blue)
+  );
+  background-size: 300% 100%;
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: var(--font-base);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: var(--space-xs);
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  animation: buttonGradient 5s ease infinite;
+  min-height: 48px;
+}
+
+@keyframes buttonGradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.login-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.login-button:hover::before {
+  left: 100%;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(167, 139, 250, 0.35);
+}
+
+.login-button:active {
+  transform: translateY(-1px);
+}
+
+/* ===== Подвал формы ===== */
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 16px);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--accent-pink);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: var(--space-xs);
+}
+
+.forgot-password-link:hover {
+  color: #ec4899;
+  text-decoration: underline;
+}
+
+.help-link {
+  background: none;
+  border: none;
+  color: var(--accent-blue);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: var(--space-xs);
+}
+
+.help-link:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.divider {
+  color: var(--gray-300);
+  user-select: none;
+}
+
+/* ===== Информационный баннер ===== */
+.info-banner {
+  margin-top: var(--space-md);
+  padding: clamp(12px, 3vw, 16px);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--accent-yellow);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-banner::before {
+  content: "✨";
+  position: absolute;
+  right: clamp(8px, 2vw, 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(18px, 4.5vw, 24px);
+  opacity: 0.25;
+}
+
+.info-banner p {
+  color: #92400e;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  padding-right: 30px;
+  line-height: 1.4;
+}
+
+/* ===== Статистика системы ===== */
+.system-stats {
+  display: flex;
+  gap: clamp(16px, 4vw, 32px);
+  padding: clamp(16px, 4vw, 24px) clamp(20px, 5vw, 32px);
+  background: rgb(143 0 0 / 25%);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 100%;
+  max-width: min(600px, 95vw);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0 clamp(12px, 3vw, 20px);
+  position: relative;
+  min-width: min(100px, 25vw);
+}
+
+.stat-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.stat-item:nth-child(1) .stat-number {
+  color: var(--accent-yellow);
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+.stat-item:nth-child(2) .stat-number {
+  color: var(--accent-teal);
+  text-shadow: 0 0 20px rgba(125, 211, 192, 0.5);
+}
+.stat-item:nth-child(3) .stat-number {
+  color: var(--accent-pink);
+  text-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
+}
+
+.stat-number {
+  font-size: clamp(24px, 6vw, 32px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(9px, 2.2vw, 11px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* ===== МЕДИА-ЗАПРОСЫ ===== */
+
+/* Маленькие телефоны (до 360px) */
+@media (max-width: 360px) {
+  .login-page {
+    padding: 12px;
+    justify-content: flex-start;
+    padding-top: 20px;
+  }
+
+  .role-tabs {
+    flex-direction: column;
+  }
+
+  .role-tab {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .role-tab span {
+    font-size: 14px;
+  }
+
+  .system-stats {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stat-item {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 0;
+  }
+
+  .stat-item:not(:last-child)::after {
+    display: none;
+  }
+
+  .stat-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Телефоны (361px - 480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+  .role-tabs {
+    flex-direction: row;
+  }
+
+  .role-tab {
+    min-width: 0;
+  }
+
+  .role-tab span {
+    font-size: 11px;
+  }
+
+  .system-stats {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .stat-item {
+    min-width: calc(50% - 8px);
+  }
+
+  .stat-item:nth-child(2)::after {
+    display: none;
+  }
+
+  .stat-item:nth-child(3) {
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 16px;
+  }
+}
+
+/* Планшеты (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .login-card {
+    max-width: 420px;
+  }
+
+  .system-stats {
+    max-width: 420px;
+  }
+}
+
+/* Маленькие десктопы и планшеты в альбоме (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .login-page {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 40px;
+  }
+
+  .login-card {
+    max-width: 400px;
+  }
+
+  .system-stats {
+    max-width: 400px;
+    order: -1;
+  }
+}
+
+/* Десктопы (1025px и выше) */
+@media (min-width: 1025px) {
+  .login-page {
+    flex-direction: row;
+    gap: 60px;
+    padding: 40px;
+  }
+
+  .login-card {
+    max-width: 440px;
+  }
+
+  .system-stats {
+    flex-direction: column;
+    max-width: 200px;
+    order: -1;
+    align-self: center;
+  }
+
+  .stat-item {
+    padding: 16px 0;
+  }
+
+  .stat-item:not(:last-child)::after {
+    width: 60%;
+    height: 1px;
+    top: auto;
+    bottom: 0;
+    left: 20%;
+    right: auto;
+  }
+}
+
+/* Очень большие экраны (1440px и выше) */
+@media (min-width: 1440px) {
+  .login-page {
+    gap: 80px;
+  }
+
+  .login-card {
+    max-width: 480px;
+    padding: 48px;
+  }
+
+  .system-stats {
+    max-width: 240px;
+    padding: 32px;
+  }
+}
+
+/* Горизонтальная ориентация на телефонах */
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-page {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    padding-top: 20px;
+    gap: 20px;
+  }
+
+  .login-card {
+    max-width: 360px;
+  }
+
+  .logo-ring {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
+  }
+
+  .login-header {
+    margin-bottom: 16px;
+  }
+
+  .role-selector {
+    margin-bottom: 16px;
+  }
+
+  .system-stats {
+    max-width: 360px;
+    flex-direction: row;
+    padding: 16px 24px;
+  }
+
+  .stat-item {
+    min-width: 80px;
+  }
+}
+
+/* Предпочтение уменьшенной анимации */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .login-bg {
+    animation: none;
+    background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+  }
+}
+
+/* Тёмная тема (если системная) */
+@media (prefers-color-scheme: dark) {
+  .login-card {
+    background: rgba(30, 41, 59, 0.98);
+  }
+
+  .institution-name {
+    color: #f1f5f9;
+  }
+
+  .field-input {
+    background: #334155;
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+
+  .field-input::placeholder {
+    color: #94a3b8;
+  }
+}
