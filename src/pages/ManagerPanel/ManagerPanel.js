@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import EmployeeCard from "../../components/EmployeeCard/EmployeeCard";
 import "./ManagerPanel.css";
 import { IconBuilding, IconPlus, IconList } from "../../components/Icons";
 import TasksModal from "../../components/EmployeeTasksModal/TasksModal";
+import EmployeeServerApi from "../../apiServices/employeeApi";
+import EmployeeWorkspacesModal from "../../components/EmployeeWorkspacesModal/EmployeeWorkspacesModal";
+import WorkspaceModal from "../../components/WorkspaceModal/WorkspaceModal";
 
 function ManagerPanel() {
   // --- STATE (UI) ---
@@ -17,140 +20,189 @@ function ManagerPanel() {
   const itemsPerPage = 4;
 
   // --- DATA ---
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: "Алексей Смирнов",
-      role: "Сантехник",
-      status: "Online",
-      currentLocation: "Корпус А, Подвал",
-      defaultLocation: "Мастерская 1",
-      zoneIds: [101, 103],
-      avatar: "https://randomuser.me/api/portraits/men/33.jpg",
-    },
-    {
-      id: 2,
-      name: "Дмитрий Орлов",
-      role: "Электрик",
-      status: "Busy",
-      currentLocation: "Общежитие, 3 этаж",
-      defaultLocation: "Щитовая",
-      zoneIds: [104],
-      avatar: "https://randomuser.me/api/portraits/men/55.jpg",
-    },
-    {
-      id: 3,
-      name: "Мария Ковалева",
-      role: "Уборка",
-      status: "Offline",
-      currentLocation: "-",
-      defaultLocation: "Подсобка 102",
-      zoneIds: [102],
-      avatar: "https://randomuser.me/api/portraits/women/42.jpg",
-    },
-    {
-      id: 4,
-      name: "Иван Петров",
-      role: "Плотник",
-      status: "Online",
-      currentLocation: "Корпус Б, 1 этаж",
-      defaultLocation: "Столярная",
-      zoneIds: [],
-      avatar: "https://randomuser.me/api/portraits/men/12.jpg",
-    },
-    {
-      id: 5,
-      name: "Елена Сидорова",
-      role: "Уборка",
-      status: "Online",
-      currentLocation: "Главный корпус",
-      defaultLocation: "Холл",
-      zoneIds: [101],
-      avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-  ]);
+  const [employees, setEmployees] = useState([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
 
-  const [tasks, setTasks] = useState([
-    {
-      id: 10,
-      title: "Протечка трубы",
-      date: "20.05",
-      location: "Туалет 2 эт.",
-      priority: "High",
-      assignedTo: [1],
-      category: "Сантехника",
-      desc: "Срочно течет вода",
-    },
-    {
-      id: 11,
-      title: "Замена ламп",
-      date: "19.05",
-      location: "Коридор 1 эт.",
-      priority: "Low",
-      assignedTo: [2],
-      category: "Электрика",
-      desc: "Перегорели лампы",
-    },
-    {
-      id: 12,
-      title: "Генеральная уборка",
-      date: "18.05",
-      location: "Холл",
-      priority: "Medium",
-      assignedTo: [1, 3],
-      category: "Клининг",
-      desc: "Плановая уборка",
-    },
-    {
-      id: 13,
-      title: "Ремонт крана",
-      date: "18.05",
-      location: "Кухня",
-      priority: "Low",
-      assignedTo: [1],
-      category: "Сантехника",
-      desc: "Капает кран",
-    },
-    {
-      id: 14,
-      title: "Проверка отопления",
-      date: "17.05",
-      location: "Подвал",
-      priority: "Medium",
-      assignedTo: [],
-      category: "Инженерные сети",
-      desc: "Проверка давления",
-    },
-    {
-      id: 15,
-      title: "Сломан стул",
-      date: "16.05",
-      location: "Ауд. 205",
-      priority: "Low",
-      assignedTo: [],
-      category: "Мебель",
-      desc: "Отвалилась ножка",
-    },
-  ]);
+  // превью заявок
+  const [tasksPreviewByEmpId, setTasksPreviewByEmpId] = useState({});
+  const previewLoadedRef = useRef(new Set());
 
-  const [zones, setZones] = useState([
-    { id: 101, building: "Корпус А", floor: "2 этаж", spot: "Правое крыло" },
-    { id: 102, building: "Корпус Б", floor: "1 этаж", spot: "Вестибюль" },
-    { id: 103, building: "Главный корпус", floor: "1 этаж", spot: "Столовая" },
-    { id: 104, building: "Общежитие №1", floor: "Все", spot: "Весь корпус" },
-  ]);
+  const employeeApi = useMemo(() => new EmployeeServerApi(), []);
 
-  // --- HELPERS ---
-  const uniqueBuildings = [...new Set(zones.map((z) => z.building))];
+  // --- LOAD EMPLOYEES FROM API ---
+  const loadEmployees = async (page = 1, pageSize = 20) => {
+    setIsLoadingEmployees(true);
+    try {
+      const res = await employeeApi.GetEmployees(page, pageSize);
 
-  // --- FILTERING & PAGINATION ---
+      if (res?.success && Array.isArray(res.employees)) {
+        const mapped = res.employees.map((e, index) => {
+          const user = e.user || e.employee?.user || {};
+          const currentBuilding = e.currentBuilding?.name || "";
+          const defaultBuilding = e.defaultBuilding?.name || "";
+          const zoneIds = e.workspaceIds || e.workSpaceIds || e.zoneIds || [];
+
+          return {
+            id: e.id || e.employee?.id || index + 1,
+            name:
+              user.fullName ||
+              `${user.lastName ?? ""} ${user.firstName ?? ""}`.trim() ||
+              "Без имени",
+            role: e.role || "Сотрудник",
+            status: e.isAvailable ? "Online" : "Offline",
+            currentLocation: currentBuilding || "-",
+            defaultLocation: defaultBuilding || "",
+            zoneIds: Array.isArray(zoneIds) ? zoneIds : [],
+            avatar:
+              user.profilePhotoUrl ||
+              "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+          };
+        });
+
+        setEmployees(mapped);
+      } else {
+        setEmployees([]);
+      }
+    } catch (err) {
+      console.error("Load employees error:", err);
+      setEmployees([]);
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEmployees(1, 20);
+  }, [employeeApi]);
+
+  // ===== helpers =====
+  const isRequestInWork = (r) => {
+    const raw =
+      r?.status ??
+      r?.requestStatus ??
+      r?.state ??
+      r?.statusName ??
+      r?.requestState;
+
+    if (raw == null) return true;
+
+    if (typeof raw === "string") {
+      const s = raw.toLowerCase();
+      return (
+        s.includes("в работе") ||
+        s.includes("inwork") ||
+        s.includes("in_work") ||
+        s.includes("in progress") ||
+        s.includes("inprogress") ||
+        s.includes("progress") ||
+        s.includes("assigned") ||
+        s.includes("accepted") ||
+        s.includes("working")
+      );
+    }
+
+    return true;
+  };
+
+  const mapRequestToTask = (r) => ({
+    id: r.id,
+    number: r.number,
+    title: r.typeOfProblem?.title || "Заявка",
+    date: new Date(r.createAt).toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    location:
+      r.location?.floor?.building?.name && r.location?.name
+        ? `${r.location.floor.building.name}, ${r.location.name}`
+        : r.location?.name || "Не указано",
+    priority: r.priority,
+    category: r.typeOfProblem?.title || "",
+    desc: r.description,
+  });
+
+  const loadTasksForEmployee = async (employee, take = 50) => {
+    if (!employee?.id) return [];
+    try {
+      const res = await employeeApi.GetRequestsForEmployee(
+        employee.id,
+        1,
+        take,
+      );
+      if (!res?.success || !Array.isArray(res.requests)) return [];
+
+      const requests = res.requests.map((x) => x?.request ?? x).filter(Boolean);
+      const inWork = requests.filter(isRequestInWork);
+
+      return inWork.map(mapRequestToTask);
+    } catch (err) {
+      console.error("Load tasks for employee error:", err);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (!employees.length) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      const toLoad = employees.filter(
+        (e) => e?.id && !previewLoadedRef.current.has(e.id),
+      );
+      if (!toLoad.length) return;
+
+      const results = await Promise.allSettled(
+        toLoad.map(async (emp) => {
+          const preview = await loadTasksForEmployee(emp, 2);
+          return { empId: emp.id, preview };
+        }),
+      );
+
+      if (cancelled) return;
+
+      const patch = {};
+      for (const r of results) {
+        if (r.status === "fulfilled") {
+          patch[r.value.empId] = r.value.preview;
+          previewLoadedRef.current.add(r.value.empId);
+        }
+      }
+      setTasksPreviewByEmpId((prev) => ({ ...prev, ...patch }));
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [employees]);
+
+  // ===== Building filter options =====
+  const uniqueBuildings = useMemo(() => {
+    const set = new Set();
+    for (const e of employees) {
+      if (e.currentLocation && e.currentLocation !== "-") {
+        set.add(e.currentLocation);
+      }
+      if (e.defaultLocation) {
+        set.add(e.defaultLocation);
+      }
+    }
+    return Array.from(set);
+  }, [employees]);
+
+  // --- FILTERING ---
   const filteredEmployees = employees.filter((emp) => {
     const statusMatch = filterStatus === "All" || emp.status === filterStatus;
-    let buildingMatch = true;
-    if (filterBuilding !== "All") {
-      const employeeZones = zones.filter((z) => emp.zoneIds.includes(z.id));
-      buildingMatch = employeeZones.some((z) => z.building === filterBuilding);
-    }
+
+    const buildingMatch =
+      filterBuilding === "All" ||
+      emp.currentLocation === filterBuilding ||
+      emp.defaultLocation === filterBuilding;
+
     return statusMatch && buildingMatch;
   });
 
@@ -160,75 +212,24 @@ function ManagerPanel() {
     indexOfFirstItem,
     indexOfLastItem,
   );
-  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage) || 1;
 
   // --- HANDLERS ---
+  const handleUnassignTask = async (taskId) => {
+    if (!selectedEmp) return;
+    console.log("Снять заявку", taskId, "с сотрудника", selectedEmp.id);
 
-  // Логика снятия задачи с сотрудника
-  const handleUnassignTask = (taskId) => {
-    // 1. Обновляем глобальный список задач (убираем ID сотрудника из массива assignedTo)
-    const updatedTasks = tasks.map((t) => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          assignedTo: t.assignedTo.filter((id) => id !== selectedEmp.id),
-        };
-      }
-      return t;
-    });
+    const full = await loadTasksForEmployee(selectedEmp, 50);
+    setModalTasks(full);
 
-    setTasks(updatedTasks);
-
-    // 2. Обновляем список задач в открытом модальном окне
-    const newModalTasks = updatedTasks.filter((t) =>
-      t.assignedTo.includes(selectedEmp.id),
-    );
-    setModalTasks(newModalTasks);
-  };
-
-  const handleAssignZones = (e) => {
-    e.preventDefault();
-    const checkboxes = e.target.querySelectorAll(
-      'input[name="zoneIds"]:checked',
-    );
-    const selectedZoneIds = Array.from(checkboxes).map((cb) =>
-      Number(cb.value),
-    );
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === selectedEmp.id ? { ...emp, zoneIds: selectedZoneIds } : emp,
-      ),
-    );
-    setActiveModal(null);
+    const preview = await loadTasksForEmployee(selectedEmp, 2);
+    setTasksPreviewByEmpId((prev) => ({ ...prev, [selectedEmp.id]: preview }));
   };
 
   const handleAssignTaskToEmp = (e) => {
     e.preventDefault();
-    const checkboxes = e.target.querySelectorAll(
-      'input[name="taskIds"]:checked',
-    );
-    const selectedTaskIds = Array.from(checkboxes).map((cb) =>
-      Number(cb.value),
-    );
-
-    const updatedTasks = tasks.map((t) => {
-      if (selectedTaskIds.includes(t.id)) {
-        if (!t.assignedTo.includes(selectedEmp.id)) {
-          return { ...t, assignedTo: [...t.assignedTo, selectedEmp.id] };
-        }
-      }
-      return t;
-    });
-
-    setTasks(updatedTasks);
-    setActiveModal(null);
-    alert("Задачи назначены!");
-  };
-
-  const handleCreateZone = (e) => {
-    e.preventDefault();
-    // Логика создания зоны (заглушка)
-    alert("Зона создана");
+    if (!selectedEmp) return;
+    alert("Назначение заявок пока реализовано как заглушка.");
     setActiveModal(null);
   };
 
@@ -237,17 +238,45 @@ function ManagerPanel() {
     setSelectedEmp(emp);
     setActiveModal("assignZones");
   };
-  const openEmpDetails = (emp, tasks) => {
+
+  const openEmpDetails = async (emp) => {
     setSelectedEmp(emp);
-    setModalTasks(tasks);
+
+    const preview = tasksPreviewByEmpId[emp.id] ?? [];
+    setModalTasks(preview);
     setActiveModal("empDetails");
+
+    const fullInWork = await loadTasksForEmployee(emp, 50);
+    const previewIds = new Set(preview.map((t) => t.id));
+    const rest = fullInWork.filter((t) => !previewIds.has(t.id));
+
+    setModalTasks([...preview, ...rest]);
   };
+
   const openAssignNewTask = (emp) => {
     setSelectedEmp(emp);
     setActiveModal("assignNewTask");
   };
+
   const goToAllRequests = () => {
     alert("Переход на страницу всех заявок...");
+  };
+
+  // --- CALLBACK после сохранения рабочих зон сотрудника ---
+  const handleWorkspacesSaved = (employeeId, workspaceIds) => {
+    setEmployees((prev) =>
+      prev.map((e) =>
+        e.id === employeeId ? { ...e, zoneIds: workspaceIds } : e,
+      ),
+    );
+
+    setSelectedEmp((prev) =>
+      prev?.id === employeeId ? { ...prev, zoneIds: workspaceIds } : prev,
+    );
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
   };
 
   return (
@@ -268,7 +297,6 @@ function ManagerPanel() {
       </header>
 
       <div className="manager-container">
-        {/* Toolbar */}
         <div className="toolbar">
           <div className="toolbar-left">
             <h1 className="page-title">Сотрудники</h1>
@@ -313,6 +341,7 @@ function ManagerPanel() {
             <button className="btn btn-outline" onClick={goToAllRequests}>
               <IconList /> Все заявки
             </button>
+
             <button
               className="btn btn-primary"
               onClick={() => setActiveModal("createZone")}
@@ -322,22 +351,30 @@ function ManagerPanel() {
           </div>
         </div>
 
-        {/* Grid */}
         <div className="employee-grid">
-          {currentEmployees.map((emp) => (
-            <EmployeeCard
-              key={emp.id}
-              emp={emp}
-              tasks={tasks}
-              zones={zones}
-              onAssignZones={openAssignZones}
-              onViewDetails={openEmpDetails}
-              onAssignNewTask={openAssignNewTask}
-            />
-          ))}
+          {isLoadingEmployees ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+              Загрузка сотрудников...
+            </div>
+          ) : currentEmployees.length > 0 ? (
+            currentEmployees.map((emp) => (
+              <EmployeeCard
+                key={emp.id}
+                emp={emp}
+                tasks={tasksPreviewByEmpId[emp.id] ?? []}
+                zones={[]}
+                onAssignZones={openAssignZones}
+                onViewDetails={() => openEmpDetails(emp)}
+                onAssignNewTask={openAssignNewTask}
+              />
+            ))
+          ) : (
+            <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+              Сотрудники не найдены
+            </div>
+          )}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination">
             <button
@@ -347,6 +384,7 @@ function ManagerPanel() {
             >
               &lt;
             </button>
+
             {[...Array(totalPages)].map((_, i) => (
               <button
                 key={i}
@@ -356,6 +394,7 @@ function ManagerPanel() {
                 {i + 1}
               </button>
             ))}
+
             <button
               className="page-btn"
               disabled={currentPage === totalPages}
@@ -367,9 +406,9 @@ function ManagerPanel() {
         )}
       </div>
 
-      {/* ===== MODAL: ASSIGN NEW TASK TO EMPLOYEE ===== */}
+      {/* MODAL: ASSIGN NEW TASK */}
       {activeModal === "assignNewTask" && selectedEmp && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+        <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Назначить заявку</h3>
@@ -380,155 +419,63 @@ function ManagerPanel() {
                   fontSize: "1.5rem",
                   cursor: "pointer",
                 }}
-                onClick={() => setActiveModal(null)}
+                onClick={closeModal}
               >
                 &times;
               </button>
             </div>
+
             <p style={{ marginBottom: 15 }}>
               Сотрудник: <strong>{selectedEmp.name}</strong>
-            </p>
-            <p
-              style={{
-                fontSize: "0.85rem",
-                marginBottom: 10,
-                color: "#64748b",
-              }}
-            >
-              Выберите заявки из списка:
             </p>
 
             <form onSubmit={handleAssignTaskToEmp}>
               <div className="selectable-list">
-                {tasks.map((t) => {
-                  const isAssigned = t.assignedTo.includes(selectedEmp.id);
-                  return (
-                    <label
-                      key={t.id}
-                      className="selectable-item"
-                      style={{ opacity: isAssigned ? 0.6 : 1 }}
-                    >
-                      <input
-                        type="checkbox"
-                        name="taskIds"
-                        value={t.id}
-                        disabled={isAssigned}
-                      />
-                      <div className="item-content">
-                        <span className="item-title">
-                          {t.title}{" "}
-                          {isAssigned && (
-                            <span
-                              style={{ color: "green", fontSize: "0.7rem" }}
-                            >
-                              (Уже назначена)
-                            </span>
-                          )}
-                        </span>
-                        <span className="item-meta">
-                          {t.location} • {t.priority}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                })}
+                <div
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "#64748b",
+                    padding: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  Логика назначения заявок на сотрудника пока заглушка.
+                </div>
               </div>
               <button
                 type="submit"
                 className="btn btn-primary"
                 style={{ width: "100%", marginTop: 20 }}
               >
-                Назначить выбранные
+                Ок
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ===== MODAL: TASKS DETAILS (Component) ===== */}
+      {/* MODAL: TASKS DETAILS */}
       <TasksModal
         isOpen={activeModal === "empDetails"}
-        onClose={() => setActiveModal(null)}
+        onClose={closeModal}
         employeeName={selectedEmp?.name}
         tasks={modalTasks}
-        onUnassignTask={handleUnassignTask} // Передаем функцию удаления
+        onUnassignTask={handleUnassignTask}
       />
 
-      {/* ===== MODAL: ASSIGN ZONES ===== */}
-      {activeModal === "assignZones" && selectedEmp && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Назначить зоны</h3>
-              <button onClick={() => setActiveModal(null)}>&times;</button>
-            </div>
-            <form onSubmit={handleAssignZones}>
-              <div className="checkbox-list">
-                {zones.map((z) => (
-                  <label key={z.id} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      name="zoneIds"
-                      value={z.id}
-                      defaultChecked={selectedEmp.zoneIds.includes(z.id)}
-                    />
-                    <span>
-                      {z.building}, {z.floor} <small>({z.spot})</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: "100%", marginTop: 20 }}
-              >
-                Сохранить
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* MODAL: WORKSPACES ASSIGNMENT */}
+      <EmployeeWorkspacesModal
+        isOpen={activeModal === "assignZones"}
+        onClose={closeModal}
+        employee={selectedEmp}
+        onSaved={handleWorkspacesSaved}
+      />
 
-      {/* ===== MODAL: CREATE ZONE ===== */}
-      {activeModal === "createZone" && (
-        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Новая зона</h3>
-              <button onClick={() => setActiveModal(null)}>&times;</button>
-            </div>
-            <form onSubmit={handleCreateZone}>
-              <div className="form-group">
-                <label className="form-label">Здание</label>
-                <select name="building" className="form-select">
-                  <option>Главный корпус</option>
-                  <option>Корпус А</option>
-                  <option>Корпус Б</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Этаж</label>
-                <select name="floor" className="form-select">
-                  <option>1 этаж</option>
-                  <option>2 этаж</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Место</label>
-                <input name="spot" className="form-input" required />
-              </div>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: "100%" }}
-              >
-                Создать
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* MODAL: CREATE WORKSPACE */}
+      <WorkspaceModal
+        isOpen={activeModal === "createZone"}
+        onClose={closeModal}
+      />
     </>
   );
 }

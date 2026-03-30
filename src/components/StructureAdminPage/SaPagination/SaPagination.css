@@ -1,0 +1,33 @@
+.sa-pagination {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.sa-pageBtn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sa-pageBtn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.sa-pageBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sa-pageBtn.isActive {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #fff;
+}

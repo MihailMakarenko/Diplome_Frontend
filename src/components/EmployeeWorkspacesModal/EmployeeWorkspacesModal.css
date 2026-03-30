@@ -1,0 +1,359 @@
+.empws2 {
+  width: min(860px, 96vw);
+  max-height: min(86vh, 860px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER: меньше отступов + красивый крестик */
+.empws2-header {
+  padding: 12px 14px !important;
+}
+
+.empws2-title {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+}
+
+.empws2-closeX {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: #334155;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s ease;
+}
+
+.empws2-closeX:hover {
+  border-color: rgba(14, 165, 233, 0.7);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  transform: translateY(-1px);
+}
+
+.empws2-closeX:active {
+  transform: translateY(0);
+}
+
+/* FIXED HEAD: уменьшаем расстояния сверху */
+.empws2-head {
+  padding: 6px 10px 6px;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.empws-modeBtns {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px; /* меньше расстояние от заголовка */
+}
+
+.empws-modeBtn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 0.78rem; /* меньше текст */
+}
+
+.empws-modeBtn.active {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #fff;
+}
+
+.empws-levelBtns {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  overflow: visible;
+}
+
+.empws-levelBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 5px 9px; /* меньше кнопки */
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 0.76rem; /* меньше текст */
+  line-height: 1;
+}
+
+.empws-levelBtn.active {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #fff;
+}
+
+/* filters */
+.empws2-filters {
+  max-width: 800px;
+  margin: 0 auto 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .empws2-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+.empws2-filterLabel {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 900;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  text-align: left;
+}
+
+.empws2-select {
+  border-radius: 12px;
+  font-size: 0.82rem;
+  padding: 7px 10px;
+}
+
+/* ERROR */
+.empws2-error {
+  max-width: 800px;
+  margin: 6px auto 4px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+}
+
+/* SCROLL BODY */
+.empws2-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+}
+
+.empws2-list {
+  display: grid;
+  gap: 8px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.empws2-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 9px 10px;
+}
+
+.empws2-itemRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+
+.empws2-itemTitle {
+  font-weight: 900;
+  font-size: 0.86rem; /* меньше текст */
+  color: #0f172a;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.empws2-itemMeta {
+  margin-top: 3px;
+  font-size: 0.74rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.empws2-itemDesc {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #334155;
+  text-align: center;
+}
+
+.empws2-muted {
+  padding: 10px;
+  color: #64748b;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+/* CHECK ROWS */
+.empws2-checkRow {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 9px 10px;
+}
+
+.empws2-checkRow.disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+.empws2-checkText {
+  min-width: 0;
+}
+
+.empws2-checkTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.empws2-checkTitle {
+  font-weight: 900;
+  font-size: 0.84rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.2;
+}
+
+.empws2-checkSub {
+  margin-top: 3px;
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.empws2-mini {
+  font-size: 0.64rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.empws2-checkRight {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #64748b;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* Expand button */
+.empws2-expandBtn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+  color: #475569;
+  display: grid;
+  place-items: center;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+  flex: 0 0 auto;
+}
+
+.empws2-expandBtn.open {
+  transform: rotate(180deg);
+}
+
+.empws2-expandBtn:hover {
+  border-color: rgba(14, 165, 233, 0.8);
+}
+
+/* FOOTER (без кнопки закрыть) */
+.empws2-footer {
+  border-top: 1px solid #e2e8f0;
+  padding: 8px 12px 10px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.empws2-actions {
+  max-width: 800px;
+  margin: 8px auto 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+@media (max-width: 720px) {
+  .empws2-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+.empws2-desire {
+  min-width: 200px;
+}
+.empws2-assignBtn {
+  min-width: 150px;
+}
+
+/* compact pagination */
+.empws-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.empws-pageBtn {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 0.76rem;
+  padding: 0 6px;
+}
+
+.empws-pageBtn.active {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #fff;
+}
+
+.empws-pageBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.empws-dots {
+  color: #64748b;
+  font-weight: 900;
+  padding: 0 2px;
+}

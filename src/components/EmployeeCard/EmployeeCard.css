@@ -1,0 +1,96 @@
+/* EmployeeCard.css */
+
+.task-mini-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.task-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-category {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.task-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.task-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  border-top: 1px dashed #f1f5f9;
+  padding-top: 6px;
+}
+
+.task-date {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.task-priority {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.priority-dot.high,
+.priority-dot.высокий {
+  background-color: #ef4444;
+}
+
+.priority-dot.medium,
+.priority-dot.средний {
+  background-color: #f59e0b;
+}
+
+.priority-dot.low {
+  background-color: #10b981;
+}
+
+.priority-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.no-tasks {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 5px;
+}
+
+.current-location {
+  font-weight: 600;
+}
+
+.current-location.online {
+  color: var(--primary);
+}
+
+.current-location.offline {
+  color: #94a3b8;
+}

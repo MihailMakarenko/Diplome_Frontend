@@ -1,0 +1,70 @@
+.sa-modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 2000;
+}
+
+.sa-modalCard {
+  width: min(720px, 96vw);
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+
+  /* Ключевое: модалка — колонка, тело растягивается */
+  display: flex;
+  flex-direction: column;
+
+  /* Ключевое: чтобы форма не “вылетала” и была прокрутка внутри */
+  max-height: min(80dvh, 760px);
+  overflow: hidden;
+}
+
+.sa-modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sa-modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.sa-closeBtn {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #334155;
+}
+
+.sa-modalBody {
+  /* Ключевое: тело занимает оставшуюся высоту и прокручивается */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+
+  padding: 14px 16px;
+}
+
+.sa-modalFooter {
+  padding: 12px 16px 16px 16px;
+  border-top: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sa-saveBtn {
+  width: 100%;
+}

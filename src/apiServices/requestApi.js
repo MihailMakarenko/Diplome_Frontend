@@ -1,6 +1,5 @@
 import axios from "axios";
-import { data } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import qs from "qs";
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
 
@@ -16,28 +15,69 @@ class RequestServerApi {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
       },
+      paramsSerializer: (params) =>
+        qs.stringify(params, {
+          arrayFormat: "repeat",
+          encode: true,
+        }),
+    });
+
+    this.api.interceptors.request.use((config) => {
+      console.log(
+        "[REQUEST]",
+        config.method?.toUpperCase(),
+        config.baseURL + (config.url || ""),
+        "params:",
+        config.params,
+      );
+      return config;
     });
   }
 
-  // Получение заявок пользователя с пагинацией и сортировкой
-  async GetRequests(pageNumber, pageSize, sortOrder) {
+  toUtcString(localValue) {
+    const d = new Date(localValue);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  async GetRequests(pageNumber, pageSize, filters = {}) {
     try {
       const params = {
         PageNumber: pageNumber,
         PageSize: pageSize,
       };
 
-      // Если передана строка сортировки (например "createAt desc"), добавляем её
-      if (sortOrder) {
-        params.OrderBy = sortOrder;
+      if (filters.minCreatedAt) {
+        const utc = this.toUtcString(filters.minCreatedAt);
+        if (utc) params.MinDateCreated = utc;
       }
-      console.log(params);
 
-      // Запрос к API
-      // Путь может отличаться: /api/users/{id}/requests или /api/requests/my
+      if (filters.maxCreatedAt) {
+        const utc = this.toUtcString(filters.maxCreatedAt);
+        if (utc) params.MaxDateCreated = utc;
+      }
+
+      if (Array.isArray(filters.priorities) && filters.priorities.length > 0) {
+        params.Priorities = filters.priorities;
+      }
+
+      if (Array.isArray(filters.statuses) && filters.statuses.length > 0) {
+        params.Statuses = filters.statuses;
+      }
+
+      if (filters.buildingId) params.BuildingId = filters.buildingId;
+      if (filters.floorId) params.FloorId = filters.floorId;
+      if (filters.locationId) params.LocationId = filters.locationId;
+
+      // filters.sort — одна строка: "status asc, CreateAt desc"
+      if (typeof filters.sort === "string" && filters.sort.trim().length > 0) {
+        params.OrderBy = filters.sort.trim();
+      }
+
+      console.log("REQUEST PARAMS (before axios):", params);
+
       const response = await this.api.get("", { params });
-      console.log(response);
-      // Парсинг заголовка пагинации
+
       let paginationMeta = null;
       const paginationHeader = response.headers["x-pagination"];
       if (paginationHeader) {

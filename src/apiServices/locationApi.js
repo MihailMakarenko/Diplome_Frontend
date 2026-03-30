@@ -4,7 +4,8 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
 
 class LocationApi {
   constructor() {
-    this.baseUrl = `${baseUrl}/floors`; // Используем корень, так как пути динамические
+    // базовый: /api/floors
+    this.baseUrl = `${baseUrl}/floors`;
 
     const token = localStorage.getItem("accessToken");
 
@@ -17,36 +18,60 @@ class LocationApi {
     });
   }
 
-  // Внимание!
-  // В вашем контроллере нет метода "GetLocationsForFloor" (список всех мест на этаже).
-  // Есть только GetLocation (по ID).
-  // Но для работы формы "Создать заявку" (где нужен список мест для выбора)
-  // вам, скорее всего, ПОНАДОБИТСЯ такой метод на сервере: GET /api/floors/{floorId}/locations
+  SetAccessToken(token) {
+    this.api.defaults.headers.Authorization = token ? `Bearer ${token}` : "";
+  }
 
-  // Если вы его добавите, он будет выглядеть так:
-  async getLocationsForFloor(floorId) {
+  _parsePagination(response) {
+    const header = response.headers?.["x-pagination"]; // axios приводит к lower-case
+    if (!header) return null;
     try {
-      // Предлагаемый путь, если вы расширите контроллер
-      const response = await this.api.get(`/${floorId}/locations`);
+      return JSON.parse(header);
+    } catch (e) {
+      console.error("Ошибка парсинга X-Pagination:", e);
+      return null;
+    }
+  }
 
-      console.log(response.data);
+  _err(error, fallback) {
+    return (
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      fallback
+    );
+  }
+
+  // =========================
+  // Получить места для этажа (с пагинацией)
+  // GET /api/floors/{floorId}/locations?PageNumber=&PageSize=
+  // =========================
+  async getLocationsForFloor(floorId, pageNumber = 1, pageSize = 100) {
+    try {
+      const response = await this.api.get(`/${floorId}/locations`, {
+        params: { PageNumber: pageNumber, PageSize: pageSize },
+      });
+
       return {
         success: true,
         data: response.data,
+        pagination: this._parsePagination(response),
       };
     } catch (error) {
       console.error(`Error getting locations for floor ${floorId}:`, error);
-      // Если метода нет, вернем пустой массив, чтобы фронт не падал
       return {
         success: false,
         data: [],
-        message: "Метод получения списка мест не реализован",
+        pagination: null,
+        message: this._err(error, "Не удалось загрузить места"),
       };
     }
   }
 
+  // =========================
   // Получить конкретное место
   // GET /api/floors/{floorId}/locations/{id}
+  // =========================
   async getLocation(floorId, locationId) {
     try {
       const response = await this.api.get(
@@ -60,16 +85,18 @@ class LocationApi {
       console.error("Error getting location:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Место не найдено",
+        message: this._err(error, "Место не найдено"),
       };
     }
   }
 
+  // =========================
   // Создать место
   // POST /api/floors/{floorId}/locations
+  // body: { name, isAudience, description }
+  // =========================
   async createLocation(floorId, locationData) {
     try {
-      // locationData = { name, description, isAudience }
       const response = await this.api.post(
         `/${floorId}/locations`,
         locationData,
@@ -82,13 +109,15 @@ class LocationApi {
       console.error("Error creating location:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Не удалось создать место",
+        message: this._err(error, "Не удалось создать место"),
       };
     }
   }
 
+  // =========================
   // Удалить место
   // DELETE /api/floors/{floorId}/locations/{id}
+  // =========================
   async deleteLocation(floorId, locationId) {
     try {
       await this.api.delete(`/${floorId}/locations/${locationId}`);
@@ -97,7 +126,38 @@ class LocationApi {
       console.error("Error deleting location:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Не удалось удалить место",
+        message: this._err(error, "Не удалось удалить место"),
+      };
+    }
+  }
+
+  // =========================
+  // Обновить место (на будущее)
+  // PUT /api/floors/{floorId}/locations/{id}
+  //
+  // ВНИМАНИЕ: на твоём LocationController сейчас НЕТ [HttpPut],
+  // поэтому метод будет работать только после добавления PUT на бэке.
+  //
+  // expected body (пример): { name, isAudience, description }
+  // =========================
+  async updateLocation(floorId, locationId, locationData) {
+    try {
+      const response = await this.api.put(
+        `/${floorId}/locations/${locationId}`,
+        locationData,
+      );
+
+      // если сервер вернёт NoContent() -> response.data будет undefined, это нормально
+      return {
+        success: true,
+        status: response.status,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error("Error updating location:", error);
+      return {
+        success: false,
+        message: this._err(error, "Не удалось обновить место"),
       };
     }
   }

@@ -1,0 +1,291 @@
+.assign-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+}
+
+.assign-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(18px);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.35);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 720px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.assign-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-yellow),
+    var(--accent-pink),
+    var(--accent-purple),
+    var(--accent-blue)
+  );
+}
+
+/* HEADER */
+
+.assign-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.assign-title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+.assign-subtitle {
+  margin-top: 4px;
+  font-size: var(--font-sm);
+  color: var(--gray-500);
+}
+
+.assign-close-btn {
+  border: none;
+  background: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--gray-400);
+  transition: 0.2s ease;
+}
+
+.assign-close-btn:hover {
+  color: var(--gray-600);
+  transform: scale(1.05);
+}
+
+/* CONTENT */
+
+.assign-content {
+  flex: 1;
+  margin-top: var(--space-xs);
+  overflow-y: auto;
+  max-height: calc(80vh - 200px);
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md); /* увеличил отступы между блоками */
+}
+
+/* Заголовки секций — теперь с разделителем между блоками */
+.assign-section-title {
+  font-size: var(--font-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  text-align: center;
+  margin: var(--space-sm) 0;
+}
+
+/* Добавляем красивый разделитель между «Уже назначены» и «Доступные кандидаты» */
+.assign-content > .assign-section-title:not(:first-child) {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--gray-200);
+}
+
+/* Список центрируем и ограничиваем по ширине */
+.assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.assign-empty {
+  text-align: center;
+  font-size: var(--font-sm);
+  color: var(--gray-500);
+  padding: var(--space-md) 0;
+}
+
+/* Элемент списка сотрудников — больше воздуха слева и справа */
+.assign-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: 14px 18px; /* увеличил горизонтальные отступы — текст больше не прижат к краю */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  background: #ffffff;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.assign-item:hover {
+  border-color: var(--accent-purple);
+  box-shadow: 0 6px 18px rgba(129, 140, 248, 0.2);
+}
+
+.assign-item-selected {
+  border-color: var(--accent-purple);
+  background: #f5f3ff;
+  box-shadow: 0 6px 18px rgba(129, 140, 248, 0.4);
+}
+
+.assign-item-assigned {
+  background: var(--gray-50);
+  cursor: default;
+}
+
+.assign-item input[type="radio"] {
+  margin-top: 4px;
+}
+
+.assign-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.assign-emp-name {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.assign-emp-role {
+  font-size: var(--font-xs);
+  color: var(--gray-500);
+}
+
+.assign-emp-location {
+  font-size: var(--font-xs);
+  color: var(--gray-400);
+}
+
+/* PAGINATION */
+
+.assign-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.assign-page-btn {
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--gray-200);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.assign-page-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.assign-page-btn:hover:not(:disabled) {
+  background: var(--accent-purple);
+  color: #ffffff;
+}
+
+.assign-page-info {
+  font-size: var(--font-xs);
+  color: var(--gray-600);
+}
+
+/* FOOTER */
+
+.assign-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.assign-btn {
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.assign-btn-primary {
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+  color: #ffffff;
+}
+
+.assign-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(129, 140, 248, 0.4);
+}
+
+.assign-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.assign-btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.assign-btn-secondary:hover:not(:disabled) {
+  background: var(--gray-200);
+}
+
+/* ADAPTIVE */
+
+@media (max-width: 640px) {
+  .assign-card {
+    max-width: 95vw;
+    padding: var(--space-md);
+  }
+
+  .assign-list {
+    max-width: 100%;
+  }
+
+  .assign-footer {
+    flex-direction: column-reverse;
+  }
+
+  .assign-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .assign-item {
+    padding: 12px 16px; /* чуть меньше на мобильных */
+  }
+}
+
+.assign-content h4 {
+  text-align: center;
+}

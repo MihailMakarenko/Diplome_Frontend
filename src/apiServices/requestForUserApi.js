@@ -1,5 +1,4 @@
 import axios from "axios";
-import { data } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
@@ -19,35 +18,38 @@ class RequestForUesrServerApi {
     });
   }
 
-  // Получение заявок пользователя с пагинацией и сортировкой
-  async GetRequestsForUser(pageNumber, pageSize, sortOrder) {
+  // Вспомогательный метод: получить id текущего пользователя из accessToken
+  getCurrentUserId() {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Токен не найден.");
+
+    const decoded = jwtDecode(token);
+    const userId =
+      decoded[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+      ];
+
+    if (!userId)
+      throw new Error("Не удалось получить ID пользователя из токена.");
+
+    return { token, userId };
+  }
+
+  // Получение заявок КОНКРЕТНОГО пользователя по его userId
+  // userId: Guid, pageNumber, pageSize, sortOrder: "CreateAt desc" и т.п.
+  async GetRequestsForUserById(userId, pageNumber, pageSize, sortOrder) {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Токен не найден.");
-
-      // Получаем ID пользователя из токена (или передаем аргументом, если нужно)
-      const decoded = jwtDecode(token);
-      const userId =
-        decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-        ];
-
-      // Формируем параметры запроса
       const params = {
         PageNumber: pageNumber,
         PageSize: pageSize,
       };
 
-      // Если передана строка сортировки (например "createAt desc"), добавляем её
       if (sortOrder) {
         params.OrderBy = sortOrder;
       }
 
-      // Запрос к API
-      // Путь может отличаться: /api/users/{id}/requests или /api/requests/my
       const response = await this.api.get(`/${userId}/requests`, { params });
-      console.log(response);
-      // Парсинг заголовка пагинации
+
       let paginationMeta = null;
       const paginationHeader = response.headers["x-pagination"];
       if (paginationHeader) {
@@ -64,10 +66,37 @@ class RequestForUesrServerApi {
         pagination: paginationMeta,
       };
     } catch (error) {
-      console.error("GetRequests Error:", error);
+      console.error("GetRequestsForUserById Error:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Ошибка загрузки заявок",
+        message:
+          error.response?.data?.message ||
+          "Ошибка загрузки заявок пользователя",
+        data: [],
+        pagination: null,
+      };
+    }
+  }
+
+  // Удобный метод: получить заявки ДЛЯ ТЕКУЩЕГО пользователя (по accessToken)
+  async GetRequestsForUser(pageNumber, pageSize, sortOrder) {
+    try {
+      const { userId } = this.getCurrentUserId();
+
+      return await this.GetRequestsForUserById(
+        userId,
+        pageNumber,
+        pageSize,
+        sortOrder,
+      );
+    } catch (error) {
+      console.error("GetRequestsForUser Error:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Ошибка загрузки заявок",
         data: [],
         pagination: null,
       };
@@ -78,23 +107,10 @@ class RequestForUesrServerApi {
   // requestData: { description, priority, status, typeOfProblemId, locationId }
   async CreateRequestForUser(requestData) {
     try {
-      // Лог для проверки (покажет содержимое FormData)
+      const { token, userId } = this.getCurrentUserId();
 
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Токен не найден.");
-
-      const decoded = jwtDecode(token);
-      const userId =
-        decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-        ];
-
-      if (!userId) throw new Error("Не удалось получить ID пользователя.");
-
-      // ИСПРАВЛЕНИЕ: Передаем requestData (FormData) напрямую
       const response = await this.api.post(`/${userId}/requests`, requestData, {
         headers: {
-          // Важно для FormData: даем axios самому выставить Content-Type
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
@@ -113,7 +129,7 @@ class RequestForUesrServerApi {
     }
   }
 
-  // Получение заявок пользователя с пагинацией и сортировкой
+  // Получение всех заявок (возможно, для админа/менеджера), если такой эндпоинт есть
   async GetRequests(pageNumber, pageSize, sortOrder) {
     try {
       const params = {
@@ -121,16 +137,15 @@ class RequestForUesrServerApi {
         PageSize: pageSize,
       };
 
-      // Если передана строка сортировки (например "createAt desc"), добавляем её
       if (sortOrder) {
         params.OrderBy = sortOrder;
       }
 
-      // Запрос к API
-      // Путь может отличаться: /api/users/{id}/requests или /api/requests/my
+      // здесь базовый URL /users, поэтому /requests — это /users/requests,
+      // если твой эндпоинт для всех заявок другой (например /api/requests),
+      // этот метод лучше держать в отдельном RequestServerApi.
       const response = await this.api.get(`/requests`, { params });
 
-      // Парсинг заголовка пагинации
       let paginationMeta = null;
       const paginationHeader = response.headers["x-pagination"];
       if (paginationHeader) {

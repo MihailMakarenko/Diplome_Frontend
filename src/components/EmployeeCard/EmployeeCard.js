@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import "./EmployeeCard.css";
 import "../../pages/ManagerPanel/ManagerPanel.css";
 import { IconMapPin, IconHome, IconSettings, IconPlusCircle } from "../Icons";
 
@@ -10,27 +11,16 @@ const EmployeeCard = ({
   onViewDetails,
   onAssignNewTask,
 }) => {
-  const [taskPage, setTaskPage] = useState(1);
-  const tasksPerPage = 2;
-
   const isOnline = emp.status === "Online";
   const statusLabel = isOnline ? "На работе" : "Не на месте";
 
-  // Фильтр задач для этого сотрудника
-  const empTasks = tasks.filter((t) => t.assignedTo.includes(emp.id));
-
-  // Пагинация (для отображения в списке)
-  const recentTasks = empTasks.slice(0, 2);
-
-  // Получить первые 2 зоны
-  const previewZoneIds = emp.zoneIds.slice(0, 2);
-  const hasMoreZones = emp.zoneIds.length > 2;
-
-  // Хелпер для цвета приоритета
-  const getPriorityColor = (priority) => {
-    if (priority === "High" || priority === "Высокий") return "#ef4444"; // Красный
-    if (priority === "Medium" || priority === "Средний") return "#f59e0b"; // Оранжевый
-    return "#10b981"; // Зеленый
+  // Хелпер для нормализации приоритета для класса
+  const normalizePriority = (priority) => {
+    if (!priority) return "low"; // Обработка undefined или null
+    const low = priority.toLowerCase();
+    if (low === "high" || low === "высокий") return "high";
+    if (low === "medium" || low === "средний") return "medium";
+    return "low"; // По умолчанию зелёный
   };
 
   return (
@@ -57,10 +47,7 @@ const EmployeeCard = ({
           <div>
             <span className="loc-label">Сейчас:</span>{" "}
             <span
-              style={{
-                fontWeight: 600,
-                color: isOnline ? "var(--primary)" : "#94a3b8",
-              }}
+              className={`current-location ${isOnline ? "online" : "offline"}`}
             >
               {emp.currentLocation || "Неизвестно"}
             </span>
@@ -90,112 +77,44 @@ const EmployeeCard = ({
       {/* 4. Tasks List (ИСПРАВЛЕННЫЙ БЛОК) */}
       <div className="tasks-preview-container">
         <div>
-          <div className="tasks-header">В работе ({empTasks.length})</div>
+          <div className="tasks-header">В работе ({tasks.length})</div>
 
           <div className="task-preview-list">
-            {recentTasks.length > 0 ? (
-              recentTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="task-mini-item"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: "6px",
-                  }}
-                >
-                  {/* Верх: ID и Категория */}
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span className="task-id">#{task.id}</span>
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {/* Если в объекте task есть поле category, выводим его, иначе fallback */}
-                      {task.category || "Другое"}
-                    </span>
-                  </div>
-
-                  {/* Основной заголовок (Тип проблемы) */}
-                  <div
-                    style={{
-                      fontSize: "0.9rem",
-                      fontWeight: 700,
-                      color: "#1e293b",
-                      lineHeight: "1.3",
-                    }}
-                  >
-                    {task.title}
-                  </div>
-
-                  {/* Низ: Дата/Время и Приоритет */}
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "4px",
-                      borderTop: "1px dashed #f1f5f9",
-                      paddingTop: "6px",
-                    }}
-                  >
-                    <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                      📅 {task.date}
-                    </span>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          backgroundColor: getPriorityColor(task.priority),
-                        }}
-                      ></span>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          color: "#475569",
-                        }}
-                      >
-                        {task.priority}
+            {tasks.length > 0 ? (
+              tasks.map((task) => {
+                return (
+                  <div key={task.id} className="task-mini-item">
+                    {/* Верх: ID и Категория */}
+                    <div className="task-header">
+                      <span className="task-id">#{task.number}</span>
+                      <span className="task-category">
+                        {task.category || "Другое"}
                       </span>
                     </div>
+
+                    {/* Основной заголовок (Тип проблемы) */}
+                    <div className="task-title">{task.title}</div>
+
+                    {/* Низ: Дата/Время и Приоритет */}
+                    <div className="task-footer">
+                      <span className="task-date">📅 {task.date}</span>
+
+                      <div className="task-priority">
+                        <span
+                          className={`priority-dot priority-${normalizePriority(
+                            task.priority,
+                          )}`}
+                        ></span>
+                        <span className="priority-label">
+                          {task.priority || "Низкий"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div
-                style={{
-                  fontSize: "0.85rem",
-                  color: "#94a3b8",
-                  fontStyle: "italic",
-                  padding: 5,
-                }}
-              >
-                Нет активных задач
-              </div>
+              <div className="no-tasks">Нет активных задач</div>
             )}
           </div>
 
@@ -209,10 +128,7 @@ const EmployeeCard = ({
         </div>
 
         {/* Кнопка Подробнее */}
-        <button
-          className="btn-view-more"
-          onClick={() => onViewDetails(emp, empTasks)}
-        >
+        <button className="btn-view-more" onClick={() => onViewDetails(emp)}>
           Подробнее
         </button>
       </div>

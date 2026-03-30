@@ -62,14 +62,10 @@ const LoginPage = () => {
         // 2. Сохранение токена (предполагаем, что он в result.data.token)
         if (result.data.token) {
           localStorage.setItem("authToken", result.data.token);
-          // Также можно сохранить роль или user info, если они есть
-          // localStorage.setItem("userRole", result.data.role);
         }
 
-        // 3. Перенаправление (замените путь на нужный, например '/dashboard')
-        navigate("/UserProfile");
+        navigate("/manager/panel");
       } else {
-        // Ошибка от сервера (неверный пароль и т.д.)
         setErrors((prev) => ({
           ...prev,
           form: result.message || "Неверный логин или пароль",

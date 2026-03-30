@@ -82,6 +82,26 @@ class BuildingApi {
       };
     }
   }
+
+  // Обновить здание
+  // PUT /api/buildings/{id}
+  async updateBuilding(id, buildingData) {
+    try {
+      // buildingData = { name, description, address }
+      const response = await this.api.put(`/${id}`, buildingData);
+
+      return {
+        success: true,
+        data: response.data, // если сервер возвращает сущность/DTO
+      };
+    } catch (error) {
+      console.error(`Error updating building ${id}:`, error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Не удалось обновить здание",
+      };
+    }
+  }
 }
 
 export default BuildingApi;

@@ -77,23 +77,33 @@ class UserServerApi {
         Email: email,
         Password: password,
       });
-      const token = response.data;
 
-      localStorage.setItem("accessToken", response.data.accessToken);
-      localStorage.setItem("refreshTokenToken", response.data.refreshToken);
+      const tokenData = response.data;
 
-      const decoded = jwtDecode(token.accessToken);
+      localStorage.setItem("accessToken", tokenData.accessToken);
+      localStorage.setItem("refreshTokenToken", tokenData.refreshToken);
+
+      const decoded = jwtDecode(tokenData.accessToken);
+
       const userId =
         decoded[
           "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ];
 
+      const employeeId = decoded["EmployeeId"] || null;
+
       localStorage.setItem("userId", userId);
+
+      if (employeeId) {
+        localStorage.setItem("employeeId", employeeId);
+      } else {
+        localStorage.removeItem("employeeId");
+      }
 
       return {
         success: true,
         message: "Вход выполнен успешно",
-        data: response.data, // Возвращаем данные для использования
+        data: tokenData,
       };
     } catch (error) {
       const errorMessage = error.response
@@ -103,7 +113,7 @@ class UserServerApi {
       return {
         success: false,
         message: errorMessage,
-        error, // Возвращаем объект ошибки, если нужно
+        error,
       };
     }
   }

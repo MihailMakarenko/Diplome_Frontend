@@ -5,6 +5,8 @@ import UserProfile from "./pages/UserProfile/UserProfile.js";
 import AdminPanel from "./pages/AdminPanel/AdminPanel.js";
 import ManagerPanel from "./pages/ManagerPanel/ManagerPanel.js";
 import ManagerRequestsBoard from "./pages/ManagerRequestsBoard/ManagerRequestsBoard.js";
+import Infastructure from "./pages/StructureAdminPage/StructureAdminPage.js";
+import EmployeeProfile from "./pages/EmployeeProfile/EmployeeProfile.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -14,17 +16,14 @@ function App() {
     <BrowserRouter>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Navigate to="/Login" />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/AdminPanel" element={<AdminPanel />} />
-          <Route path="/UserProfile" element={<UserProfile />} />
-          <Route path="/manager/panel" element={<ManagerPanel />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin/panel" element={<AdminPanel />} />
+          <Route path="/admin/infastructure" element={<Infastructure />} />
+          <Route path="/user/profile" element={<UserProfile />} />
+          <Route path="manager/panel" element={<ManagerPanel />} />
           <Route path="/manager/requests" element={<ManagerRequestsBoard />} />
-          {/* <Route path="/Administration" element={<AllUsers />} />
-          <Route path="/Location" element={<Location />} />
-          <Route path="/Profile" element={<Profile />} />
-          <Route path="/AdminProfile" element={<AdminProfile />} />
-          <Route path="*" element={<NotFound404 />} /> */}
+          <Route path="/employee/profile" element={<EmployeeProfile />} />
         </Routes>
         {/* <ManagerPanel />
         <AdminPanel />

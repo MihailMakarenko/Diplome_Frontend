@@ -1,0 +1,152 @@
+/* Страница занимает весь экран, а скролл только внутри списков */
+.sa-admin {
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Градиентный фон как на login */
+.sa-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    -45deg,
+    #1e3a5f,
+    #2d5a87,
+    #4a90c2,
+    #5bb5d9,
+    #7dd3c0,
+    #fbbf24,
+    #f59e0b
+  );
+  background-size: 400% 400%;
+  animation: saGradientShift 15s ease infinite;
+  z-index: -2;
+}
+
+@keyframes saGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Плавающие фигуры как на login */
+.sa-floating-shapes {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.sa-floating-shapes span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  animation: saFloat 25s infinite linear;
+  opacity: 0.45;
+  filter: blur(1px);
+}
+
+.sa-floating-shapes span:nth-child(1) {
+  left: 5%;
+  width: clamp(40px, 10vw, 80px);
+  height: clamp(40px, 10vw, 80px);
+  background: #fbbf24;
+  animation-duration: 20s;
+}
+.sa-floating-shapes span:nth-child(2) {
+  left: 75%;
+  width: clamp(30px, 8vw, 60px);
+  height: clamp(30px, 8vw, 60px);
+  background: #7dd3c0;
+  animation-delay: 4s;
+  animation-duration: 22s;
+}
+.sa-floating-shapes span:nth-child(3) {
+  left: 25%;
+  width: clamp(50px, 12vw, 100px);
+  height: clamp(50px, 12vw, 100px);
+  background: #f472b6;
+  animation-delay: 8s;
+  animation-duration: 18s;
+}
+.sa-floating-shapes span:nth-child(4) {
+  left: 85%;
+  width: clamp(25px, 6vw, 50px);
+  height: clamp(25px, 6vw, 50px);
+  background: #a78bfa;
+  animation-delay: 12s;
+  animation-duration: 24s;
+}
+.sa-floating-shapes span:nth-child(5) {
+  left: 45%;
+  width: clamp(35px, 9vw, 70px);
+  height: clamp(35px, 9vw, 70px);
+  background: #60a5fa;
+  animation-delay: 16s;
+  animation-duration: 21s;
+}
+
+@keyframes saFloat {
+  0% {
+    transform: translateY(110vh) rotate(0deg) scale(1);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.45;
+  }
+  95% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(-10vh) rotate(720deg) scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Внутренний контейнер */
+.sa-shell {
+  height: 100dvh;
+  max-width: min(1200px, 96vw);
+  margin: 0 auto;
+  padding: clamp(14px, 2.2vw, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Контент табов — занимает остаток высоты */
+.sa-content {
+  flex: 1;
+  min-height: 0; /* важно для внутреннего скролла */
+}
+
+/* формы в модалке */
+.sa-formGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.sa-checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sa-muted {
+  color: rgba(255, 255, 255, 0.85);
+}

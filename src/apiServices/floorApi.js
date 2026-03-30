@@ -100,8 +100,17 @@ class FloorApi {
   // PUT /api/buildings/{buildingId}/floors/{id}
   async updateFloor(buildingId, floorId, floorData) {
     try {
-      await this.api.put(`/${buildingId}/floors/${floorId}`, floorData);
-      return { success: true };
+      // floorData = { floorNumber, description }
+      const response = await this.api.put(
+        `/${buildingId}/floors/${floorId}`,
+        floorData,
+      );
+
+      // Сервер возвращает NoContent() => response.data будет undefined, это нормально
+      return {
+        success: true,
+        status: response.status, // 204
+      };
     } catch (error) {
       console.error("Error updating floor:", error);
       return {
