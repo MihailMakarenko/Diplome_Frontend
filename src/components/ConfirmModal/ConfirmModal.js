@@ -1,61 +1,44 @@
 import React from "react";
-import "../../pages/AdminPanel/AdminPanel.css";
+import "./ConfirmModal.css";
+
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   if (!isOpen) return null;
 
+  const handleConfirm = () => {
+    if (onConfirm) onConfirm();
+    if (onClose) onClose();
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-card"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "400px", padding: "25px", borderRadius: "16px" }}
-      >
-        <div style={{ marginBottom: "20px" }}>
-          <h3
-            style={{
-              fontSize: "1.2rem",
-              fontWeight: "700",
-              marginBottom: "10px",
-              color: "#1e293b",
-            }}
-          >
-            {title || "Подтверждение"}
-          </h3>
-          <p
-            style={{ fontSize: "0.95rem", color: "#64748b", lineHeight: "1.5" }}
-          >
-            {message || "Вы уверены, что хотите выполнить это действие?"}
-          </p>
-        </div>
+    <div className="confirm-modal">
+      <div className="confirm-modal-overlay" onClick={onClose}>
+        <div
+          className="confirm-modal-card"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ marginBottom: "20px" }}>
+            <h3 className="confirm-modal-title">{title || "Подтверждение"}</h3>
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "25px" }}>
-          <button
-            className="btn btn-outline"
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              borderColor: "#cbd5e1",
-            }}
-            onClick={onClose}
-          >
-            Отмена
-          </button>
+            <p className="confirm-modal-message">
+              {message || "Вы уверены, что хотите выполнить это действие?"}
+            </p>
+          </div>
 
-          <button
-            className="btn btn-primary"
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              background: "#ef4444",
-              border: "none",
-            }}
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-          >
-            Удалить
-          </button>
+          <div className="confirm-modal-actions">
+            <button
+              className="confirm-modal-btn confirm-modal-btn-outline"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+
+            <button
+              className="confirm-modal-btn confirm-modal-btn-danger"
+              onClick={handleConfirm}
+            >
+              Удалить
+            </button>
+          </div>
         </div>
       </div>
     </div>

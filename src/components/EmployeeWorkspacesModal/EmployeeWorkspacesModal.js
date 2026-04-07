@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import "../../pages/ManagerPanel/ManagerPanel.css";
 import "./EmployeeWorkspacesModal.css";
 import EmployeeWorkspacesServerApi from "../../apiServices/employeeWorkspaceApi";
 import { IconBuilding, IconHome, IconMapPin } from "../Icons";
@@ -142,62 +141,23 @@ function ConfirmDeleteModal({
   if (!open) return null;
 
   return (
-    <div className="modal-overlay" onClick={loading ? undefined : onClose}>
-      <div
-        className="modal-card"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: 420,
-          width: "100%",
-          borderRadius: 16,
-          padding: 20,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 20,
-            fontWeight: 700,
-            marginBottom: 12,
-            color: "#1f2937",
-          }}
-        >
-          Подтверждение удаления
-        </div>
+    <div
+      className="ewm-confirm-overlay"
+      onClick={loading ? undefined : onClose}
+    >
+      <div className="ewm-confirm-card" onClick={(e) => e.stopPropagation()}>
+        <div className="ewm-confirm-title">Подтверждение удаления</div>
 
-        <div
-          style={{
-            fontSize: 15,
-            color: "#374151",
-            marginBottom: 8,
-            lineHeight: 1.5,
-          }}
-        >
+        <div className="ewm-confirm-text">
           {title || "Вы действительно хотите удалить назначение?"}
         </div>
 
-        {subtitle ? (
-          <div
-            style={{
-              fontSize: 14,
-              color: "#6b7280",
-              marginBottom: 18,
-              lineHeight: 1.4,
-            }}
-          >
-            {subtitle}
-          </div>
-        ) : null}
+        {subtitle ? <div className="ewm-confirm-sub">{subtitle}</div> : null}
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-          }}
-        >
+        <div className="ewm-confirm-actions">
           <button
             type="button"
-            className="btn btn-light"
+            className="ewm-btn ewm-btn-light"
             onClick={onClose}
             disabled={loading}
           >
@@ -206,7 +166,7 @@ function ConfirmDeleteModal({
 
           <button
             type="button"
-            className="btn btn-danger"
+            className="ewm-btn ewm-btn-danger"
             onClick={onConfirm}
             disabled={loading}
           >
@@ -225,38 +185,31 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
   const [assignedLevel, setAssignedLevel] = useState(LEVEL.BUILDINGS);
   const [assignLevel, setAssignLevel] = useState(LEVEL.BUILDINGS);
 
-  // Assigned lists
   const [assignedItems, setAssignedItems] = useState([]);
   const [assignedLoading, setAssignedLoading] = useState(false);
   const [assignedError, setAssignedError] = useState("");
   const [assignedPage, setAssignedPage] = useState(1);
   const [assignedTotalPages, setAssignedTotalPages] = useState(1);
 
-  // With-assignment lists
   const [waItems, setWaItems] = useState([]);
   const [waLoading, setWaLoading] = useState(false);
   const [waError, setWaError] = useState("");
   const [waPage, setWaPage] = useState(1);
   const [waTotalPages, setWaTotalPages] = useState(1);
 
-  // Context for floors/locations
   const [ctxBuildingId, setCtxBuildingId] = useState("");
   const [ctxFloorId, setCtxFloorId] = useState("");
 
-  // for selects
   const [buildingsWA, setBuildingsWA] = useState([]);
   const [floorsWA, setFloorsWA] = useState([]);
 
-  // selection in assign mode
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [desire, setDesire] = useState("Постоянно");
   const [saving, setSaving] = useState(false);
 
-  // expand for long location text
   const [expandedAssignedId, setExpandedAssignedId] = useState(null);
   const [expandedAssignId, setExpandedAssignId] = useState(null);
 
-  // delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -287,6 +240,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       >
         <IconBuilding /> Здания
       </button>
+
       <button
         type="button"
         className={`empws-levelBtn ${current === LEVEL.FLOORS ? "active" : ""}`}
@@ -294,6 +248,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       >
         <IconHome /> Этажи
       </button>
+
       <button
         type="button"
         className={`empws-levelBtn ${current === LEVEL.LOCATIONS ? "active" : ""}`}
@@ -304,7 +259,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     </div>
   );
 
-  // ---- load assigned ----
   const loadAssigned = async (level, page) => {
     if (!employee?.id) return;
 
@@ -313,6 +267,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
     try {
       let res;
+
       if (level === LEVEL.BUILDINGS) {
         res = await api.GetBuildingWorkspacesForEmployee(
           employee.id,
@@ -352,7 +307,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     }
   };
 
-  // ---- with-assignment loaders ----
   const preloadBuildingsWA = async () => {
     if (!employee?.id) return;
     const res = await api.GetBuildingsWithAssignmentForEmployee(
@@ -382,6 +336,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
     try {
       let res;
+
       if (level === LEVEL.BUILDINGS) {
         res = await api.GetBuildingsWithAssignmentForEmployee(
           employee.id,
@@ -396,6 +351,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
           setWaLoading(false);
           return;
         }
+
         res = await api.GetFloorsWithAssignmentForEmployee(
           employee.id,
           ctxBuildingId,
@@ -410,6 +366,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
           setWaLoading(false);
           return;
         }
+
         res = await api.GetLocationsWithAssignmentForEmployee(
           employee.id,
           ctxBuildingId,
@@ -438,7 +395,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     }
   };
 
-  // open/reset
   useEffect(() => {
     if (!isOpen || !employee?.id) return;
 
@@ -463,7 +419,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, employee?.id]);
 
-  // assigned reload
   useEffect(() => {
     if (!isOpen || !employee?.id) return;
     if (mode !== MODE.ASSIGNED) return;
@@ -471,7 +426,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, assignedLevel, assignedPage]);
 
-  // assign mode init
   useEffect(() => {
     if (!isOpen || !employee?.id) return;
     if (mode !== MODE.ASSIGN) return;
@@ -483,7 +437,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
-  // assign reload on level/context/page
   useEffect(() => {
     if (!isOpen || !employee?.id) return;
     if (mode !== MODE.ASSIGN) return;
@@ -570,6 +523,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
   const assignSelected = async () => {
     if (!employee?.id) return;
+
     const ids = Array.from(selectedIds);
     if (!ids.length) return;
 
@@ -580,7 +534,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       for (const id of ids) {
         const item = waItems.find((x) => waRow(x).id === id);
         const row = waRow(item);
-
+        console.log(row);
         if (!row.workspaceId) {
           throw new Error(
             "Невозможно назначить: backend должен вернуть workspaceId в with-assignment DTO.",
@@ -662,8 +616,9 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       !employee?.id ||
       !deleteTarget?.workspaceId ||
       !deleteTarget?.assignmentId
-    )
+    ) {
       return;
+    }
 
     setDeleteLoading(true);
     setAssignedError("");
@@ -697,14 +652,12 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
   if (!isOpen) return null;
 
   return (
-    <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-card empws2" onClick={(e) => e.stopPropagation()}>
-          <div
-            className="modal-header empws2-header"
-            style={{ margin: 0, paddingBottom: 0 }}
-          >
-            <h3 className="modal-title empws2-title">Рабочие зоны</h3>
+    <div className="employee-workspaces-modal">
+      <div className="ewm-overlay" onClick={onClose}>
+        <div className="ewm-card empws2" onClick={(e) => e.stopPropagation()}>
+          <div className="ewm-header empws2-header">
+            <h3 className="ewm-title empws2-title">Рабочие зоны</h3>
+
             <button
               type="button"
               className="empws2-closeX"
@@ -725,6 +678,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
               >
                 Назначено
               </button>
+
               <button
                 type="button"
                 className={`empws-modeBtn ${mode === MODE.ASSIGN ? "active" : ""}`}
@@ -751,7 +705,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
                   <div className="empws2-filter">
                     <div className="empws2-filterLabel">Здание</div>
                     <select
-                      className="form-select empws2-select"
+                      className="ewm-form-select empws2-select"
                       value={ctxBuildingId}
                       onChange={(e) => setCtxBuildingId(e.target.value)}
                     >
@@ -768,7 +722,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
                     <div className="empws2-filter">
                       <div className="empws2-filterLabel">Этаж</div>
                       <select
-                        className="form-select empws2-select"
+                        className="ewm-form-select empws2-select"
                         value={ctxFloorId}
                         onChange={(e) => setCtxFloorId(e.target.value)}
                         disabled={!ctxBuildingId}
@@ -788,6 +742,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
             {mode === MODE.ASSIGNED && assignedError && (
               <div className="empws2-error">{assignedError}</div>
             )}
+
             {mode === MODE.ASSIGN && waError && (
               <div className="empws2-error">{waError}</div>
             )}
@@ -1073,7 +1028,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
                   <div className="empws2-desire">
                     <div className="empws2-filterLabel">Условие</div>
                     <select
-                      className="form-select empws2-select"
+                      className="ewm-form-select empws2-select"
                       value={desire}
                       onChange={(e) => setDesire(e.target.value)}
                       disabled={saving}
@@ -1090,7 +1045,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
                   <button
                     type="button"
-                    className="btn btn-primary empws2-assignBtn"
+                    className="empws2-assignBtn"
                     disabled={saving || selectedIds.size === 0}
                     onClick={assignSelected}
                   >
@@ -1113,6 +1068,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
         title={deleteTarget?.title}
         subtitle={deleteTarget?.subtitle}
       />
-    </>
+    </div>
   );
 }

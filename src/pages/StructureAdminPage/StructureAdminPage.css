@@ -1,12 +1,45 @@
-/* Страница занимает весь экран, а скролл только внутри списков */
 .sa-admin {
+  --sa-primary: #6366f1;
+  --sa-primary-hover: #4f46e5;
+  --sa-secondary: #ec4899;
+  --sa-success: #10b981;
+  --sa-warning: #f59e0b;
+  --sa-danger: #ef4444;
+
+  --sa-text-main: #1e293b;
+  --sa-text-muted: #64748b;
+
+  --sa-glass-bg: rgba(255, 255, 255, 0.82);
+  --sa-glass-border: rgba(255, 255, 255, 0.55);
+
+  --sa-white: #ffffff;
+  --sa-border: #e2e8f0;
+  --sa-soft-bg: #f8fafc;
+
+  --sa-radius-lg: 24px;
+  --sa-radius-md: 16px;
+  --sa-radius-sm: 12px;
+
+  --sa-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+
   min-height: 100dvh;
   height: 100dvh;
   overflow: hidden;
   position: relative;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--sa-text-main);
 }
 
-/* Градиентный фон как на login */
+.sa-admin *,
+.sa-admin *::before,
+.sa-admin *::after {
+  box-sizing: border-box;
+}
+
 .sa-bg {
   position: fixed;
   inset: 0;
@@ -43,7 +76,6 @@
   }
 }
 
-/* Плавающие фигуры как на login */
 .sa-floating-shapes {
   position: fixed;
   inset: 0;
@@ -68,6 +100,7 @@
   background: #fbbf24;
   animation-duration: 20s;
 }
+
 .sa-floating-shapes span:nth-child(2) {
   left: 75%;
   width: clamp(30px, 8vw, 60px);
@@ -76,6 +109,7 @@
   animation-delay: 4s;
   animation-duration: 22s;
 }
+
 .sa-floating-shapes span:nth-child(3) {
   left: 25%;
   width: clamp(50px, 12vw, 100px);
@@ -84,6 +118,7 @@
   animation-delay: 8s;
   animation-duration: 18s;
 }
+
 .sa-floating-shapes span:nth-child(4) {
   left: 85%;
   width: clamp(25px, 6vw, 50px);
@@ -92,6 +127,7 @@
   animation-delay: 12s;
   animation-duration: 24s;
 }
+
 .sa-floating-shapes span:nth-child(5) {
   left: 45%;
   width: clamp(35px, 9vw, 70px);
@@ -118,7 +154,6 @@
   }
 }
 
-/* Внутренний контейнер */
 .sa-shell {
   height: 100dvh;
   max-width: min(1200px, 96vw);
@@ -129,13 +164,11 @@
   gap: 12px;
 }
 
-/* Контент табов — занимает остаток высоты */
 .sa-content {
   flex: 1;
-  min-height: 0; /* важно для внутреннего скролла */
+  min-height: 0;
 }
 
-/* формы в модалке */
 .sa-formGrid {
   display: grid;
   gap: 12px;
@@ -148,5 +181,162 @@
 }
 
 .sa-muted {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(15, 23, 42, 0.7);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+/* ===== scoped shared ui ===== */
+.sa-admin .btn {
+  border: none;
+  border-radius: var(--sa-radius-sm);
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.sa-admin .btn-primary {
+  background: linear-gradient(135deg, var(--sa-primary), #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.sa-admin .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.sa-admin .btn-outline {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: var(--sa-text-main);
+}
+
+.sa-admin .btn-outline:hover {
+  border-color: var(--sa-primary);
+  color: var(--sa-primary);
+}
+
+.sa-admin .form-group {
+  margin-bottom: 15px;
+}
+
+.sa-admin .form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--sa-text-muted);
+}
+
+.sa-admin .form-input,
+.sa-admin .form-select,
+.sa-admin textarea.form-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: var(--sa-soft-bg);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--sa-text-main);
+  box-sizing: border-box;
+}
+
+.sa-admin .form-input:focus,
+.sa-admin .form-select:focus,
+.sa-admin textarea.form-input:focus {
+  outline: none;
+  border-color: var(--sa-primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.sa-admin .page-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #cbd5e1;
+  color: var(--sa-text-muted);
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+}
+
+.sa-admin .page-btn:hover:not(:disabled) {
+  background: white;
+  border-color: var(--sa-primary);
+  color: var(--sa-primary);
+}
+
+.sa-admin .page-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sa-admin .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.sa-admin .modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: var(--sa-radius-lg);
+  padding: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: saModalSlideUp 0.3s ease;
+}
+
+@keyframes saModalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sa-admin .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.sa-admin .modal-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--sa-text-main);
+}
+
+@media (max-width: 768px) {
+  .sa-shell {
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  .sa-admin .modal-card {
+    max-width: calc(100vw - 24px);
+    padding: 20px;
+  }
 }

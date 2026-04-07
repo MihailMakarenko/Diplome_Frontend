@@ -56,6 +56,7 @@ class EmployeeWorkspacesServerApi {
         },
       );
 
+      console.log(response);
       return {
         success: true,
         assignments: response.data,
@@ -83,7 +84,7 @@ class EmployeeWorkspacesServerApi {
       const response = await this.api.get(`${employeeId}/workspaces/floors`, {
         params: { PageNumber: pageNumber, PageSize: pageSize },
       });
-
+      console.log(response);
       return {
         success: true,
         assignments: response.data,
@@ -114,7 +115,7 @@ class EmployeeWorkspacesServerApi {
           params: { PageNumber: pageNumber, PageSize: pageSize },
         },
       );
-
+      console.log(response);
       return {
         success: true,
         assignments: response.data,
@@ -141,7 +142,7 @@ class EmployeeWorkspacesServerApi {
         `${employeeId}/workspaces/buildings/with-assignment`,
         { params: { PageNumber: pageNumber, PageSize: pageSize } },
       );
-
+      console.log(response);
       return {
         success: true,
         items: response.data, // [{ building, isAssigned, workspaceId? }]
@@ -168,7 +169,7 @@ class EmployeeWorkspacesServerApi {
         `${employeeId}/workspaces/buildings/${buildingId}/floors/with-assignment`,
         { params: { PageNumber: pageNumber, PageSize: pageSize } },
       );
-
+      console.log(response);
       return {
         success: true,
         items: response.data, // [{ floor, isAssigned, workspaceId? }]
@@ -196,7 +197,7 @@ class EmployeeWorkspacesServerApi {
         `${employeeId}/workspaces/buildings/${buildingId}/floors/${floorId}/locations/with-assignment`,
         { params: { PageNumber: pageNumber, PageSize: pageSize } },
       );
-
+      console.log(response);
       return {
         success: true,
         items: response.data, // [{ location, isAssigned, workspaceId? }]

@@ -1,7 +1,6 @@
-/* ===== Глобальные настройки ===== */
-:root {
-  --primary: #6366f1; /* Indigo */
-  --secondary: #ec4899; /* Pink */
+.user-profile-page {
+  --primary: #6366f1;
+  --secondary: #ec4899;
   --text-main: #1e293b;
   --text-muted: #64748b;
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -9,9 +8,7 @@
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
-}
 
-body {
   margin: 0;
   font-family: "Inter", system-ui, sans-serif;
   color: var(--text-main);
@@ -19,8 +16,13 @@ body {
   min-height: 100vh;
 }
 
-/* ===== Фон Aurora ===== */
-.aurora-bg {
+.user-profile-page *,
+.user-profile-page *::before,
+.user-profile-page *::after {
+  box-sizing: border-box;
+}
+
+.user-profile-page .aurora-bg {
   position: fixed;
   top: 0;
   left: 0;
@@ -29,9 +31,10 @@ body {
   z-index: -1;
   background: linear-gradient(-45deg, #c4b5fd, #a5b4fc, #fbcfe8, #bae6fd);
   background-size: 400% 400%;
-  animation: auroraFlow 15s ease infinite;
+  animation: userProfileAuroraFlow 15s ease infinite;
 }
-@keyframes auroraFlow {
+
+@keyframes userProfileAuroraFlow {
   0% {
     background-position: 0% 50%;
   }
@@ -43,8 +46,7 @@ body {
   }
 }
 
-/* ===== Header ===== */
-.app-header {
+.user-profile-page .app-header {
   height: 70px;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
@@ -57,7 +59,8 @@ body {
   z-index: 50;
   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
-.brand-logo {
+
+.user-profile-page .brand-logo {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--primary);
@@ -65,13 +68,13 @@ body {
   align-items: center;
   gap: 8px;
 }
-.header-actions {
+
+.user-profile-page .header-actions {
   display: flex;
   gap: 10px;
 }
 
-/* ===== Layout ===== */
-.layout-container {
+.user-profile-page .layout-container {
   max-width: 1200px;
   margin: 30px auto;
   padding: 0 15px;
@@ -80,8 +83,7 @@ body {
   gap: 25px;
 }
 
-/* ===== Glass Panel ===== */
-.glass-panel {
+.user-profile-page .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
@@ -90,14 +92,14 @@ body {
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
 }
 
-/* ===== Profile Left ===== */
-.profile-panel {
+.user-profile-page .profile-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
-.avatar-img {
+
+.user-profile-page .avatar-img {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -106,20 +108,23 @@ body {
   box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
   margin-bottom: 15px;
 }
-.user-name {
+
+.user-profile-page .user-name {
   font-size: 1.3rem;
   font-weight: 700;
   margin: 0;
   color: var(--text-main);
 }
-.contact-list {
+
+.user-profile-page .contact-list {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin: 20px 0;
 }
-.contact-row {
+
+.user-profile-page .contact-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -129,19 +134,20 @@ body {
   font-size: 0.9rem;
   word-break: break-all;
 }
-.icon-box {
+
+.user-profile-page .icon-box {
   color: var(--primary);
   min-width: 20px;
   display: flex;
   justify-content: center;
 }
 
-/* Telegram Section */
-.telegram-section {
+.user-profile-page .telegram-section {
   width: 100%;
   margin-bottom: 15px;
 }
-.tg-badge {
+
+.user-profile-page .tg-badge {
   background: #229ed9;
   color: white;
   padding: 8px 12px;
@@ -151,7 +157,8 @@ body {
   align-items: center;
   font-size: 0.85rem;
 }
-.btn-tg-add {
+
+.user-profile-page .btn-tg-add {
   width: 100%;
   background: #229ed9;
   color: white;
@@ -166,7 +173,8 @@ body {
   font-weight: 600;
   font-size: 0.9rem;
 }
-.btn-tg-del {
+
+.user-profile-page .btn-tg-del {
   background: rgba(0, 0, 0, 0.2);
   border: none;
   color: white;
@@ -179,8 +187,7 @@ body {
   justify-content: center;
 }
 
-/* Buttons */
-.btn {
+.user-profile-page .btn {
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 16px;
@@ -193,319 +200,52 @@ body {
   gap: 6px;
   font-size: 0.9rem;
 }
-.btn-primary {
+
+.user-profile-page .btn-primary {
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
   color: white;
 }
-.btn-primary:hover {
+
+.user-profile-page .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
-.btn-outline {
+
+.user-profile-page .btn-outline {
   background: transparent;
   border: 2px solid #cbd5e1;
   color: var(--text-muted);
   width: 100%;
 }
-.btn-outline:hover {
+
+.user-profile-page .btn-outline:hover {
   border-color: var(--primary);
   color: var(--primary);
   background: white;
 }
-.btn-danger {
+
+.user-profile-page .btn-danger {
   background: #fee2e2;
   color: #ef4444;
   width: 100%;
 }
-.btn-danger:hover {
+
+.user-profile-page .btn-danger:hover {
   background: #ef4444;
   color: white;
 }
-.btn-header {
+
+.user-profile-page .btn-header {
   background: rgba(255, 255, 255, 0.5);
   color: var(--text-muted);
 }
-.btn-header:hover {
+
+.user-profile-page .btn-header:hover {
   background: white;
   color: var(--primary);
 }
 
-/* ===== Requests List Controls (Sort & Filter) ===== */
-.requests-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.sort-select {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--text-main);
-  font-size: 0.9rem;
-}
-
-/* ===== Request Item ===== */
-.request-item {
-  background: rgba(255, 255, 255, 0.6);
-  padding: 15px;
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  gap: 15px;
-}
-.request-item:hover {
-  background: white;
-  transform: scale(1.005);
-  border-color: rgba(99, 102, 241, 0.2);
-}
-
-.req-left h3 {
-  margin: 0 0 5px 0;
-  font-size: 1.1rem;
-  color: var(--text-main);
-}
-.req-category {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 4px;
-  display: block;
-}
-.req-meta {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-.req-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-/* Badges */
-.badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.badge.New {
-  background: #fee2e2;
-  color: #ef4444;
-}
-.badge.Work {
-  background: #e0e7ff;
-  color: #4f46e5;
-}
-.badge.Done {
-  background: #d1fae5;
-  color: #10b981;
-}
-
-/* ===== Pagination ===== */
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 25px;
-}
-.page-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: 0.2s;
-}
-.page-btn:hover {
-  background: white;
-  color: var(--primary);
-  border-color: var(--primary);
-}
-.page-btn.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* ===== Modals ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  padding: 20px;
-}
-.modal-card {
-  background: rgba(255, 255, 255, 0.95);
-  width: 100%;
-  max-width: 600px;
-  border-radius: var(--radius-lg);
-  padding: 25px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.input-glass {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-/* Details & Comments */
-.details-row {
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px dashed #e2e8f0;
-  padding-bottom: 4px;
-}
-.details-row strong {
-  color: var(--text-muted);
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-.gallery-img {
-  width: 100%;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 8px;
-  cursor: pointer;
-  border: 1px solid #cbd5e1;
-}
-
-.comments-list {
-  background: #f1f5f9;
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 15px;
-  max-height: 150px;
-  overflow-y: auto;
-}
-.comment-bubble {
-  background: white;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* ===== RESPONSIVE (Mobile) ===== */
-@media (max-width: 850px) {
-  .layout-container {
-    grid-template-columns: 1fr;
-  }
-  .profile-panel {
-    flex-direction: row;
-    text-align: left;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  .avatar-img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 0;
-  }
-  .profile-panel .contact-list {
-    margin: 10px 0;
-    width: 100%;
-  }
-  .profile-panel .btn-outline {
-    width: auto;
-    flex: 1;
-  }
-  .telegram-section {
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .app-header {
-    padding: 0 15px;
-  }
-  .btn-header {
-    display: none;
-  } /* Скрываем кнопку выхода в хедере, чтобы не мешала */
-  .profile-panel {
-    flex-direction: column;
-    text-align: center;
-  }
-  .profile-panel .btn-outline {
-    width: 100%;
-  }
-
-  .request-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .req-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .req-actions button {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  .modal-card {
-    padding: 20px;
-  }
-}
-/* ... (Остальные стили, например body, header, profile, оставляем как были) ... */
-
-/* ===== Панель инструментов (Заголовок списка + Сортировка) ===== */
-.requests-toolbar {
+.user-profile-page .requests-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -514,190 +254,14 @@ body {
   gap: 15px;
 }
 
-.requests-toolbar h3 {
+.user-profile-page .requests-toolbar h3 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-main);
 }
 
-/* Стилизация выпадающего списка (как на скрине) */
-.sort-select {
-  padding: 8px 30px 8px 16px; /* Больше отступ справа для стрелочки */
-  border-radius: 12px;
-  border: 2px solid #1e293b; /* Жирная темная рамка */
-  background-color: #ffffff;
-  color: #1e293b;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  appearance: none; /* Убираем стандартную стрелку браузера */
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231e293b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px top 50%;
-  background-size: 10px auto;
-  min-width: 180px;
-}
-.sort-select:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-
-/* ===== Карточка заявки (Новый дизайн) ===== */
-.request-card {
-  background: #ffffff;
-  border: 2px solid #eef2ff; /* Очень легкая сиреневая обводка */
-  border-radius: 20px; /* Сильное скругление */
-  padding: 24px 30px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.request-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-  border-color: #e0e7ff;
-}
-
-/* Левая часть карточки */
-.card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.card-title {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
-.card-category {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--primary); /* Фиолетовый цвет текста */
-  margin-bottom: 5px;
-}
-
-.card-meta {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 0.9rem;
-  color: #94a3b8; /* Серый цвет для даты */
-}
-
-/* Иконка календаря */
-.card-meta svg {
-  margin-right: 6px;
-  color: var(--primary);
-  vertical-align: text-bottom;
-}
-
-/* Бейджи статусов */
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.status-badge.Done {
-  background: #d1fae5;
-  color: #059669;
-} /* Зеленый */
-.status-badge.New {
-  background: #fee2e2;
-  color: #dc2626;
-} /* Красный */
-.status-badge.Work {
-  background: #dbeafe;
-  color: #2563eb;
-} /* Синий */
-
-/* Правая часть (Кнопка) */
-.card-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.btn-purple {
-  background-color: var(--primary); /* Фиолетовый */
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 50px; /* Полное скругление кнопки */
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s;
-  text-decoration: none;
-}
-.btn-purple:hover {
-  background-color: #4f46e5;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-}
-
-.btn-text {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.btn-text:hover {
-  color: var(--primary);
-}
-
-/* Адаптивность для карточек */
-@media (max-width: 600px) {
-  .request-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 20px;
-  }
-  .card-actions {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .btn-purple {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-/* ===== Панель инструментов ===== */
-.requests-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.requests-toolbar h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.sort-select {
+.user-profile-page .sort-select {
   padding: 10px 36px 10px 16px;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
@@ -714,19 +278,19 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
 }
-.sort-select:hover {
+
+.user-profile-page .sort-select:hover {
   border-color: var(--primary);
 }
-.sort-select:focus {
+
+.user-profile-page .sort-select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* ===== Новый дизайн карточки заявки (GRID) ===== */
-.request-card-grid {
+.user-profile-page .request-card-grid {
   display: grid;
-  /* Иконка | Контент | Статус и Кнопки */
   grid-template-columns: 60px 1fr 140px;
   gap: 20px;
   background: white;
@@ -743,13 +307,12 @@ body {
   align-items: center;
 }
 
-.request-card-grid:hover {
+.user-profile-page .request-card-grid:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
 }
 
-/* 1. Колонка с иконкой */
-.req-icon-box {
+.user-profile-page .req-icon-box {
   width: 60px;
   height: 60px;
   border-radius: 16px;
@@ -759,35 +322,37 @@ body {
   font-size: 1.5rem;
   color: white;
 }
-/* Цвета иконок в зависимости от категории (через JS классы или nth-child) */
-.icon-cat-IT {
+
+.user-profile-page .icon-cat-IT {
   background: linear-gradient(135deg, #60a5fa, #3b82f6);
   box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
 }
-.icon-cat-Equipment {
+
+.user-profile-page .icon-cat-Equipment {
   background: linear-gradient(135deg, #f472b6, #ec4899);
   box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3);
 }
-.icon-cat-Other {
+
+.user-profile-page .icon-cat-Other {
   background: linear-gradient(135deg, #a78bfa, #8b5cf6);
   box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
 }
 
-/* 2. Колонка с контентом */
-.req-content {
+.user-profile-page .req-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.req-header-row {
+.user-profile-page .req-header-row {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
-.req-id {
+
+.user-profile-page .req-id {
   font-weight: 700;
   color: var(--primary);
   background: #e0e7ff;
@@ -795,7 +360,7 @@ body {
   border-radius: 6px;
 }
 
-.req-title {
+.user-profile-page .req-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-main);
@@ -803,32 +368,35 @@ body {
   line-height: 1.3;
 }
 
-.req-footer-row {
+.user-profile-page .req-footer-row {
   font-size: 0.85rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 15px;
 }
-.priority-dot {
+
+.user-profile-page .priority-dot {
   display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   margin-right: 5px;
 }
-.p-High {
+
+.user-profile-page .p-High {
   background-color: #ef4444;
 }
-.p-Medium {
+
+.user-profile-page .p-Medium {
   background-color: #f59e0b;
 }
-.p-Low {
+
+.user-profile-page .p-Low {
   background-color: #10b981;
 }
 
-/* 3. Колонка действий */
-.req-actions-col {
+.user-profile-page .req-actions-col {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -836,7 +404,7 @@ body {
   justify-content: center;
 }
 
-.status-badge-pill {
+.user-profile-page .status-badge-pill {
   padding: 6px 12px;
   border-radius: 30px;
   font-size: 0.75rem;
@@ -845,20 +413,23 @@ body {
   text-align: center;
   width: fit-content;
 }
-.status-badge-pill.New {
+
+.user-profile-page .status-badge-pill.New {
   background: #fee2e2;
   color: #ef4444;
 }
-.status-badge-pill.Work {
+
+.user-profile-page .status-badge-pill.Work {
   background: #e0e7ff;
   color: #4f46e5;
 }
-.status-badge-pill.Done {
+
+.user-profile-page .status-badge-pill.Done {
   background: #d1fae5;
   color: #10b981;
 }
 
-.btn-details-outlined {
+.user-profile-page .btn-details-outlined {
   width: 100%;
   border: 2px solid #e2e8f0;
   background: transparent;
@@ -870,13 +441,14 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-details-outlined:hover {
+
+.user-profile-page .btn-details-outlined:hover {
   border-color: var(--primary);
   color: var(--primary);
   background: #f5f3ff;
 }
 
-.btn-write-text {
+.user-profile-page .btn-write-text {
   background: none;
   border: none;
   color: var(--primary);
@@ -887,61 +459,19 @@ body {
   align-items: center;
   gap: 5px;
 }
-.btn-write-text:hover {
+
+.user-profile-page .btn-write-text:hover {
   text-decoration: underline;
 }
 
-/* ===== АДАПТИВНОСТЬ ===== */
-@media (max-width: 768px) {
-  .request-card-grid {
-    grid-template-columns: 1fr; /* Одна колонка */
-    gap: 15px;
-    padding: 15px;
-  }
-
-  .req-icon-box {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem; /* Меньше иконка */
-    position: absolute; /* Позиционируем в угол */
-    top: 15px;
-    right: 15px;
-  }
-
-  .req-content {
-    padding-right: 50px; /* Отступ чтобы текст не наехал на иконку */
-  }
-
-  .req-actions-col {
-    flex-direction: row; /* Кнопки в ряд */
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    border-top: 1px dashed #e2e8f0;
-    padding-top: 15px;
-  }
-
-  .status-badge-pill {
-    order: -1; /* Статус слева */
-  }
-
-  .btn-details-outlined {
-    width: auto;
-    padding: 8px 20px;
-    background: var(--primary);
-    color: white;
-    border: none;
-  }
-}
-
-/* Кнопки пагинации */
-.pagination {
+.user-profile-page .pagination {
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-top: 25px;
 }
-.page-btn {
+
+.user-profile-page .page-btn {
   width: 36px;
   height: 36px;
   display: flex;
@@ -955,17 +485,210 @@ body {
   transition: 0.2s;
   font-weight: 600;
 }
-.page-btn:hover:not(:disabled) {
+
+.user-profile-page .page-btn:hover:not(:disabled) {
   border-color: var(--primary);
   color: var(--primary);
 }
-.page-btn.active {
+
+.user-profile-page .page-btn.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
-.page-btn:disabled {
+
+.user-profile-page .page-btn:disabled {
   opacity: 0.5;
   cursor: default;
-} /* ... (Ваши существующие стили) ... */
+}
+
+.user-profile-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.user-profile-page .modal-card {
+  background: rgba(255, 255, 255, 0.95);
+  width: 100%;
+  max-width: 600px;
+  border-radius: var(--radius-lg);
+  padding: 25px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.user-profile-page .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-profile-page .input-glass {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.user-profile-page .details-row {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 4px;
+}
+
+.user-profile-page .details-row strong {
+  color: var(--text-muted);
+}
+
+.user-profile-page .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.user-profile-page .gallery-img {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+}
+
+.user-profile-page .comments-list {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 15px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.user-profile-page .comment-bubble {
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 850px) {
+  .user-profile-page .layout-container {
+    grid-template-columns: 1fr;
+  }
+
+  .user-profile-page .profile-panel {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .user-profile-page .avatar-img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0;
+  }
+
+  .user-profile-page .profile-panel .contact-list {
+    margin: 10px 0;
+    width: 100%;
+  }
+
+  .user-profile-page .profile-panel .btn-outline {
+    width: auto;
+    flex: 1;
+  }
+
+  .user-profile-page .telegram-section {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-profile-page .request-card-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .user-profile-page .req-icon-box {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+
+  .user-profile-page .req-content {
+    padding-right: 50px;
+  }
+
+  .user-profile-page .req-actions-col {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 15px;
+  }
+
+  .user-profile-page .status-badge-pill {
+    order: -1;
+  }
+
+  .user-profile-page .btn-details-outlined {
+    width: auto;
+    padding: 8px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .user-profile-page .app-header {
+    padding: 0 15px;
+  }
+
+  .user-profile-page .btn-header {
+    display: none;
+  }
+
+  .user-profile-page .profile-panel {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-profile-page .profile-panel .btn-outline {
+    width: 100%;
+  }
+
+  .user-profile-page .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-profile-page .modal-card {
+    padding: 20px;
+  }
+}

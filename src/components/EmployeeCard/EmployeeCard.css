@@ -1,35 +1,261 @@
-/* EmployeeCard.css */
+.employee-card-component {
+  --ecc-primary: #6366f1;
+  --ecc-primary-hover: #4f46e5;
+  --ecc-secondary: #ec4899;
+  --ecc-success: #10b981;
+  --ecc-warning: #f59e0b;
+  --ecc-danger: #ef4444;
 
-.task-mini-item {
+  --ecc-text-main: #1e293b;
+  --ecc-text-muted: #64748b;
+  --ecc-text-soft: #94a3b8;
+
+  --ecc-glass-bg: rgba(255, 255, 255, 0.75);
+  --ecc-glass-border: rgba(255, 255, 255, 0.6);
+
+  --ecc-radius-lg: 24px;
+  --ecc-radius-md: 16px;
+  --ecc-radius-sm: 12px;
+}
+
+.employee-card-component *,
+.employee-card-component *::before,
+.employee-card-component *::after {
+  box-sizing: border-box;
+}
+
+.employee-card-component .employee-card {
+  background: var(--ecc-glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--ecc-glass-border);
+  border-radius: var(--ecc-radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  height: 100%;
+  min-height: 480px;
+}
+
+.employee-card-component .employee-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+}
+
+.employee-card-component .card-status-strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+}
+
+.employee-card-component .status-Online {
+  background: var(--ecc-success);
+}
+
+.employee-card-component .status-Offline {
+  background: var(--ecc-danger);
+}
+
+.employee-card-component .status-Busy {
+  background: var(--ecc-warning);
+}
+
+.employee-card-component .emp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 10px;
+  gap: 12px;
+}
+
+.employee-card-component .emp-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.employee-card-component .emp-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.employee-card-component .emp-names h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ecc-text-main);
+}
+
+.employee-card-component .status-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.employee-card-component .chip-Online {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.employee-card-component .chip-Offline {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.employee-card-component .chip-Busy {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.employee-card-component .locations-block {
+  background: rgba(255, 255, 255, 0.6);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-card-component .loc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ecc-text-main);
+}
+
+.employee-card-component .loc-icon {
+  color: var(--ecc-text-muted);
+  width: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.employee-card-component .loc-label {
+  color: var(--ecc-text-muted);
+  font-size: 0.75rem;
+  margin-right: 5px;
+  font-weight: 600;
+}
+
+.employee-card-component .current-location {
+  font-weight: 600;
+}
+
+.employee-card-component .current-location.online {
+  color: var(--ecc-primary);
+}
+
+.employee-card-component .current-location.offline {
+  color: var(--ecc-text-soft);
+}
+
+.employee-card-component .zones-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--ecc-text-muted);
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 10px;
+}
+
+.employee-card-component .btn-icon-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ecc-primary);
+  padding: 4px;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.employee-card-component .btn-icon-edit:hover {
+  background: #e0e7ff;
+}
+
+.employee-card-component .tasks-preview-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.employee-card-component .tasks-header {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ecc-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.employee-card-component .task-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-card-component .task-mini-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
 }
 
-.task-header {
+.employee-card-component .task-header {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
-.task-category {
+.employee-card-component .task-id {
+  background: #e0e7ff;
+  color: var(--ecc-primary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.employee-card-component .task-category {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--ecc-text-muted);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: right;
 }
 
-.task-title {
+.employee-card-component .task-title {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ecc-text-main);
   line-height: 1.3;
 }
 
-.task-footer {
+.employee-card-component .task-footer {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -37,60 +263,109 @@
   margin-top: 4px;
   border-top: 1px dashed #f1f5f9;
   padding-top: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.task-date {
+.employee-card-component .task-date {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--ecc-text-muted);
 }
 
-.task-priority {
+.employee-card-component .task-priority {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.priority-dot {
+.employee-card-component .priority-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
 }
 
-.priority-dot.high,
-.priority-dot.высокий {
+.employee-card-component .priority-dot.priority-high,
+.employee-card-component .priority-dot.high,
+.employee-card-component .priority-dot.высокий {
   background-color: #ef4444;
 }
 
-.priority-dot.medium,
-.priority-dot.средний {
+.employee-card-component .priority-dot.priority-medium,
+.employee-card-component .priority-dot.medium,
+.employee-card-component .priority-dot.средний {
   background-color: #f59e0b;
 }
 
-.priority-dot.low {
+.employee-card-component .priority-dot.priority-low,
+.employee-card-component .priority-dot.low {
   background-color: #10b981;
 }
 
-.priority-label {
+.employee-card-component .priority-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: #475569;
 }
 
-.no-tasks {
+.employee-card-component .no-tasks {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--ecc-text-soft);
   font-style: italic;
   padding: 5px;
 }
 
-.current-location {
+.employee-card-component .btn-assign-task {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border: 1px dashed var(--ecc-primary);
+  color: var(--ecc-primary);
+  border-radius: 10px;
   font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.current-location.online {
-  color: var(--primary);
+.employee-card-component .btn-assign-task:hover {
+  background: #e0e7ff;
+  border-style: solid;
 }
 
-.current-location.offline {
-  color: #94a3b8;
+.employee-card-component .btn-view-more {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  background: white;
+  border: 1px solid var(--ecc-primary);
+  color: var(--ecc-primary);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.employee-card-component .btn-view-more:hover {
+  background: var(--ecc-primary);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .employee-card-component .employee-card {
+    min-height: auto;
+  }
+
+  .employee-card-component .emp-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .employee-card-component .task-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

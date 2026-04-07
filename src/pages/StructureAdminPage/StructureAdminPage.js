@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import "../ManagerPanel/ManagerPanel.css"; // твои базовые btn/inputs
 import "./StructureAdminPage.css";
 
 import BuildingApi from "../../apiServices/buildingApi";
@@ -50,7 +49,6 @@ export default function StructureAdminPage() {
   const [error, setError] = useState("");
   const [loadingList, setLoadingList] = useState(false);
 
-  // ============ BUILDINGS ============
   const [buildings, setBuildings] = useState([]);
   const [bPage, setBPage] = useState(1);
   const [bTotalPages, setBTotalPages] = useState(1);
@@ -70,7 +68,6 @@ export default function StructureAdminPage() {
   });
   const [savingEditBuilding, setSavingEditBuilding] = useState(false);
 
-  // ============ FLOORS ============
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
   const [floors, setFloors] = useState([]);
   const [fPage, setFPage] = useState(1);
@@ -89,7 +86,6 @@ export default function StructureAdminPage() {
   });
   const [savingEditFloor, setSavingEditFloor] = useState(false);
 
-  // ============ LOCATIONS ============
   const [selectedFloorId, setSelectedFloorId] = useState("");
   const [locations, setLocations] = useState([]);
   const [lPage, setLPage] = useState(1);
@@ -115,11 +111,10 @@ export default function StructureAdminPage() {
   });
   const [savingEditLocation, setSavingEditLocation] = useState(false);
 
-  // ========================= LOADERS =========================
-
   const loadBuildings = async (page = 1) => {
     setLoadingList(true);
     setError("");
+
     try {
       const res = await buildingApi.getBuildings(page, PAGE_SIZE);
 
@@ -146,6 +141,7 @@ export default function StructureAdminPage() {
 
     setLoadingList(true);
     setError("");
+
     try {
       const res = await floorApi.getFloorsForBuilding(
         buildingId,
@@ -179,7 +175,6 @@ export default function StructureAdminPage() {
     setError("");
 
     try {
-      // 1) пробуем серверную пагинацию (если контроллер поддерживает параметры)
       try {
         const response = await locationApi.api.get(`/${floorId}/locations`, {
           params: { PageNumber: page, PageSize: PAGE_SIZE },
@@ -195,10 +190,9 @@ export default function StructureAdminPage() {
         setAllLocationsNoServerPaging([]);
         return;
       } catch {
-        // fallback ниже
+        // fallback
       }
 
-      // 2) fallback: метод без пагинации -> локальная пагинация
       const res = await locationApi.getLocationsForFloor(floorId);
 
       if (!res.success) {
@@ -224,7 +218,6 @@ export default function StructureAdminPage() {
     }
   };
 
-  // ========================= INIT / TAB EFFECTS =========================
   useEffect(() => {
     setBPage(1);
     loadBuildings(1);
@@ -269,8 +262,6 @@ export default function StructureAdminPage() {
     loadLocations(selectedFloorId, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, selectedFloorId]);
-
-  // ========================= CREATE =========================
 
   const submitBuilding = async (e) => {
     e.preventDefault();
@@ -359,8 +350,6 @@ export default function StructureAdminPage() {
     }
   };
 
-  // ========================= EDIT (OPEN) =========================
-
   const openEditBuilding = (b) => {
     setEditBuilding(b);
     setEditBuildingForm({
@@ -387,15 +376,12 @@ export default function StructureAdminPage() {
     });
   };
 
-  // ========================= EDIT (SAVE) =========================
-
   const saveEditBuilding = async () => {
     if (!editBuilding?.id) return;
     setError("");
 
     setSavingEditBuilding(true);
     try {
-      // в buildingApi нет update -> используем axios instance
       await buildingApi.api.put(`/${editBuilding.id}`, {
         name: editBuildingForm.name || null,
         description: editBuildingForm.description || null,
@@ -440,7 +426,6 @@ export default function StructureAdminPage() {
 
     setSavingEditLocation(true);
     try {
-      // в locationApi нет update -> используем axios instance
       await locationApi.api.put(
         `/${selectedFloorId}/locations/${editLocation.id}`,
         {
@@ -459,8 +444,6 @@ export default function StructureAdminPage() {
     }
   };
 
-  // ========================= DELETE =========================
-
   const deleteFloor = async (floorId) => {
     if (!selectedBuildingId) return;
     if (!window.confirm("Удалить этаж?")) return;
@@ -470,6 +453,7 @@ export default function StructureAdminPage() {
       setError(res.message || "Не удалось удалить этаж");
       return;
     }
+
     await loadFloors(selectedBuildingId, fPage);
   };
 
@@ -482,10 +466,10 @@ export default function StructureAdminPage() {
       setError(res.message || "Не удалось удалить место");
       return;
     }
+
     await loadLocations(selectedFloorId, lPage);
   };
 
-  // локальная пагинация locations (если сервер не поддерживает)
   useEffect(() => {
     if (tab !== TAB.LOCATIONS) return;
     if (locationsServerPaged) return;
@@ -582,8 +566,6 @@ export default function StructureAdminPage() {
             />
           )}
         </div>
-
-        {/* ===================== MODALS (С ПОЛЯМИ) ===================== */}
 
         <EditModal
           isOpen={!!editBuilding}

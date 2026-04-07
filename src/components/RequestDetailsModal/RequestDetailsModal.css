@@ -1,10 +1,30 @@
-/* ========================================= */
-/* 1. MODAL LAYOUT                           */
-/* ========================================= */
-.modal-overlay {
+.request-details-modal {
+  --rdm-primary: #6366f1;
+  --rdm-primary-hover: #4f46e5;
+  --rdm-text-main: #1e293b;
+  --rdm-text-muted: #64748b;
+  --rdm-text-soft: #94a3b8;
+  --rdm-border: #e2e8f0;
+  --rdm-border-soft: #f1f5f9;
+  --rdm-bg-soft: #f8fafc;
+  --rdm-white: #ffffff;
+  --rdm-danger: #ef4444;
+
+  --rdm-radius-lg: 20px;
+  --rdm-radius-md: 12px;
+  --rdm-radius-sm: 10px;
+}
+
+.request-details-modal *,
+.request-details-modal *::before,
+.request-details-modal *::after {
+  box-sizing: border-box;
+}
+
+.request-details-modal .rdm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6); /* Темное затемнение */
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -13,22 +33,22 @@
   padding: 20px;
 }
 
-.modal-card {
+.request-details-modal .rdm-card {
   background: white;
   width: 100%;
   max-width: 500px;
-  border-radius: 20px;
+  border-radius: var(--rdm-radius-lg);
   padding: 30px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.3s ease-out;
+  animation: rdmSlideUp 0.3s ease-out;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-height: 90vh; /* Ограничение высоты */
-  overflow-y: auto; /* Скролл внутри */
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-@keyframes slideUp {
+@keyframes rdmSlideUp {
   from {
     transform: translateY(20px);
     opacity: 0;
@@ -39,31 +59,27 @@
   }
 }
 
-/* ========================================= */
-/* 2. HEADER (Исправленный)                  */
-/* ========================================= */
-.modal-header-details {
+.request-details-modal .rdm-header {
   display: flex;
-  justify-content: space-between; /* Разносит заголовок и крестик по краям */
+  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--rdm-border-soft);
   padding-bottom: 15px;
   margin-bottom: 5px;
 }
 
-.modal-header-details h3 {
+.request-details-modal .rdm-title {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--rdm-text-main);
 }
 
-/* Стиль кнопки закрытия (крестик) */
-.btn-close-details {
+.request-details-modal .rdm-close-btn {
   border: none;
   background: transparent;
-  font-size: 2rem; /* Крупный размер */
-  color: #94a3b8;
+  font-size: 2rem;
+  color: var(--rdm-text-soft);
   cursor: pointer;
   line-height: 1;
   padding: 0;
@@ -75,251 +91,179 @@
   transition: color 0.2s;
 }
 
-.btn-close-details:hover {
-  color: #ef4444; /* Красный при наведении */
+.request-details-modal .rdm-close-btn:hover {
+  color: var(--rdm-danger);
 }
 
-/* ========================================= */
-/* 3. INFO BLOCK                             */
-/* ========================================= */
-.details-row {
+.request-details-modal .rdm-info-block {
+  margin-bottom: 20px;
+}
+
+.request-details-modal .rdm-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed var(--rdm-border);
   font-size: 0.95rem;
-  color: #1e293b;
+  color: var(--rdm-text-main);
+  gap: 10px;
 }
 
-.details-row strong {
-  color: #64748b;
+.request-details-modal .rdm-row strong {
+  color: var(--rdm-text-muted);
   font-weight: 600;
 }
 
-/* Бейджи статусов */
-.status-badge-pill {
+.request-details-modal .rdm-loc-block {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.request-details-modal .rdm-status-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
-.status-badge-pill.New {
+
+.request-details-modal .rdm-status-badge.New {
   background: #fee2e2;
   color: #ef4444;
 }
-.status-badge-pill.Work {
+
+.request-details-modal .rdm-status-badge.Work {
   background: #e0e7ff;
   color: #4f46e5;
 }
-.status-badge-pill.Done {
+
+.request-details-modal .rdm-status-badge.Done {
   background: #d1fae5;
   color: #10b981;
 }
 
-/* Блок описания (Fix длинных строк) */
-.desc-box {
+.request-details-modal .rdm-desc-box {
   margin-top: 15px;
-  background: #f8fafc;
+  background: var(--rdm-bg-soft);
   padding: 15px;
-  border-radius: 12px;
+  border-radius: var(--rdm-radius-md);
   font-size: 0.95rem;
   color: #334155;
   line-height: 1.5;
-
-  /* Перенос длинного текста */
   white-space: pre-wrap;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-/* ========================================= */
-/* 4. PHOTOS                                 */
-/* ========================================= */
-.gallery-grid {
+.request-details-modal .rdm-section-title {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--rdm-text-main);
+  font-weight: 700;
+}
+
+.request-details-modal .rdm-photo-loading {
+  font-size: 0.85rem;
+  color: var(--rdm-text-muted);
+}
+
+.request-details-modal .rdm-gallery-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
 }
 
-.gallery-img {
+.request-details-modal .rdm-gallery-img {
   width: 70px;
   height: 70px;
   object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--rdm-radius-sm);
+  border: 1px solid var(--rdm-border);
   cursor: pointer;
   transition: transform 0.2s;
 }
-.gallery-img:hover {
+
+.request-details-modal .rdm-gallery-img:hover {
   transform: scale(1.05);
 }
 
-.btn-add-photo-small {
+.request-details-modal .rdm-photo-empty {
+  font-size: 0.85rem;
+  color: var(--rdm-text-soft);
+  align-self: center;
+}
+
+.request-details-modal .rdm-add-photo-btn {
   width: 70px;
   height: 70px;
-  background: #f8fafc;
-  border: 2px dashed #cbd5e1;
-  border-radius: 10px;
+  background: var(--rdm-bg-soft);
+  border: 2px dashed var(--rdm-border);
+  border-radius: var(--rdm-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--rdm-text-muted);
   cursor: pointer;
   transition: 0.2s;
 }
-.btn-add-photo-small:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+
+.request-details-modal .rdm-add-photo-btn:hover {
+  border-color: var(--rdm-primary);
+  color: var(--rdm-primary);
   background: white;
 }
 
-/* ========================================= */
-/* 5. COMMENTS & ACTIONS                     */
-/* ========================================= */
-.comments-list {
-  background: #f1f5f9;
-  padding: 15px;
-  border-radius: 12px;
-  margin-top: 20px;
-  max-height: 200px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.comment-bubble {
-  background: white;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  color: #1e293b;
-}
-
-/* Input & Button group */
-.comment-input-group {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.input-glass {
-  flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  font-family: inherit;
-  font-size: 0.95rem;
-}
-.input-glass:focus {
-  outline: none;
-  border-color: #6366f1;
-  background: white;
-}
-
-.btn-primary {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 0 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.btn-primary:hover {
-  background: #4f46e5;
-}
-
-.btn-danger {
-  width: 100%;
-  padding: 12px;
-  background: #fee2e2;
-  color: #ef4444;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: 0.2s;
-}
-.btn-danger:hover {
-  background: #ef4444;
-  color: white;
-}
-
-/* ========================================= */
-/* 5. COMMENTS & ACTIONS                     */
-/* ========================================= */
-
-.comments-section {
+.request-details-modal .rdm-comments-section {
   margin-top: 20px;
 }
 
-.comments-title {
+.request-details-modal .rdm-comments-title {
   display: block;
   margin-bottom: 8px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--rdm-text-main);
 }
 
-/* Контейнер списка с прокруткой */
-.comments-list {
-  background: #f8fafc;
+.request-details-modal .rdm-comments-list {
+  background: var(--rdm-bg-soft);
   padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-
-  /* Фиксированная высота и скролл */
+  border-radius: var(--rdm-radius-md);
+  border: 1px solid var(--rdm-border);
   max-height: 200px;
   overflow-y: auto;
-
   display: flex;
   flex-direction: column;
   gap: 10px;
-
-  /* Тень внутри для ощущения глубины (опционально) */
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
-/* Стилизация скроллбара (Webkit: Chrome, Safari, Edge) */
-.comments-list::-webkit-scrollbar {
+.request-details-modal .rdm-comments-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.comments-list::-webkit-scrollbar-track {
+.request-details-modal .rdm-comments-list::-webkit-scrollbar-track {
   background: transparent;
   margin: 5px 0;
 }
 
-.comments-list::-webkit-scrollbar-thumb {
+.request-details-modal .rdm-comments-list::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 10px;
-  border: 2px solid transparent; /* Отступ от края */
+  border: 2px solid transparent;
   background-clip: content-box;
 }
 
-.comments-list::-webkit-scrollbar-thumb:hover {
+.request-details-modal .rdm-comments-list::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
 }
 
-/* Пузырь комментария */
-.comment-bubble {
+.request-details-modal .rdm-comment-bubble {
   background: white;
   padding: 12px 16px;
   border-radius: 12px;
-  /* Небольшой "хвостик" или просто округлый блок */
   border-bottom-left-radius: 2px;
   font-size: 0.9rem;
   line-height: 1.4;
@@ -328,18 +272,92 @@
   border: 1px solid #f1f5f9;
 }
 
-.comment-empty {
+.request-details-modal .rdm-comment-empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--rdm-text-soft);
   font-style: italic;
   font-size: 0.85rem;
   padding: 10px;
 }
 
-/* Input & Button group */
-.comment-input-group {
+.request-details-modal .rdm-actions {
+  margin-top: 20px;
+}
+
+.request-details-modal .rdm-comment-input-group {
   margin-top: 15px;
   display: flex;
   gap: 10px;
   width: 100%;
+}
+
+.request-details-modal .rdm-input {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--rdm-radius-sm);
+  border: 1px solid #cbd5e1;
+  background: var(--rdm-bg-soft);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.request-details-modal .rdm-input:focus {
+  outline: none;
+  border-color: var(--rdm-primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.request-details-modal .rdm-btn-primary {
+  background: var(--rdm-primary);
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: var(--rdm-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.request-details-modal .rdm-btn-primary:hover {
+  background: var(--rdm-primary-hover);
+}
+
+.request-details-modal .rdm-btn-danger {
+  width: 100%;
+  padding: 12px;
+  background: #fee2e2;
+  color: var(--rdm-danger);
+  border: none;
+  border-radius: var(--rdm-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.request-details-modal .rdm-btn-danger:hover {
+  background: var(--rdm-danger);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .request-details-modal .rdm-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .request-details-modal .rdm-card {
+    padding: 20px;
+  }
+
+  .request-details-modal .rdm-comment-input-group {
+    flex-direction: column;
+  }
 }

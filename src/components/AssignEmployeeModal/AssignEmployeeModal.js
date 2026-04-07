@@ -1,18 +1,15 @@
-// src/components/AssignEmployeeModal/AssignEmployeeModal.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./AssignEmployeeModal.css";
 import EmployeeTypeOfProblemServerApi from "../../apiServices/employeeTypeOfProblemApi";
 import EmployeeRequestsServerApi from "../../apiServices/employeeRequestsApi";
 
 /**
- * Модальное окно для выбора исполнителя по типу проблемы.
- *
  * props:
  * - isOpen: bool
  * - onClose: () => void
  * - requestId: string | null
- * - problemId: string | null            // id типа проблемы
- * - onAssigned: () => void              // колбэк после успешного назначения (для обновления списка)
+ * - problemId: string | null
+ * - onAssigned: () => void
  */
 const AssignEmployeeModal = ({
   isOpen,
@@ -21,8 +18,8 @@ const AssignEmployeeModal = ({
   problemId,
   onAssigned,
 }) => {
-  const [assignedEmployees, setAssignedEmployees] = useState([]); // уже назначенные
-  const [candidates, setCandidates] = useState([]); // кандидаты для назначения
+  const [assignedEmployees, setAssignedEmployees] = useState([]);
+  const [candidates, setCandidates] = useState([]);
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
@@ -34,10 +31,15 @@ const AssignEmployeeModal = ({
   const [pageSize] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
 
-  const employeeTypeApi = new EmployeeTypeOfProblemServerApi();
-  const employeeRequestsApi = new EmployeeRequestsServerApi();
+  const employeeTypeApi = useMemo(
+    () => new EmployeeTypeOfProblemServerApi(),
+    [],
+  );
+  const employeeRequestsApi = useMemo(
+    () => new EmployeeRequestsServerApi(),
+    [],
+  );
 
-  // Загрузка уже назначенных сотрудников
   const fetchAssigned = async () => {
     if (!requestId) {
       setAssignedEmployees([]);
@@ -49,7 +51,7 @@ const AssignEmployeeModal = ({
       const res = await employeeRequestsApi.GetEmployeesForRequest(
         requestId,
         1,
-        20, // достаточно большой лимит, если назначений немного
+        20,
       );
 
       if (res.success && Array.isArray(res.employees)) {
@@ -64,6 +66,7 @@ const AssignEmployeeModal = ({
             assignmentStatus: item.assignmentStatus,
           };
         });
+
         setAssignedEmployees(mapped);
       } else {
         setAssignedEmployees([]);
@@ -76,7 +79,6 @@ const AssignEmployeeModal = ({
     }
   };
 
-  // Загрузка кандидатов по типу проблемы
   const fetchCandidates = async () => {
     if (!isOpen || !problemId) {
       setCandidates([]);
@@ -92,10 +94,10 @@ const AssignEmployeeModal = ({
       );
 
       if (res.success && Array.isArray(res.employees)) {
-        // Маппинг + фильтрация доступных
         const mappedRaw = res.employees.map((etp) => {
           const emp = etp.employee || {};
           const user = emp.user || {};
+
           return {
             id: emp.id,
             fullName: user.fullName || "",
@@ -107,7 +109,6 @@ const AssignEmployeeModal = ({
           };
         });
 
-        // Убираем недоступных и уже назначенных
         const assignedIds = new Set(assignedEmployees.map((a) => a.id));
         const filtered = mappedRaw.filter(
           (e) => e.isAvailable && !assignedIds.has(e.id),
@@ -133,18 +134,15 @@ const AssignEmployeeModal = ({
     }
   };
 
-  // При открытии: сброс, загрузка назначенных и кандидатов
   useEffect(() => {
     if (!isOpen) return;
 
     setSelectedEmployeeId(null);
     setPageNumber(1);
     fetchAssigned();
-    // fetchCandidates будет вызван ниже, когда assignedEmployees обновятся
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, requestId, problemId]);
 
-  // Когда поменялись назначенные или страница — подгружаем кандидатов
   useEffect(() => {
     if (!isOpen) return;
     fetchCandidates();
@@ -156,7 +154,6 @@ const AssignEmployeeModal = ({
   const handleAssignClick = async () => {
     if (!selectedEmployeeId || !requestId) return;
 
-    // ограничение: не более 4 сотрудников на заявку
     if (assignedEmployees.length >= 4) {
       alert("На заявку уже назначено максимальное количество сотрудников (4).");
       return;
@@ -164,16 +161,16 @@ const AssignEmployeeModal = ({
 
     try {
       setIsAssigning(true);
+
       const res = await employeeRequestsApi.AssignEmployeeToRequest(
         requestId,
         selectedEmployeeId,
-        "Назначен менеджером", // пример статуса, подстрой под свои значения
+        "Назначен менеджером",
       );
 
       if (!res.success) {
         alert(res.message || "Не удалось назначить сотрудника");
       } else {
-        // после назначения обновляем список назначенных и кандидатов
         await fetchAssigned();
         if (onAssigned) {
           await onAssigned();
@@ -197,141 +194,147 @@ const AssignEmployeeModal = ({
   };
 
   return (
-    <div className="assign-overlay" onClick={onClose}>
-      <div className="assign-card" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="assign-header">
-          <div>
-            <h3 className="assign-title">Назначить исполнителя</h3>
-            <p className="assign-subtitle">
-              Доступные сотрудники по типу проблемы и уже назначенные на заявку
-            </p>
-          </div>
-          <button className="assign-close-btn" onClick={onClose}>
-            &times;
-          </button>
-        </div>
-
-        {/* Assigned employees */}
-        <div className="assign-content">
-          <div className="assign-section-title">Уже назначены</div>
-          {isLoadingAssigned ? (
-            <div className="assign-empty">Загрузка назначенных...</div>
-          ) : assignedEmployees.length === 0 ? (
-            <div className="assign-empty">
-              На заявку пока никто не назначен.
+    <div className="assign-employee-modal">
+      <div className="assign-overlay" onClick={onClose}>
+        <div className="assign-card" onClick={(e) => e.stopPropagation()}>
+          <div className="assign-header">
+            <div>
+              <h3 className="assign-title">Назначить исполнителя</h3>
+              <p className="assign-subtitle">
+                Доступные сотрудники по типу проблемы и уже назначенные на
+                заявку
+              </p>
             </div>
-          ) : (
-            <div className="assign-list">
-              {assignedEmployees.map((emp) => (
-                <div key={emp.id} className="assign-item assign-item-assigned">
-                  <div className="assign-item-content">
-                    <div className="assign-emp-name">
-                      {emp.fullName || "Без имени"}
-                    </div>
-                    <div className="assign-emp-role">
-                      Статус назначения: {emp.assignmentStatus}
-                    </div>
-                    <div className="assign-emp-location">
-                      {emp.email} • {emp.phone}
+
+            <button className="assign-close-btn" onClick={onClose}>
+              &times;
+            </button>
+          </div>
+
+          <div className="assign-content">
+            <div className="assign-section-title">Уже назначены</div>
+
+            {isLoadingAssigned ? (
+              <div className="assign-empty">Загрузка назначенных...</div>
+            ) : assignedEmployees.length === 0 ? (
+              <div className="assign-empty">
+                На заявку пока никто не назначен.
+              </div>
+            ) : (
+              <div className="assign-list">
+                {assignedEmployees.map((emp) => (
+                  <div
+                    key={emp.id}
+                    className="assign-item assign-item-assigned"
+                  >
+                    <div className="assign-item-content">
+                      <div className="assign-emp-name">
+                        {emp.fullName || "Без имени"}
+                      </div>
+                      <div className="assign-emp-role">
+                        Статус назначения: {emp.assignmentStatus}
+                      </div>
+                      <div className="assign-emp-location">
+                        {emp.email} • {emp.phone}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+
+            <div className="assign-section-title">Доступные кандидаты</div>
+
+            {isLoadingCandidates ? (
+              <div className="assign-empty">Загрузка кандидатов...</div>
+            ) : candidates.length === 0 ? (
+              <div className="assign-empty">
+                Нет доступных сотрудников для этого типа проблемы.
+              </div>
+            ) : (
+              <div className="assign-list">
+                {candidates.map((emp) => (
+                  <label
+                    key={emp.id}
+                    className={
+                      "assign-item" +
+                      (selectedEmployeeId === emp.id
+                        ? " assign-item-selected"
+                        : "")
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="selectedEmployee"
+                      value={emp.id}
+                      checked={selectedEmployeeId === emp.id}
+                      onChange={() => setSelectedEmployeeId(emp.id)}
+                    />
+
+                    <div className="assign-item-content">
+                      <div className="assign-emp-name">
+                        {emp.fullName || "Без имени"}
+                      </div>
+                      <div className="assign-emp-role">
+                        Навыки: {emp.skills} • Желание: {emp.desire}
+                      </div>
+                      <div className="assign-emp-location">
+                        {emp.email} • {emp.phone}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="assign-pagination">
+              <button
+                className="assign-page-btn"
+                disabled={pageNumber === 1 || isLoadingCandidates}
+                onClick={() => handlePageChange("prev")}
+              >
+                &lt;
+              </button>
+
+              <span className="assign-page-info">
+                Стр. {pageNumber} из {totalPages}
+              </span>
+
+              <button
+                className="assign-page-btn"
+                disabled={pageNumber === totalPages || isLoadingCandidates}
+                onClick={() => handlePageChange("next")}
+              >
+                &gt;
+              </button>
             </div>
           )}
 
-          {/* Candidates */}
-          <div className="assign-section-title" style={{ marginTop: "12px" }}>
-            Доступные кандидаты
-          </div>
-          {isLoadingCandidates ? (
-            <div className="assign-empty">Загрузка кандидатов...</div>
-          ) : candidates.length === 0 ? (
-            <div className="assign-empty">
-              Нет доступных сотрудников для этого типа проблемы.
-            </div>
-          ) : (
-            <div className="assign-list">
-              {candidates.map((emp) => (
-                <label
-                  key={emp.id}
-                  className={
-                    "assign-item" +
-                    (selectedEmployeeId === emp.id
-                      ? " assign-item-selected"
-                      : "")
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="selectedEmployee"
-                    value={emp.id}
-                    checked={selectedEmployeeId === emp.id}
-                    onChange={() => setSelectedEmployeeId(emp.id)}
-                  />
-                  <div className="assign-item-content">
-                    <div className="assign-emp-name">
-                      {emp.fullName || "Без имени"}
-                    </div>
-                    <div className="assign-emp-role">
-                      Навыки: {emp.skills} • Желание: {emp.desire}
-                    </div>
-                    <div className="assign-emp-location">
-                      {emp.email} • {emp.phone}
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="assign-pagination">
+          <div className="assign-footer">
             <button
-              className="assign-page-btn"
-              disabled={pageNumber === 1 || isLoadingCandidates}
-              onClick={() => handlePageChange("prev")}
+              type="button"
+              className="assign-btn assign-btn-secondary"
+              onClick={onClose}
+              disabled={isAssigning}
             >
-              &lt;
+              Отмена
             </button>
-            <span className="assign-page-info">
-              Стр. {pageNumber} из {totalPages}
-            </span>
+
             <button
-              className="assign-page-btn"
-              disabled={pageNumber === totalPages || isLoadingCandidates}
-              onClick={() => handlePageChange("next")}
+              type="button"
+              className="assign-btn assign-btn-primary"
+              onClick={handleAssignClick}
+              disabled={
+                !selectedEmployeeId ||
+                isAssigning ||
+                assignedEmployees.length >= 4
+              }
             >
-              &gt;
+              {isAssigning ? "Назначение..." : "Назначить"}
             </button>
           </div>
-        )}
-
-        {/* Footer */}
-        <div className="assign-footer">
-          <button
-            type="button"
-            className="assign-btn assign-btn-secondary"
-            onClick={onClose}
-            disabled={isAssigning}
-          >
-            Отмена
-          </button>
-          <button
-            type="button"
-            className="assign-btn assign-btn-primary"
-            onClick={handleAssignClick}
-            disabled={
-              !selectedEmployeeId ||
-              isAssigning ||
-              assignedEmployees.length >= 4
-            }
-          >
-            {isAssigning ? "Назначение..." : "Назначить"}
-          </button>
         </div>
       </div>
     </div>

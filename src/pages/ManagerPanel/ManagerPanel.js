@@ -1,35 +1,32 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import EmployeeCard from "../../components/EmployeeCard/EmployeeCard";
 import "./ManagerPanel.css";
 import { IconBuilding, IconPlus, IconList } from "../../components/Icons";
 import TasksModal from "../../components/EmployeeTasksModal/TasksModal";
 import EmployeeServerApi from "../../apiServices/employeeApi";
-import EmployeeWorkspacesModal from "../../components/EmployeeWorkspacesModal/EmployeeWorkspacesModal";
 import WorkspaceModal from "../../components/WorkspaceModal/WorkspaceModal";
 
 function ManagerPanel() {
-  // --- STATE (UI) ---
-  const [activeModal, setActiveModal] = useState(null); // 'createZone', 'assignZones', 'empDetails', 'assignNewTask'
+  const navigate = useNavigate();
+
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [modalTasks, setModalTasks] = useState([]);
 
-  // --- STATE (Filters & Pagination) ---
   const [filterBuilding, setFilterBuilding] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 3;
 
-  // --- DATA ---
   const [employees, setEmployees] = useState([]);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
 
-  // превью заявок
   const [tasksPreviewByEmpId, setTasksPreviewByEmpId] = useState({});
   const previewLoadedRef = useRef(new Set());
 
   const employeeApi = useMemo(() => new EmployeeServerApi(), []);
 
-  // --- LOAD EMPLOYEES FROM API ---
   const loadEmployees = async (page = 1, pageSize = 20) => {
     setIsLoadingEmployees(true);
     try {
@@ -40,7 +37,6 @@ function ManagerPanel() {
           const user = e.user || e.employee?.user || {};
           const currentBuilding = e.currentBuilding?.name || "";
           const defaultBuilding = e.defaultBuilding?.name || "";
-          const zoneIds = e.workspaceIds || e.workSpaceIds || e.zoneIds || [];
 
           return {
             id: e.id || e.employee?.id || index + 1,
@@ -52,7 +48,6 @@ function ManagerPanel() {
             status: e.isAvailable ? "Online" : "Offline",
             currentLocation: currentBuilding || "-",
             defaultLocation: defaultBuilding || "",
-            zoneIds: Array.isArray(zoneIds) ? zoneIds : [],
             avatar:
               user.profilePhotoUrl ||
               "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
@@ -75,7 +70,6 @@ function ManagerPanel() {
     loadEmployees(1, 20);
   }, [employeeApi]);
 
-  // ===== helpers =====
   const isRequestInWork = (r) => {
     const raw =
       r?.status ??
@@ -171,18 +165,20 @@ function ManagerPanel() {
           previewLoadedRef.current.add(r.value.empId);
         }
       }
+
       setTasksPreviewByEmpId((prev) => ({ ...prev, ...patch }));
     };
 
     run();
+
     return () => {
       cancelled = true;
     };
   }, [employees]);
 
-  // ===== Building filter options =====
   const uniqueBuildings = useMemo(() => {
     const set = new Set();
+
     for (const e of employees) {
       if (e.currentLocation && e.currentLocation !== "-") {
         set.add(e.currentLocation);
@@ -191,10 +187,10 @@ function ManagerPanel() {
         set.add(e.defaultLocation);
       }
     }
+
     return Array.from(set);
   }, [employees]);
 
-  // --- FILTERING ---
   const filteredEmployees = employees.filter((emp) => {
     const statusMatch = filterStatus === "All" || emp.status === filterStatus;
 
@@ -214,7 +210,6 @@ function ManagerPanel() {
   );
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage) || 1;
 
-  // --- HANDLERS ---
   const handleUnassignTask = async (taskId) => {
     if (!selectedEmp) return;
     console.log("Снять заявку", taskId, "с сотрудника", selectedEmp.id);
@@ -233,10 +228,10 @@ function ManagerPanel() {
     setActiveModal(null);
   };
 
-  // --- ACTIONS ---
-  const openAssignZones = (emp) => {
-    setSelectedEmp(emp);
-    setActiveModal("assignZones");
+  const openEmployeeSettings = (emp) => {
+    navigate(
+      `/manager/employee/settings?employeeId=${encodeURIComponent(emp.id)}&fullName=${encodeURIComponent(emp.name)}`,
+    );
   };
 
   const openEmpDetails = async (emp) => {
@@ -262,25 +257,12 @@ function ManagerPanel() {
     alert("Переход на страницу всех заявок...");
   };
 
-  // --- CALLBACK после сохранения рабочих зон сотрудника ---
-  const handleWorkspacesSaved = (employeeId, workspaceIds) => {
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === employeeId ? { ...e, zoneIds: workspaceIds } : e,
-      ),
-    );
-
-    setSelectedEmp((prev) =>
-      prev?.id === employeeId ? { ...prev, zoneIds: workspaceIds } : prev,
-    );
-  };
-
   const closeModal = () => {
     setActiveModal(null);
   };
 
   return (
-    <>
+    <div className="manager-panel-page">
       <div className="aurora-bg"></div>
 
       <header className="manager-header">
@@ -288,6 +270,7 @@ function ManagerPanel() {
           <IconBuilding /> Хоз. Отдел{" "}
           <span className="role-badge">Начальник</span>
         </div>
+
         <button
           className="btn btn-outline"
           style={{ border: "none", background: "transparent" }}
@@ -362,8 +345,7 @@ function ManagerPanel() {
                 key={emp.id}
                 emp={emp}
                 tasks={tasksPreviewByEmpId[emp.id] ?? []}
-                zones={[]}
-                onAssignZones={openAssignZones}
+                onOpenSettings={openEmployeeSettings}
                 onViewDetails={() => openEmpDetails(emp)}
                 onAssignNewTask={openAssignNewTask}
               />
@@ -406,7 +388,6 @@ function ManagerPanel() {
         )}
       </div>
 
-      {/* MODAL: ASSIGN NEW TASK */}
       {activeModal === "assignNewTask" && selectedEmp && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -442,6 +423,7 @@ function ManagerPanel() {
                   Логика назначения заявок на сотрудника пока заглушка.
                 </div>
               </div>
+
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -454,7 +436,6 @@ function ManagerPanel() {
         </div>
       )}
 
-      {/* MODAL: TASKS DETAILS */}
       <TasksModal
         isOpen={activeModal === "empDetails"}
         onClose={closeModal}
@@ -463,20 +444,11 @@ function ManagerPanel() {
         onUnassignTask={handleUnassignTask}
       />
 
-      {/* MODAL: WORKSPACES ASSIGNMENT */}
-      <EmployeeWorkspacesModal
-        isOpen={activeModal === "assignZones"}
-        onClose={closeModal}
-        employee={selectedEmp}
-        onSaved={handleWorkspacesSaved}
-      />
-
-      {/* MODAL: CREATE WORKSPACE */}
       <WorkspaceModal
         isOpen={activeModal === "createZone"}
         onClose={closeModal}
       />
-    </>
+    </div>
   );
 }
 

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "./UserProfile.css";
 import UserApi from "../../apiServices/usersApi";
 import RequestApi from "../../apiServices/requestForUserApi";
 import RequestPhotoApi from "../../apiServices/requestPhotoApi";
 import CommentsApi from "../../apiServices/commentsApi";
+import UserTelegramApi from "../../apiServices/userTelegramApi";
 
 import RequestDetailsModal from "../../components/RequestDetailsModal/RequestDetailsModal";
 import CreateRequestModal from "../../components/CreateRequestModal/CreateRequestModal";
@@ -21,7 +22,6 @@ import {
 } from "../../components/Icons";
 
 function UserProfile() {
-  // --- STATE ---
   const [activeModal, setActiveModal] = useState(null);
   const [selectedReq, setSelectedReq] = useState(null);
   const [tempComment, setTempComment] = useState("");
@@ -30,68 +30,74 @@ function UserProfile() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isRequestsLoading, setIsRequestsLoading] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [telegramLoading, setTelegramLoading] = useState(false);
 
   const fileInputRef = useRef(null);
 
-  // Pagination & Sort
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortOption, setSortOption] = useState("dateDesc"); // Передаем на сервер
+  const [sortOption, setSortOption] = useState("dateDesc");
   const itemsPerPage = 4;
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   const [user, setUser] = useState({
+    id: "",
     firstName: "",
     lastName: "",
     patronymic: "",
     phone: "",
     email: "",
     telegramId: null,
+    tgUser: null,
     avatar:
       "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
   });
 
   const [requests, setRequests] = useState([]);
 
-  // API Instances
-  const userServerApi = new UserApi();
-  const requestServerApi = new RequestApi();
-  const requestPhotoServerApi = new RequestPhotoApi();
-  const commentsServerApi = new CommentsApi();
+  const userServerApi = useMemo(() => new UserApi(), []);
+  const requestServerApi = useMemo(() => new RequestApi(), []);
+  const requestPhotoServerApi = useMemo(() => new RequestPhotoApi(), []);
+  const commentsServerApi = useMemo(() => new CommentsApi(), []);
+  const userTelegramApi = useMemo(() => new UserTelegramApi(), []);
 
-  // --- 1. FETCH PROFILE (ONCE) ---
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const profileRes = await userServerApi.getMyProfile();
-        if (profileRes.success && profileRes.data) {
-          const p = profileRes.data;
-          setUser({
-            firstName: p.fullName?.split(" ")[1] || "",
-            lastName: p.fullName?.split(" ")[0] || "",
-            patronymic: p.fullName?.split(" ")[2] || "",
-            phone: p.phoneNumber || "",
-            email: p.email || "",
-            telegramId: p.telegramId || null,
-            avatar:
-              p.profilePhotoUrl ||
-              "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
-          });
-        }
-      } catch (e) {
-        console.error("Profile error:", e);
-      } finally {
-        setIsLoadingProfile(false);
+  const fetchProfile = async () => {
+    setIsLoadingProfile(true);
+    try {
+      const profileRes = await userServerApi.getMyProfile();
+
+      if (profileRes.success && profileRes.data) {
+        const p = profileRes.data;
+        const fullNameParts = p.fullName ? p.fullName.split(" ") : [];
+
+        setUser({
+          id: p.id || "",
+          firstName: fullNameParts[1] || "",
+          lastName: fullNameParts[0] || "",
+          patronymic: fullNameParts[2] || "",
+          phone: p.phoneNumber || "",
+          email: p.email || "",
+          telegramId: p.tgUser?.chatId || null,
+          tgUser: p.tgUser || null,
+          avatar:
+            p.profilePhotoUrl ||
+            "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+        });
       }
-    };
+    } catch (e) {
+      console.error("Profile error:", e);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
-  // --- 2. FETCH REQUESTS (ON PAGE/SORT CHANGE) ---
   const fetchRequests = async () => {
     setIsRequestsLoading(true);
     try {
-      // Передаем параметры пагинации и сортировки на сервер
       const requestsRes = await requestServerApi.GetRequestsForUser(
         currentPage,
         itemsPerPage,
@@ -102,10 +108,13 @@ function UserProfile() {
         const mappedRequests = requestsRes.data.map((req) => {
           const loc = req.location;
           const parts = [];
+
           if (loc?.floor?.building?.name) parts.push(loc.floor.building.name);
-          if (loc?.floor?.floorNumber !== undefined)
+          if (loc?.floor?.floorNumber !== undefined) {
             parts.push(`${loc.floor.floorNumber} этаж`);
+          }
           if (loc?.name) parts.push(loc.name);
+
           const locationStr =
             parts.length > 0 ? parts.join(", ") : "Не указано";
 
@@ -153,7 +162,6 @@ function UserProfile() {
           setTotalPages(requestsRes.pagination.TotalPages);
           setTotalCount(requestsRes.pagination.TotalCount);
         } else {
-          // Fallback если сервер не вернул пагинацию (показываем все что есть)
           setTotalCount(mappedRequests.length);
           setTotalPages(1);
         }
@@ -170,16 +178,16 @@ function UserProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sortOption]);
 
-  // --- LOGIC ---
   const getCategoryDetails = (cat) => {
-    if (cat && (cat.includes("IT") || cat.includes("Софт")))
+    if (cat && (cat.includes("IT") || cat.includes("Софт"))) {
       return { icon: <IconCatIT />, styleClass: "icon-cat-IT" };
-    if (cat === "Оборудование")
+    }
+    if (cat === "Оборудование") {
       return { icon: <IconCatEquip />, styleClass: "icon-cat-Equipment" };
+    }
     return { icon: <IconCatOther />, styleClass: "icon-cat-Other" };
   };
 
-  // --- HANDLERS ---
   const handlePageChange = (direction) => {
     if (direction === "prev" && currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
@@ -212,7 +220,7 @@ function UserProfile() {
       let newComments = [];
       if (commentsRes.success && commentsRes.data) {
         newComments = commentsRes.data.map((c) => ({
-          text: c.text || c.content, // Поддержка разных полей
+          text: c.text || c.content,
         }));
       }
 
@@ -235,6 +243,7 @@ function UserProfile() {
           selectedReq.realId,
           tempComment,
         );
+
         if (result.success) {
           const newComment = { text: tempComment };
 
@@ -261,17 +270,20 @@ function UserProfile() {
   const handleFileChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
     setPhotoLoading(true);
     try {
       const response = await requestPhotoServerApi.UploadPhotosForRequest(
         selectedReq.realId,
         files,
       );
+
       if (response.success) {
         alert("Загружено!");
         const refreshRes = await requestPhotoServerApi.GethotosForRequest(
           selectedReq.realId,
         );
+
         if (refreshRes.success && refreshRes.data) {
           const photos = refreshRes.data.map((item) => item.photoUrl);
           setSelectedReq((prev) => ({ ...prev, images: photos }));
@@ -289,43 +301,88 @@ function UserProfile() {
 
   const handleDeleteRequest = async () => {
     if (window.confirm("Удалить?")) {
-      // await requestApi.DeleteRequest(selectedReq.realId); // API CALL
       setRequests((prev) => prev.filter((r) => r.id !== selectedReq.id));
       setActiveModal(null);
       setSelectedReq(null);
     }
   };
 
-  // Заглушки для профиля
   const handleUpdateProfile = (e) => {
     e.preventDefault();
     setActiveModal(null);
   };
-  const handleAddTelegram = () => {
-    setActiveModal(null);
-  };
-  const handleDeleteTelegram = () => {
-    if (window.confirm("Отвязать?")) setUser({ ...user, telegramId: null });
+
+  const handleAddTelegram = async () => {
+    if (!tempTgId.trim()) {
+      alert("Введите chatId");
+      return;
+    }
+
+    setTelegramLoading(true);
+    try {
+      const result = await userTelegramApi.connectTelegram(tempTgId.trim());
+
+      if (result.success) {
+        setTempTgId("");
+        setActiveModal(null);
+        await fetchProfile();
+      } else {
+        alert("Ошибка: " + result.message);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Не удалось подключить Telegram");
+    } finally {
+      setTelegramLoading(false);
+    }
   };
 
-  if (isLoadingProfile)
+  const handleDeleteTelegram = async () => {
+    if (!user.tgUser?.chatId) return;
+
+    if (window.confirm("Отвязать Telegram?")) {
+      setTelegramLoading(true);
+      try {
+        const result = await userTelegramApi.deleteTelegramConnection(
+          user.tgUser.chatId,
+        );
+
+        if (result.success) {
+          await fetchProfile();
+        } else {
+          alert("Ошибка: " + result.message);
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Не удалось удалить Telegram");
+      } finally {
+        setTelegramLoading(false);
+      }
+    }
+  };
+
+  if (isLoadingProfile) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#64748b",
-        }}
-      >
-        Загрузка профиля...
+      <div className="user-profile-page">
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#64748b",
+          }}
+        >
+          Загрузка профиля...
+        </div>
       </div>
     );
+  }
 
   return (
-    <>
+    <div className="user-profile-page">
       <div className="aurora-bg"></div>
+
       <header className="app-header">
         <div className="brand-logo">
           <IconPlus /> ServiceDesk
@@ -342,7 +399,6 @@ function UserProfile() {
       </header>
 
       <div className="layout-container">
-        {/* PROFILE */}
         <aside className="glass-panel profile-panel">
           <img
             src={user.avatar}
@@ -354,32 +410,73 @@ function UserProfile() {
                 "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
             }}
           />
+
           <h2 className="user-name">
             {user.lastName} {user.firstName}
           </h2>
+
           <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
             {user.patronymic}
           </div>
+
           <div className="contact-list">
             <div className="contact-row">
               <div className="icon-box">
                 <IconPhone />
-              </div>{" "}
+              </div>
               {user.phone}
             </div>
+
             <div className="contact-row">
               <div className="icon-box">
                 <IconMail />
-              </div>{" "}
+              </div>
               {user.email}
             </div>
           </div>
+
           <div className="telegram-section">
-            {user.telegramId ? (
-              <div className="tg-badge">
-                <span>TG: {user.telegramId}</span>
-                <button className="btn-tg-del" onClick={handleDeleteTelegram}>
-                  &times;
+            {user.tgUser ? (
+              <div
+                className="tg-badge"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                }}
+              >
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <IconTelegram />
+                  Telegram подключен
+                </span>
+
+                <button
+                  className="btn-tg-del"
+                  onClick={handleDeleteTelegram}
+                  disabled={telegramLoading}
+                  title="Удалить Telegram"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
+                    border: "none",
+                    cursor: "pointer",
+                    background: "#ef4444",
+                    color: "#fff",
+                    fontSize: "18px",
+                  }}
+                >
+                  🗑
                 </button>
               </div>
             ) : (
@@ -391,6 +488,7 @@ function UserProfile() {
               </button>
             )}
           </div>
+
           <button
             className="btn btn-outline"
             onClick={() => setActiveModal("editProfile")}
@@ -399,10 +497,10 @@ function UserProfile() {
           </button>
         </aside>
 
-        {/* REQUESTS LIST */}
         <main className="glass-panel">
           <div className="requests-toolbar">
             <h3>Мои заявки ({totalCount})</h3>
+
             <select
               className="sort-select"
               value={sortOption}
@@ -431,17 +529,21 @@ function UserProfile() {
             ) : requests.length > 0 ? (
               requests.map((req) => {
                 const catDetails = getCategoryDetails(req.category);
+
                 return (
                   <div key={req.id} className="request-card-grid">
                     <div className={`req-icon-box ${catDetails.styleClass}`}>
                       {catDetails.icon}
                     </div>
+
                     <div className="req-content">
                       <div className="req-header-row">
                         <span className="req-id">#{req.id}</span>
                         <span>{req.date}</span>
                       </div>
+
                       <h4 className="req-title">{req.title}</h4>
+
                       <div className="req-footer-row">
                         <span>{req.category}</span>
                         <span>•</span>
@@ -453,16 +555,19 @@ function UserProfile() {
                         </span>
                       </div>
                     </div>
+
                     <div className="req-actions-col">
                       <span className={`status-badge-pill ${req.status}`}>
                         {req.status}
                       </span>
+
                       <button
                         className="btn-details-outlined"
                         onClick={() => handleViewDetails(req)}
                       >
                         Подробнее
                       </button>
+
                       {req.status !== "Done" && (
                         <button
                           className="btn-write-text"
@@ -491,7 +596,6 @@ function UserProfile() {
             )}
           </div>
 
-          {/* Pagination */}
           <div className="pagination">
             <button
               className="page-btn"
@@ -500,6 +604,7 @@ function UserProfile() {
             >
               &lt;
             </button>
+
             <span
               style={{
                 fontSize: "0.9rem",
@@ -510,6 +615,7 @@ function UserProfile() {
             >
               Стр. {currentPage} из {totalPages}
             </span>
+
             <button
               className="page-btn"
               disabled={currentPage === totalPages || isRequestsLoading}
@@ -521,7 +627,6 @@ function UserProfile() {
         </main>
       </div>
 
-      {/* ===== MODALS ===== */}
       <CreateRequestModal
         isOpen={activeModal === "create"}
         onClose={() => setActiveModal(null)}
@@ -556,6 +661,7 @@ function UserProfile() {
             <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
               К заявке #{selectedReq.id}
             </p>
+
             <textarea
               className="input-glass"
               rows="3"
@@ -564,6 +670,7 @@ function UserProfile() {
               onChange={(e) => setTempComment(e.target.value)}
               style={{ marginBottom: 15 }}
             ></textarea>
+
             <button
               className="btn btn-primary"
               style={{ width: "100%" }}
@@ -575,7 +682,6 @@ function UserProfile() {
         </div>
       )}
 
-      {/* Edit Profile & Telegram (Simple Forms) */}
       {activeModal === "editProfile" && (
         <div className="modal-overlay" onClick={() => setActiveModal(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -593,12 +699,14 @@ function UserProfile() {
                   defaultValue={user.firstName}
                 />
               </div>
+
               <input
                 name="email"
                 className="input-glass"
                 defaultValue={user.email}
                 style={{ marginBottom: 15 }}
               />
+
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -618,25 +726,28 @@ function UserProfile() {
             style={{ maxWidth: "400px" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>Telegram ID</h3>
+            <h3>Подключить Telegram</h3>
+
             <input
               className="input-glass"
-              placeholder="ID"
+              placeholder="Введите chatId"
               value={tempTgId}
               onChange={(e) => setTempTgId(e.target.value)}
               style={{ marginBottom: 15 }}
             />
+
             <button
               className="btn btn-primary"
               style={{ width: "100%" }}
               onClick={handleAddTelegram}
+              disabled={telegramLoading}
             >
-              Сохранить
+              {telegramLoading ? "Подключение..." : "Сохранить"}
             </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

@@ -1,4 +1,4 @@
-:root {
+.employee-profile-page {
   --primary-dark: #1e3a5f;
   --primary: #2d5a87;
   --primary-light: #4a90c2;
@@ -31,15 +31,8 @@
   --radius-md: 16px;
   --radius-lg: 20px;
   --radius-xl: 28px;
-}
 
-/* ===== База ===== */
-* {
   box-sizing: border-box;
-}
-
-body {
-  margin: 0;
   font-family:
     "Inter",
     -apple-system,
@@ -49,9 +42,16 @@ body {
     sans-serif;
   color: var(--gray-800);
   background: #f5f0ff;
+  min-height: 100vh;
 }
 
-.employee-page-loading {
+.employee-profile-page *,
+.employee-profile-page *::before,
+.employee-profile-page *::after {
+  box-sizing: border-box;
+}
+
+.employee-profile-page .employee-page-loading {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -61,8 +61,7 @@ body {
   font-weight: 600;
 }
 
-/* ===== Фон ===== */
-.aurora-bg {
+.employee-profile-page .aurora-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -90,8 +89,7 @@ body {
     linear-gradient(135deg, #f4efff 0%, #efe9ff 45%, #f8f4ff 100%);
 }
 
-/* ===== Header ===== */
-.app-header {
+.employee-profile-page .app-header {
   width: calc(100% - 40px);
   margin: 16px auto 0;
   max-width: 1320px;
@@ -108,20 +106,20 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
-.brand-logo {
+.employee-profile-page .brand-logo {
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--primary-dark);
   letter-spacing: 0.2px;
 }
 
-.header-actions {
+.employee-profile-page .header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.btn {
+.employee-profile-page .btn {
   border: none;
   outline: none;
   cursor: pointer;
@@ -139,60 +137,59 @@ body {
     border-color 0.15s ease;
 }
 
-.btn:hover {
+.employee-profile-page .btn:hover {
   transform: translateY(-1px);
 }
 
-.btn:disabled {
+.employee-profile-page .btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
 }
 
-.btn-header {
+.employee-profile-page .btn-header {
   background: linear-gradient(135deg, var(--accent-purple), #8b5cf6);
   color: white;
   box-shadow: 0 8px 18px rgba(139, 92, 246, 0.22);
 }
 
-.btn-header:hover {
+.employee-profile-page .btn-header:hover {
   box-shadow: 0 12px 24px rgba(139, 92, 246, 0.28);
 }
 
-.btn-primary {
+.employee-profile-page .btn-primary {
   background: linear-gradient(135deg, var(--accent-purple), #8b5cf6);
   color: white;
   box-shadow: 0 8px 18px rgba(139, 92, 246, 0.22);
 }
 
-.btn-primary:hover {
+.employee-profile-page .btn-primary:hover {
   box-shadow: 0 12px 24px rgba(139, 92, 246, 0.28);
 }
 
-.btn-outline {
+.employee-profile-page .btn-outline {
   background: rgba(255, 255, 255, 0.92);
   color: var(--gray-600);
   border: 1px solid var(--gray-200);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 
-.btn-outline:hover {
+.employee-profile-page .btn-outline:hover {
   background: var(--gray-50);
   color: var(--gray-700);
 }
 
-.btn-danger {
+.employee-profile-page .btn-danger {
   background: linear-gradient(135deg, #f87171, var(--danger-dark));
   color: white;
   box-shadow: 0 8px 18px rgba(220, 38, 38, 0.2);
 }
 
-.btn-danger:hover {
+.employee-profile-page .btn-danger:hover {
   box-shadow: 0 12px 22px rgba(220, 38, 38, 0.28);
 }
 
-/* ===== Layout ===== */
-.layout-container {
+.employee-profile-page .layout-container {
   max-width: 1320px;
   margin: 20px auto 28px;
   padding: 0 20px;
@@ -202,7 +199,7 @@ body {
   align-items: stretch;
 }
 
-.glass-panel {
+.employee-profile-page .glass-panel {
   background: rgba(255, 255, 255, 0.74);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -213,22 +210,21 @@ body {
     0 2px 16px rgba(167, 139, 250, 0.08);
 }
 
-.profile-panel {
+.employee-profile-page .profile-panel {
   padding: 26px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.layout-container > main.glass-panel {
+.employee-profile-page .layout-container > main.glass-panel {
   display: flex;
   flex-direction: column;
   min-height: 740px;
   padding: 28px 28px 22px;
 }
 
-/* ===== Профиль ===== */
-.avatar-img {
+.employee-profile-page .avatar-img {
   width: 132px;
   height: 132px;
   border-radius: 50%;
@@ -238,24 +234,30 @@ body {
   margin-bottom: 18px;
 }
 
-.user-name {
+.employee-profile-page .user-name {
   margin: 0;
   color: var(--gray-800);
-  font-size: 1.95rem;
   font-weight: 800;
   text-align: center;
   line-height: 1.15;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-word;
 }
 
-.contact-list {
+.employee-profile-page .contact-list {
   width: 100%;
+  min-width: 0;
   margin-top: 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.contact-row {
+.employee-profile-page .contact-row {
   width: 100%;
   min-height: 48px;
   border-radius: 16px;
@@ -266,9 +268,14 @@ body {
   padding: 0 14px;
   color: var(--gray-700);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-.icon-box {
+.employee-profile-page .icon-box {
   width: 28px;
   height: 28px;
   border-radius: 10px;
@@ -279,13 +286,15 @@ body {
   flex-shrink: 0;
 }
 
-.telegram-section {
+.employee-profile-page .telegram-section {
   width: 100%;
   margin-top: 14px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-.tg-badge,
-.tg-placeholder {
+.employee-profile-page .tg-badge,
+.employee-profile-page .tg-placeholder {
   width: 100%;
   min-height: 48px;
   background: rgba(255, 255, 255, 0.78);
@@ -297,10 +306,13 @@ body {
   gap: 8px;
   font-size: 0.95rem;
   padding: 0 14px;
+  max-width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* ===== Настройки сотрудника ===== */
-.employee-settings-card {
+.employee-profile-page .employee-settings-card {
   width: 100%;
   margin-top: 20px;
   padding: 18px;
@@ -314,9 +326,10 @@ body {
     0 2px 10px rgba(167, 139, 250, 0.08);
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
-.employee-settings-card::before {
+.employee-profile-page .employee-settings-card::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -331,7 +344,7 @@ body {
   );
 }
 
-.employee-settings-header {
+.employee-profile-page .employee-settings-header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -340,16 +353,18 @@ body {
   min-height: 44px;
 }
 
-.employee-settings-title {
+.employee-profile-page .employee-settings-title {
   margin: 0;
   font-size: 1.08rem;
   font-weight: 800;
   color: var(--primary-dark);
   white-space: nowrap;
   line-height: 1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.employee-settings-actions {
+.employee-profile-page .employee-settings-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -358,7 +373,7 @@ body {
   min-width: 230px;
 }
 
-.employee-settings-btn {
+.employee-profile-page .employee-settings-btn {
   border: none;
   border-radius: 14px;
   min-width: 108px;
@@ -381,55 +396,59 @@ body {
   white-space: nowrap;
 }
 
-.employee-settings-btn:hover {
+.employee-profile-page .employee-settings-btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-purple-hover);
 }
 
-.employee-settings-btn:active {
+.employee-profile-page .employee-settings-btn:active {
   transform: translateY(0);
 }
 
-.employee-settings-btn:disabled {
+.employee-profile-page .employee-settings-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.employee-settings-btn.ghost {
+.employee-profile-page .employee-settings-btn.ghost {
   background: var(--white);
   color: var(--gray-600);
   border: 1px solid var(--gray-200);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 
-.employee-settings-btn.ghost:hover {
+.employee-profile-page .employee-settings-btn.ghost:hover {
   background: var(--gray-50);
   color: var(--gray-700);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
-.employee-setting-block {
+.employee-profile-page .employee-setting-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
-.employee-setting-block:last-child {
+.employee-profile-page .employee-setting-block:last-child {
   margin-bottom: 0;
 }
 
-.employee-setting-label {
+.employee-profile-page .employee-setting-label {
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--gray-600);
   line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.employee-setting-select {
+.employee-profile-page .employee-setting-select {
   width: 100%;
+  max-width: 100%;
   border-radius: 16px;
   border: 1.5px solid var(--gray-200);
   background: var(--white);
@@ -444,39 +463,39 @@ body {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
 }
 
-.employee-setting-select:focus {
+.employee-profile-page .employee-setting-select:focus {
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.12);
 }
 
-.employee-setting-select:disabled {
+.employee-profile-page .employee-setting-select:disabled {
   background: var(--gray-100);
   color: var(--gray-400);
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.employee-toggle-row {
+.employee-profile-page .employee-toggle-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
 }
 
-.custom-checkbox-wrap {
+.employee-profile-page .custom-checkbox-wrap {
   position: relative;
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
 }
 
-.custom-checkbox-input {
+.employee-profile-page .custom-checkbox-input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.custom-checkbox-ui {
+.employee-profile-page .custom-checkbox-ui {
   width: 54px;
   height: 30px;
   border-radius: 999px;
@@ -492,7 +511,7 @@ body {
     0 3px 8px rgba(15, 23, 42, 0.05);
 }
 
-.custom-checkbox-ui::after {
+.employee-profile-page .custom-checkbox-ui::after {
   content: "";
   position: absolute;
   top: 4px;
@@ -505,21 +524,22 @@ body {
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
 }
 
-.custom-checkbox-input:checked + .custom-checkbox-ui {
+.employee-profile-page .custom-checkbox-input:checked + .custom-checkbox-ui {
   background: linear-gradient(135deg, var(--accent-purple), var(--accent-teal));
 }
 
-.custom-checkbox-input:checked + .custom-checkbox-ui::after {
+.employee-profile-page
+  .custom-checkbox-input:checked
+  + .custom-checkbox-ui::after {
   transform: translateX(24px);
 }
 
-.custom-checkbox-input:disabled + .custom-checkbox-ui {
+.employee-profile-page .custom-checkbox-input:disabled + .custom-checkbox-ui {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* ===== Toolbar ===== */
-.requests-toolbar {
+.employee-profile-page .requests-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -527,15 +547,17 @@ body {
   margin-bottom: 18px;
 }
 
-.requests-toolbar h3 {
+.employee-profile-page .requests-toolbar h3 {
   margin: 0;
   color: var(--gray-800);
   font-size: 2rem;
   font-weight: 800;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-/* ===== Кнопки действий ===== */
-.btn-details-outlined {
+.employee-profile-page .btn-details-outlined {
   border: 1px solid #d6def0;
   background: rgba(255, 255, 255, 0.94);
   color: var(--gray-500);
@@ -557,16 +579,17 @@ body {
   gap: 6px;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  max-width: 100%;
 }
 
-.btn-details-outlined:hover {
+.employee-profile-page .btn-details-outlined:hover {
   transform: translateY(-1px);
   color: #4f46e5;
   border-color: #c7d2fe;
   box-shadow: 0 8px 18px rgba(79, 70, 229, 0.12);
 }
 
-.btn-status-action {
+.employee-profile-page .btn-status-action {
   border: none;
   background: linear-gradient(135deg, var(--accent-purple), #8b5cf6);
   color: white;
@@ -585,19 +608,19 @@ body {
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  max-width: 100%;
 }
 
-.btn-status-action:hover {
+.employee-profile-page .btn-status-action:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(139, 92, 246, 0.3);
 }
 
-.btn-status-action:active {
+.employee-profile-page .btn-status-action:active {
   transform: translateY(0);
 }
 
-/* ===== Список заявок ===== */
-.requests-container {
+.employee-profile-page .requests-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -605,7 +628,7 @@ body {
   min-height: 420px;
 }
 
-.request-card-grid {
+.employee-profile-page .request-card-grid {
   display: grid;
   grid-template-columns: 64px 1fr auto;
   gap: 18px;
@@ -617,9 +640,10 @@ body {
     0 10px 28px rgba(30, 58, 95, 0.06),
     0 2px 12px rgba(167, 139, 250, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.82);
+  min-width: 0;
 }
 
-.req-icon-box {
+.employee-profile-page .req-icon-box {
   width: 64px;
   height: 64px;
   border-radius: 20px;
@@ -630,32 +654,39 @@ body {
   box-shadow: 0 10px 20px rgba(91, 103, 241, 0.18);
 }
 
-.icon-cat-IT {
+.employee-profile-page .icon-cat-IT {
   background: linear-gradient(135deg, #a78bfa, #8b5cf6);
 }
 
-.icon-cat-Equipment {
+.employee-profile-page .icon-cat-Equipment {
   background: linear-gradient(135deg, #60a5fa, #2563eb);
 }
 
-.icon-cat-Other {
+.employee-profile-page .icon-cat-Other {
   background: linear-gradient(135deg, #f472b6, #ec4899);
 }
 
-.req-content {
+.employee-profile-page .req-content {
   min-width: 0;
+  overflow: hidden;
 }
 
-.req-header-row {
+.employee-profile-page .req-header-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   color: var(--gray-500);
   font-size: 0.92rem;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
-.req-id {
+.employee-profile-page .req-header-row span {
+  min-width: 0;
+}
+
+.employee-profile-page .req-id {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -669,33 +700,47 @@ body {
   font-weight: 800;
 }
 
-.req-title {
+.employee-profile-page .req-title {
   margin: 6px 0 8px;
   color: var(--gray-800);
   font-size: 1.28rem;
   font-weight: 800;
   line-height: 1.35;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.req-footer-row {
+.employee-profile-page .req-footer-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   color: var(--gray-500);
   font-size: 0.92rem;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
-.req-actions-col {
+.employee-profile-page .req-footer-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employee-profile-page .req-actions-col {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
   gap: 10px;
-  min-width: 160px;
+  min-width: 140px;
+  max-width: 180px;
 }
 
-.status-badge-pill {
+.employee-profile-page .status-badge-pill {
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
@@ -707,36 +752,34 @@ body {
   letter-spacing: 0.2px;
 }
 
-.status-badge-pill.New {
+.employee-profile-page .status-badge-pill.New {
   background: #e7edff;
   color: #4f46e5;
 }
 
-.status-badge-pill.Work {
+.employee-profile-page .status-badge-pill.Work {
   background: #ede9fe;
   color: #7c3aed;
 }
 
-.status-badge-pill.Done {
+.employee-profile-page .status-badge-pill.Done {
   background: #dcfce7;
   color: #16a34a;
 }
 
-/* ===== Пустые состояния ===== */
-.empty-state {
+.employee-profile-page .empty-state {
   text-align: center;
   padding: 30px 20px;
   color: var(--gray-500);
   font-weight: 600;
 }
 
-.empty-substate {
+.employee-profile-page .empty-substate {
   color: var(--gray-400);
   font-size: 0.9rem;
 }
 
-/* ===== Пагинация ===== */
-.pagination {
+.employee-profile-page .pagination {
   margin-top: auto;
   padding-top: 22px;
   min-height: 72px;
@@ -746,7 +789,7 @@ body {
   gap: 14px;
 }
 
-.page-btn {
+.employee-profile-page .page-btn {
   width: 40px;
   height: 40px;
   border-radius: 12px;
@@ -764,20 +807,20 @@ body {
     background 0.15s ease;
 }
 
-.page-btn:hover:not(:disabled) {
+.employee-profile-page .page-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   color: #4f46e5;
   border-color: #c7d2fe;
   box-shadow: 0 8px 18px rgba(79, 70, 229, 0.12);
 }
 
-.page-btn:disabled {
+.employee-profile-page .page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.page-indicator {
+.employee-profile-page .page-indicator {
   font-size: 1rem;
   font-weight: 600;
   color: var(--gray-500);
@@ -785,8 +828,7 @@ body {
   text-align: center;
 }
 
-/* ===== Модалки ===== */
-.modal-overlay {
+.employee-profile-page .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.35);
@@ -799,7 +841,7 @@ body {
   z-index: 1000;
 }
 
-.modal-card {
+.employee-profile-page .modal-card {
   width: 100%;
   max-width: 560px;
   border-radius: 24px;
@@ -809,240 +851,107 @@ body {
   padding: 24px;
 }
 
-.small-modal {
+.employee-profile-page .small-modal {
   max-width: 420px;
 }
 
-.status-buttons-column {
+.employee-profile-page .status-buttons-column {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 20px;
 }
 
-.warning-text {
+.employee-profile-page .warning-text {
   color: var(--danger-dark);
   font-weight: 600;
   margin-top: 10px;
   line-height: 1.4;
 }
 
-.confirm-actions {
+.employee-profile-page .confirm-actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
 }
 
-/* ===== Адаптив ===== */
+.employee-profile-page .profile-panel,
+.employee-profile-page .glass-panel,
+.employee-profile-page .request-card-grid,
+.employee-profile-page .req-content,
+.employee-profile-page .req-actions-col,
+.employee-profile-page .contact-row,
+.employee-profile-page .telegram-section,
+.employee-profile-page .employee-settings-card,
+.employee-profile-page .employee-setting-block {
+  min-width: 0;
+}
+
 @media (max-width: 1100px) {
-  .layout-container {
+  .employee-profile-page .layout-container {
     grid-template-columns: 1fr;
   }
 
-  .layout-container > main.glass-panel {
+  .employee-profile-page .layout-container > main.glass-panel {
     min-height: 640px;
   }
 }
 
 @media (max-width: 768px) {
-  .app-header {
+  .employee-profile-page .app-header {
     width: calc(100% - 24px);
     padding: 0 16px;
     min-height: 64px;
     border-radius: 20px;
   }
 
-  .layout-container {
+  .employee-profile-page .layout-container {
     padding: 0 12px;
     gap: 16px;
   }
 
-  .profile-panel,
-  .layout-container > main.glass-panel {
+  .employee-profile-page .profile-panel,
+  .employee-profile-page .layout-container > main.glass-panel {
     padding: 20px 18px;
   }
 
-  .requests-toolbar {
+  .employee-profile-page .requests-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .request-card-grid {
+  .employee-profile-page .request-card-grid {
     grid-template-columns: 56px 1fr;
   }
 
-  .req-actions-col {
+  .employee-profile-page .req-actions-col {
     grid-column: 1 / -1;
     align-items: stretch;
     min-width: 0;
+    max-width: none;
   }
 
-  .btn-details-outlined,
-  .btn-status-action {
+  .employee-profile-page .btn-details-outlined,
+  .employee-profile-page .btn-status-action {
     width: 100%;
   }
 
-  .employee-settings-header {
+  .employee-profile-page .employee-settings-header {
     grid-template-columns: 1fr;
     row-gap: 10px;
   }
 
-  .employee-settings-actions {
+  .employee-profile-page .employee-settings-actions {
     min-width: 0;
     width: 100%;
     justify-content: flex-start;
   }
 
-  .employee-toggle-row {
+  .employee-profile-page .employee-toggle-row {
     align-items: flex-start;
   }
-}
 
-@media (max-width: 480px) {
-  .user-name {
-    font-size: 1.6rem;
-  }
-
-  .req-title {
-    font-size: 1.08rem;
-  }
-
-  .employee-settings-btn {
-    min-width: 100px;
-  }
-
-  .pagination {
-    gap: 10px;
-  }
-
-  .page-indicator {
-    min-width: auto;
-    font-size: 0.92rem;
-  }
-}
-/* ===== Защита от вылезания текста ===== */
-
-.profile-panel,
-.glass-panel,
-.request-card-grid,
-.req-content,
-.req-actions-col,
-.contact-row,
-.telegram-section,
-.employee-settings-card,
-.employee-setting-block {
-  min-width: 0;
-}
-
-.user-name {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  word-break: break-word;
-}
-
-.contact-row {
-  overflow: hidden;
-}
-
-.contact-row > *:last-child,
-.tg-badge span,
-.tg-placeholder {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.contact-row {
-  line-height: 1.35;
-}
-
-.telegram-section,
-.tg-badge,
-.tg-placeholder {
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.req-content {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.req-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.req-header-row,
-.req-footer-row {
-  min-width: 0;
-  overflow: hidden;
-  flex-wrap: nowrap;
-}
-
-.req-header-row span,
-.req-footer-row span {
-  min-width: 0;
-}
-
-.req-footer-row span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.req-actions-col {
-  min-width: 140px;
-  max-width: 180px;
-}
-
-.btn-details-outlined,
-.btn-status-action {
-  max-width: 100%;
-}
-
-.employee-settings-title,
-.employee-setting-label {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.employee-setting-select {
-  max-width: 100%;
-}
-
-.requests-toolbar h3 {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* Чтобы текст в карточках профиля не вылезал */
-.contact-list {
-  width: 100%;
-  min-width: 0;
-}
-
-.contact-row {
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-/* Для email и очень длинных строк */
-.contact-row,
-.tg-badge,
-.tg-placeholder {
-  font-size: 0.95rem;
-}
-
-/* На маленьких экранах допускаем перенос имени */
-@media (max-width: 768px) {
-  .user-name {
+  .employee-profile-page .user-name {
     white-space: normal;
     text-overflow: unset;
     overflow: hidden;
@@ -1050,19 +959,48 @@ body {
     overflow-wrap: anywhere;
   }
 
-  .req-title {
+  .employee-profile-page .req-title {
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
 
-  .req-header-row,
-  .req-footer-row {
+  .employee-profile-page .req-header-row,
+  .employee-profile-page .req-footer-row {
     flex-wrap: wrap;
   }
 
-  .req-footer-row span {
+  .employee-profile-page .req-footer-row span {
     white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .employee-profile-page .user-name {
+    font-size: 1.6rem;
+  }
+
+  .employee-profile-page .req-title {
+    font-size: 1.08rem;
+  }
+
+  .employee-profile-page .employee-settings-btn {
+    min-width: 100px;
+  }
+
+  .employee-profile-page .pagination {
+    gap: 10px;
+  }
+
+  .employee-profile-page .page-indicator {
+    min-width: auto;
+    font-size: 0.92rem;
+  }
+
+  .employee-profile-page .contact-row,
+  .employee-profile-page .tg-badge,
+  .employee-profile-page .tg-placeholder {
+    font-size: 0.95rem;
   }
 }

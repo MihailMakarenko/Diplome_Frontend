@@ -7,6 +7,7 @@ import ManagerPanel from "./pages/ManagerPanel/ManagerPanel.js";
 import ManagerRequestsBoard from "./pages/ManagerRequestsBoard/ManagerRequestsBoard.js";
 import Infastructure from "./pages/StructureAdminPage/StructureAdminPage.js";
 import EmployeeProfile from "./pages/EmployeeProfile/EmployeeProfile.js";
+import EmployeeSettingsPage from "./pages/EmployeeSettingsPage/EmployeeSettingsPage.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -24,6 +25,10 @@ function App() {
           <Route path="manager/panel" element={<ManagerPanel />} />
           <Route path="/manager/requests" element={<ManagerRequestsBoard />} />
           <Route path="/employee/profile" element={<EmployeeProfile />} />
+          <Route
+            path="/manager/employee/settings"
+            element={<EmployeeSettingsPage />}
+          />
         </Routes>
         {/* <ManagerPanel />
         <AdminPanel />

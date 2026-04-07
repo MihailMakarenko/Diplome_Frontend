@@ -1,7 +1,19 @@
-.sa-error {
-  background: rgba(254, 242, 242, 0.95);
-  border: 1px solid rgba(248, 113, 113, 0.35);
-  color: #991b1b;
+.structure-error-banner {
+  --seb-error-bg: rgba(254, 242, 242, 0.95);
+  --seb-error-border: rgba(248, 113, 113, 0.35);
+  --seb-error-text: #991b1b;
+}
+
+.structure-error-banner *,
+.structure-error-banner *::before,
+.structure-error-banner *::after {
+  box-sizing: border-box;
+}
+
+.structure-error-banner .sa-error {
+  background: var(--seb-error-bg);
+  border: 1px solid var(--seb-error-border);
+  color: var(--seb-error-text);
   padding: 10px 12px;
   border-radius: 14px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);

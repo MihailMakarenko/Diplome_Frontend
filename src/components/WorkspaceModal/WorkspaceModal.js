@@ -124,7 +124,7 @@ function ConfirmModal({
   );
 }
 
-export default function WorkspaceModal({ isOpen, onClose }) {
+function WorkspaceModal({ isOpen, onClose }) {
   const api = useMemo(() => new WorkspaceServerApi(), []);
 
   const [level, setLevel] = useState(LEVEL.BUILDINGS);
@@ -146,7 +146,7 @@ export default function WorkspaceModal({ isOpen, onClose }) {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [confirmMode, setConfirmMode] = useState(null); // create | delete
+  const [confirmMode, setConfirmMode] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
 
   const resetAll = () => {
@@ -373,7 +373,6 @@ export default function WorkspaceModal({ isOpen, onClose }) {
 
   const openCreateConfirm = (item) => {
     const row = rowData(item);
-
     setConfirmMode("create");
     setConfirmTarget(row);
     setConfirmOpen(true);
@@ -381,7 +380,6 @@ export default function WorkspaceModal({ isOpen, onClose }) {
 
   const openDeleteConfirm = (item) => {
     const row = rowData(item);
-
     setConfirmMode("delete");
     setConfirmTarget(row);
     setConfirmOpen(true);
@@ -447,7 +445,7 @@ export default function WorkspaceModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <>
+    <div className="workspace-modal-component">
       <div className="wsm-overlay" onClick={onClose}>
         <div className="wsm-modal" onClick={(e) => e.stopPropagation()}>
           <div className="wsm-header">
@@ -609,6 +607,8 @@ export default function WorkspaceModal({ isOpen, onClose }) {
         onConfirm={onConfirmAction}
         onClose={closeConfirm}
       />
-    </>
+    </div>
   );
 }
+
+export default WorkspaceModal;

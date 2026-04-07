@@ -1,11 +1,25 @@
-.sa-header {
+.structure-admin-header {
+  --sah-primary: #6366f1;
+  --sah-primary-hover: #4f46e5;
+  --sah-text-main: #0f172a;
+  --sah-text-muted: #64748b;
+  --sah-border: #cbd5e1;
+  --sah-bg: rgba(255, 255, 255, 0.92);
+}
+
+.structure-admin-header *,
+.structure-admin-header *::before,
+.structure-admin-header *::after {
+  box-sizing: border-box;
+}
+
+.structure-admin-header .sa-header {
   display: flex;
-  align-items: center; /* было flex-end */
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--sah-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-radius: 18px;
@@ -16,7 +30,7 @@
   overflow: hidden;
 }
 
-.sa-header::before {
+.structure-admin-header .sa-header::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -31,34 +45,76 @@
   );
 }
 
-/* добавь класс на левый блок в JSX: <div className="sa-headerLeft"> ... */
-.sa-headerLeft {
+.structure-admin-header .sa-headerLeft {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* вертикальный центр внутри блока */
-  min-height: 52px; /* чтобы центрирование было заметно */
+  justify-content: center;
+  min-height: 52px;
 }
 
-.sa-title {
+.structure-admin-header .sa-title {
   margin: 0;
   padding-top: 6px;
   font-size: 20px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--sah-text-main);
 }
 
-.sa-subtitle {
+.structure-admin-header .sa-subtitle {
   margin-top: 4px;
-  color: #64748b;
+  color: var(--sah-text-muted);
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
-.sa-tabs {
+.structure-admin-header .sa-tabs {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  align-items: center; /* чтобы кнопки тоже ровно по центру */
+  align-items: center;
+}
+
+.structure-admin-header .sa-tabBtn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 0.9rem;
+  min-height: 40px;
+}
+
+.structure-admin-header .sa-tabBtn.sa-btn-primary {
+  background: linear-gradient(135deg, var(--sah-primary), #8b5cf6);
+  color: white;
+}
+
+.structure-admin-header .sa-tabBtn.sa-btn-primary:hover {
+  background: linear-gradient(135deg, var(--sah-primary-hover), #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.25);
+}
+
+.structure-admin-header .sa-tabBtn.sa-btn-outline {
+  background: white;
+  border: 1px solid var(--sah-border);
+  color: var(--sah-text-main);
+}
+
+.structure-admin-header .sa-tabBtn.sa-btn-outline:hover {
+  border-color: var(--sah-primary);
+  color: var(--sah-primary);
+}
+
+@media (max-width: 640px) {
+  .structure-admin-header .sa-tabs {
+    width: 100%;
+  }
+
+  .structure-admin-header .sa-tabBtn {
+    flex: 1;
+  }
 }

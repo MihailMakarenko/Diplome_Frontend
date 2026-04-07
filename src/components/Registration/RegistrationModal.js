@@ -1,27 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./RegistrationModal.css";
 import { IconCamera } from "../Icons.js";
 import AuthApi from "../../apiServices/authenticationApi.js";
-import { toast } from "react-toastify"; // Убедитесь, что импорт есть
+import { toast } from "react-toastify";
 
 const RegistrationModal = ({ isOpen, onClose, onRegisterSuccess }) => {
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const authApi = new AuthApi();
+  const authApi = useMemo(() => new AuthApi(), []);
 
   useEffect(() => {
     if (!isOpen) {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
       setPreview(null);
       setIsLoading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, preview]);
 
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
     }
@@ -47,19 +53,15 @@ const RegistrationModal = ({ isOpen, onClose, onRegisterSuccess }) => {
       const response = await authApi.registerUser(userData);
 
       if (response.success) {
-        // Успех -> toast.success
         toast.success(response.message || "Пользователь успешно создан!");
 
         if (onRegisterSuccess) onRegisterSuccess();
         onClose();
       } else {
-        // Ошибка от сервера -> toast.error (БЫЛ ALERT)
-        // На скриншоте видно, что response.message содержит текст ошибки
         toast.error(`Ошибка: ${response.message}`);
       }
     } catch (error) {
       console.error("Ошибка при отправке формы:", error);
-      // Ошибка скрипта/сети -> toast.error (БЫЛ ALERT)
       toast.error("Произошла системная ошибка при регистрации.");
     } finally {
       setIsLoading(false);
@@ -67,126 +69,137 @@ const RegistrationModal = ({ isOpen, onClose, onRegisterSuccess }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card-reg" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header-reg">
-          <h2 className="modal-title">Новый пользователь</h2>
-          <button className="btn-close-reg" onClick={onClose}>
-            &times;
-          </button>
-        </div>
+    <div className="registration-modal">
+      <div className="rm-overlay" onClick={onClose}>
+        <div className="rm-card" onClick={(e) => e.stopPropagation()}>
+          <div className="rm-header">
+            <h2 className="rm-title">Новый пользователь</h2>
+            <button className="rm-close-btn" onClick={onClose}>
+              &times;
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="photo-upload-wrapper">
-            <div className="photo-container">
-              <label
-                htmlFor="photo-upload"
-                style={{
-                  cursor: "pointer",
-                  width: "100%",
-                  height: "100%",
-                  display: "block",
-                }}
-              >
-                {preview ? (
-                  <img src={preview} alt="Preview" className="photo-preview" />
-                ) : (
-                  <div className="photo-placeholder">
-                    <IconCamera />
-                  </div>
-                )}
+          <form onSubmit={handleSubmit}>
+            <div className="rm-photo-upload-wrapper">
+              <div className="rm-photo-container">
+                <label
+                  htmlFor="photo-upload"
+                  style={{
+                    cursor: "pointer",
+                    width: "100%",
+                    height: "100%",
+                    display: "block",
+                  }}
+                >
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="rm-photo-preview"
+                    />
+                  ) : (
+                    <div className="rm-photo-placeholder">
+                      <IconCamera />
+                    </div>
+                  )}
+
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+                </label>
+
+                <div className="rm-photo-badge">+</div>
+              </div>
+
+              <span className="rm-photo-label-text">Загрузить фото</span>
+            </div>
+
+            <div className="rm-form-row">
+              <div className="rm-form-group">
+                <label className="rm-form-label">Фамилия</label>
                 <input
-                  id="photo-upload"
-                  type="file"
-                  name="photo"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
+                  name="lastName"
+                  className="rm-form-input"
+                  placeholder="Иванов"
+                  required
                 />
-              </label>
-              <div className="photo-badge">+</div>
-            </div>
-            <span className="photo-label-text">Загрузить фото</span>
-          </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group-reg">
-              <label className="form-label-reg">Фамилия</label>
+              <div className="rm-form-group">
+                <label className="rm-form-label">Имя</label>
+                <input
+                  name="firstName"
+                  className="rm-form-input"
+                  placeholder="Иван"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="rm-form-group">
+              <label className="rm-form-label">Отчество</label>
               <input
-                name="lastName"
-                className="form-input-reg"
-                placeholder="Иванов"
+                name="secondName"
+                className="rm-form-input"
+                placeholder="Иванович"
+              />
+            </div>
+
+            <div className="rm-form-group">
+              <label className="rm-form-label">Email</label>
+              <input
+                name="email"
+                type="email"
+                className="rm-form-input"
+                placeholder="email@example.com"
                 required
               />
             </div>
-            <div className="form-group-reg">
-              <label className="form-label-reg">Имя</label>
+
+            <div className="rm-form-group">
+              <label className="rm-form-label">Телефон</label>
               <input
-                name="firstName"
-                className="form-input-reg"
-                placeholder="Иван"
+                name="phone"
+                className="rm-form-input"
+                placeholder="+7 (999) 000-00-00"
                 required
               />
             </div>
-          </div>
 
-          <div className="form-group-reg">
-            <label className="form-label-reg">Отчество</label>
-            <input
-              name="secondName"
-              className="form-input-reg"
-              placeholder="Иванович"
-            />
-          </div>
+            <div className="rm-form-group">
+              <label className="rm-form-label">Роль</label>
+              <select name="role" className="rm-form-select">
+                <option value="User">Пользователь</option>
+                <option value="Employee">Сотрудник</option>
+                <option value="Admin">Администратор</option>
+              </select>
+            </div>
 
-          <div className="form-group-reg">
-            <label className="form-label-reg">Email</label>
-            <input
-              name="email"
-              type="email"
-              className="form-input-reg"
-              placeholder="email@example.com"
-              required
-            />
-          </div>
+            <div className="rm-actions">
+              <button
+                type="button"
+                className="rm-btn rm-btn-outline"
+                onClick={onClose}
+                disabled={isLoading}
+              >
+                Отмена
+              </button>
 
-          <div className="form-group-reg">
-            <label className="form-label-reg">Телефон</label>
-            <input
-              name="phone"
-              className="form-input-reg"
-              placeholder="+7 (999) 000-00-00"
-              required
-            />
-          </div>
-
-          <div className="form-group-reg">
-            <label className="form-label-reg">Роль</label>
-            <select name="role" className="form-select-reg">
-              <option value="User">Пользователь</option>
-              <option value="Employee">Сотрудник</option>
-              <option value="Admin">Администратор</option>
-            </select>
-          </div>
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn-reg btn-outline-reg"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="btn-reg btn-primary-reg"
-              disabled={isLoading}
-            >
-              {isLoading ? "Создание..." : "Создать"}
-            </button>
-          </div>
-        </form>
+              <button
+                type="submit"
+                className="rm-btn rm-btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? "Создание..." : "Создать"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

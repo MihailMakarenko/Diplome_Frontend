@@ -1,11 +1,7 @@
 import React from "react";
-import "../RequestDetailsModal/RequestDetailsModal.css"; // используем стили модалки
-import { IconCamera } from "../Icons";
+import "./RequestDetailsForManager.css";
 
 /**
- * Модальное окно только для просмотра деталей заявки менеджером.
- * Без кнопок добавления комментариев / удаления / загрузки фото.
- *
  * Ожидаемый формат пропса `request`:
  * {
  *   id: string,
@@ -28,115 +24,121 @@ const RequestDetailsForManagerModal = ({
   request,
   photoLoading,
 }) => {
-  if (!isOpen || !request) return null;
+  if (!isOpen) return null;
+
+  if (!request) {
+    return (
+      <div className="request-details-manager-modal">
+        <div className="rdmm-overlay" onClick={onClose}>
+          <div className="rdmm-card" onClick={(e) => e.stopPropagation()}>
+            <div className="rdmm-empty">Данные заявки не найдены</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="modal-header-details">
-          <h3>
-            Заявка №
-            {request.number ??
-              request.id?.toString().substring(0, 6).toUpperCase()}
-          </h3>
-          <button className="btn-close-details" onClick={onClose}>
-            &times;
-          </button>
-        </div>
+    <div className="request-details-manager-modal">
+      <div className="rdmm-overlay" onClick={onClose}>
+        <div className="rdmm-card" onClick={(e) => e.stopPropagation()}>
+          <div className="rdmm-header">
+            <h3 className="rdmm-title">
+              Заявка №
+              {request.number ??
+                request.id?.toString().substring(0, 6).toUpperCase()}
+            </h3>
 
-        {/* Info Block */}
-        <div style={{ marginBottom: 20 }}>
-          <div className="details-row">
-            <strong>Категория:</strong> <span>{request.category}</span>
-          </div>
-          <div className="details-row">
-            <strong>Дата:</strong> <span>{request.date}</span>
-          </div>
-          <div className="details-row">
-            <strong>Приоритет:</strong> <span>{request.priority}</span>
-          </div>
-          <div className="details-row">
-            <strong>Статус:</strong>
-            <span className={`status-badge-pill ${request.status}`}>
-              {request.status}
-            </span>
+            <button className="rdmm-close-btn" onClick={onClose}>
+              &times;
+            </button>
           </div>
 
-          <div style={{ marginTop: 15, marginBottom: 15 }}>
-            <div className="details-row">
-              <strong>Здание:</strong> <span>{request.building}</span>
-            </div>
-            <div className="details-row">
-              <strong>Этаж:</strong> <span>{request.floor}</span>
-            </div>
-            <div className="details-row">
-              <strong>Помещение:</strong> <span>{request.spot}</span>
-            </div>
-          </div>
+          <div className="rdmm-scroll">
+            <div className="rdmm-info">
+              <div className="rdmm-row">
+                <strong>Категория:</strong> <span>{request.category}</span>
+              </div>
 
-          {/* Description Box */}
-          <div className="desc-box">
-            <strong style={{ display: "block", marginBottom: 5 }}>
-              Описание:
-            </strong>
-            {request.desc || "Нет описания"}
-          </div>
-        </div>
+              <div className="rdmm-row">
+                <strong>Дата:</strong> <span>{request.date}</span>
+              </div>
 
-        {/* Photos */}
-        <div>
-          <strong
-            style={{ display: "block", marginBottom: 5, color: "#1e293b" }}
-          >
-            Фото:
-          </strong>
+              <div className="rdmm-row">
+                <strong>Приоритет:</strong> <span>{request.priority}</span>
+              </div>
 
-          {photoLoading ? (
-            <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
-              Загрузка фото...
-            </div>
-          ) : (
-            <div className="gallery-grid">
-              {request.images && request.images.length > 0 ? (
-                request.images.map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    className="gallery-img"
-                    alt={`Фото ${i + 1}`}
-                    onClick={() => window.open(src, "_blank")}
-                  />
-                ))
-              ) : (
-                <span
+              <div className="rdmm-row">
+                <strong>Статус:</strong>
+                <span className="rdmm-status-badge">{request.status}</span>
+              </div>
+
+              <div className="rdmm-loc-block">
+                <div className="rdmm-row">
+                  <strong>Здание:</strong> <span>{request.building}</span>
+                </div>
+
+                <div className="rdmm-row">
+                  <strong>Этаж:</strong> <span>{request.floor}</span>
+                </div>
+
+                <div className="rdmm-row">
+                  <strong>Помещение:</strong> <span>{request.spot}</span>
+                </div>
+              </div>
+
+              <div className="rdmm-desc-box">
+                <strong
                   style={{
-                    fontSize: "0.85rem",
-                    color: "#94a3b8",
-                    alignSelf: "center",
+                    display: "block",
+                    marginBottom: 5,
                   }}
                 >
-                  Нет фото
-                </span>
+                  Описание:
+                </strong>
+                {request.desc || "Нет описания"}
+              </div>
+            </div>
+
+            <div>
+              <strong className="rdmm-section-title">Фото:</strong>
+
+              {photoLoading ? (
+                <div className="rdmm-photo-loading">Загрузка фото...</div>
+              ) : (
+                <div className="rdmm-gallery-grid">
+                  {request.images && request.images.length > 0 ? (
+                    request.images.map((src, i) => (
+                      <img
+                        key={i}
+                        src={src}
+                        className="rdmm-gallery-img"
+                        alt={`Фото ${i + 1}`}
+                        onClick={() => window.open(src, "_blank")}
+                      />
+                    ))
+                  ) : (
+                    <span className="rdmm-photo-empty">Нет фото</span>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Comments Section */}
-        <div className="comments-section">
-          <span className="comments-title">Комментарии</span>
+            <div className="rdmm-comments-section">
+              <span className="rdmm-comments-title">Комментарии</span>
 
-          <div className="comments-list">
-            {request.comments && request.comments.length > 0 ? (
-              request.comments.map((c, i) => (
-                <div key={i} className="comment-bubble">
-                  {c.text}
-                </div>
-              ))
-            ) : (
-              <div className="comment-empty">Нет комментариев</div>
-            )}
+              <div className="rdmm-comments-list">
+                {request.comments && request.comments.length > 0 ? (
+                  request.comments.map((c, i) => (
+                    <div key={i} className="rdmm-comment-bubble">
+                      {c.text}
+                    </div>
+                  ))
+                ) : (
+                  <div className="rdmm-comment-empty">Нет комментариев</div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

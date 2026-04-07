@@ -1,36 +1,69 @@
-/* ====== OVERLAY ====== */
+.request-details-manager-modal {
+  --rdmm-accent-yellow: #fbbf24;
+  --rdmm-accent-pink: #f472b6;
+  --rdmm-accent-purple: #a78bfa;
+  --rdmm-accent-blue: #60a5fa;
 
-.modal-overlay {
+  --rdmm-gray-50: #f8fafc;
+  --rdmm-gray-100: #f1f5f9;
+  --rdmm-gray-200: #e2e8f0;
+  --rdmm-gray-300: #cbd5e1;
+  --rdmm-gray-400: #94a3b8;
+  --rdmm-gray-500: #64748b;
+  --rdmm-gray-600: #475569;
+  --rdmm-gray-700: #334155;
+  --rdmm-gray-800: #1e293b;
+
+  --rdmm-radius-lg: 24px;
+  --rdmm-radius-md: 16px;
+  --rdmm-radius-sm: 12px;
+
+  --rdmm-space-xs: 8px;
+  --rdmm-space-sm: 12px;
+  --rdmm-space-md: 16px;
+  --rdmm-space-lg: 24px;
+
+  --rdmm-font-xs: 12px;
+  --rdmm-font-sm: 14px;
+  --rdmm-font-base: 16px;
+  --rdmm-font-lg: 20px;
+}
+
+.request-details-manager-modal *,
+.request-details-manager-modal *::before,
+.request-details-manager-modal *::after {
+  box-sizing: border-box;
+}
+
+.request-details-manager-modal .rdmm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45); /* полупрозрачный тёмный фон */
+  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 60;
+  z-index: 1000;
+  padding: 16px;
 }
 
-/* ====== CARD ====== */
-
-.modal-card {
+.request-details-manager-modal .rdmm-card {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(18px);
-  border-radius: var(--radius-lg);
+  border-radius: var(--rdmm-radius-lg);
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.35);
-  padding: var(--space-lg);
+  padding: var(--rdmm-space-lg);
   width: 100%;
   max-width: 720px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--rdmm-space-md);
   position: relative;
   overflow: hidden;
 }
 
-/* Цветная верхняя полоска, как у карточек заявок */
-.modal-card::before {
+.request-details-manager-modal .rdmm-card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -39,136 +72,146 @@
   height: 5px;
   background: linear-gradient(
     90deg,
-    var(--accent-yellow),
-    var(--accent-pink),
-    var(--accent-purple),
-    var(--accent-blue)
+    var(--rdmm-accent-yellow),
+    var(--rdmm-accent-pink),
+    var(--rdmm-accent-purple),
+    var(--rdmm-accent-blue)
   );
 }
 
-/* Контент скроллится, шапка фиксированная внутри карточки */
-.modal-card > *:not(.modal-header-details) {
+.request-details-manager-modal .rdmm-scroll {
   overflow: auto;
 }
 
-/* ====== HEADER ====== */
-
-.modal-header-details {
+.request-details-manager-modal .rdmm-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  gap: var(--rdmm-space-sm);
+  margin-bottom: var(--rdmm-space-sm);
 }
 
-.modal-header-details h3 {
+.request-details-manager-modal .rdmm-title {
   margin: 0;
-  font-size: var(--font-lg);
+  font-size: var(--rdmm-font-lg);
   font-weight: 700;
-  color: var(--gray-800);
+  color: var(--rdmm-gray-800);
 }
 
-.btn-close-details {
+.request-details-manager-modal .rdmm-close-btn {
   border: none;
   background: none;
   font-size: 1.8rem;
   cursor: pointer;
-  color: var(--gray-400);
+  color: var(--rdmm-gray-400);
   transition: 0.2s ease;
+  line-height: 1;
 }
 
-.btn-close-details:hover {
-  color: var(--gray-600);
+.request-details-manager-modal .rdmm-close-btn:hover {
+  color: var(--rdmm-gray-600);
   transform: scale(1.05);
 }
 
-/* ====== INFO ROWS ====== */
+.request-details-manager-modal .rdmm-info {
+  margin-bottom: 20px;
+}
 
-.details-row {
+.request-details-manager-modal .rdmm-row {
   display: flex;
   align-items: baseline;
   gap: 6px;
   margin-bottom: 6px;
-  font-size: var(--font-sm);
-  color: var(--gray-700);
+  font-size: var(--rdmm-font-sm);
+  color: var(--rdmm-gray-700);
 }
 
-.details-row strong {
+.request-details-manager-modal .rdmm-row strong {
   font-weight: 600;
-  color: var(--gray-800);
+  color: var(--rdmm-gray-800);
 }
 
-/* ====== STATUS BADGE ====== */
-
-.status-badge-pill {
+.request-details-manager-modal .rdmm-status-badge {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
   margin-left: 6px;
   border-radius: 999px;
-  font-size: var(--font-xs);
+  font-size: var(--rdmm-font-xs);
   font-weight: 600;
   background: #e0f2fe;
   color: #0369a1;
 }
 
-/* Можно по желанию добавить разные цвета по статусам */
-/* .status-badge-pill.Создана { ... } */
-/* .status-badge-pill.В\ работе { ... } */
-/* .status-badge-pill.Завершена { ... } */
+.request-details-manager-modal .rdmm-loc-block {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
 
-/* ====== DESCRIPTION BOX ====== */
-
-.desc-box {
-  margin-top: var(--space-sm);
-  padding: var(--space-sm);
-  border-radius: var(--radius-md);
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  font-size: var(--font-sm);
-  color: var(--gray-700);
+.request-details-manager-modal .rdmm-desc-box {
+  margin-top: var(--rdmm-space-sm);
+  padding: var(--rdmm-space-sm);
+  border-radius: var(--rdmm-radius-md);
+  background: var(--rdmm-gray-50);
+  border: 1px solid var(--rdmm-gray-200);
+  font-size: var(--rdmm-font-sm);
+  color: var(--rdmm-gray-700);
   line-height: 1.5;
 }
 
-/* ====== PHOTOS ====== */
-
-.gallery-grid {
-  margin-top: var(--space-xs);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: var(--space-sm);
+.request-details-manager-modal .rdmm-section-title {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--rdmm-gray-800);
+  font-weight: 700;
 }
 
-.gallery-img {
+.request-details-manager-modal .rdmm-gallery-grid {
+  margin-top: var(--rdmm-space-xs);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: var(--rdmm-space-sm);
+}
+
+.request-details-manager-modal .rdmm-gallery-img {
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--rdmm-radius-md);
   object-fit: cover;
   cursor: pointer;
   transition: 0.2s ease;
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--rdmm-gray-200);
 }
 
-.gallery-img:hover {
+.request-details-manager-modal .rdmm-gallery-img:hover {
   transform: scale(1.03);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
 }
 
-/* ====== COMMENTS ====== */
+.request-details-manager-modal .rdmm-photo-loading {
+  font-size: 0.85rem;
+  color: var(--rdmm-gray-500);
+}
 
-.comments-section {
-  margin-top: var(--space-md);
+.request-details-manager-modal .rdmm-photo-empty {
+  font-size: 0.85rem;
+  color: var(--rdmm-gray-400);
+  align-self: center;
+}
+
+.request-details-manager-modal .rdmm-comments-section {
+  margin-top: var(--rdmm-space-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--rdmm-space-sm);
 }
 
-.comments-title {
-  font-size: var(--font-sm);
+.request-details-manager-modal .rdmm-comments-title {
+  font-size: var(--rdmm-font-sm);
   font-weight: 700;
-  color: var(--gray-800);
+  color: var(--rdmm-gray-800);
 }
 
-.comments-list {
+.request-details-manager-modal .rdmm-comments-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -177,47 +220,43 @@
   padding-right: 4px;
 }
 
-.comment-bubble {
+.request-details-manager-modal .rdmm-comment-bubble {
   padding: 8px 10px;
-  border-radius: var(--radius-md);
+  border-radius: var(--rdmm-radius-md);
   background: #eff6ff;
   border: 1px solid #dbeafe;
-  font-size: var(--font-sm);
-  color: #1e293b;
+  font-size: var(--rdmm-font-sm);
+  color: var(--rdmm-gray-800);
   line-height: 1.4;
 }
 
-.comment-empty {
-  font-size: var(--font-sm);
-  color: var(--gray-400);
+.request-details-manager-modal .rdmm-comment-empty {
+  font-size: var(--rdmm-font-sm);
+  color: var(--rdmm-gray-400);
   font-style: italic;
 }
 
-/* ====== EMPTY STATE (если request = null) ====== */
-
-.request-details-empty {
+.request-details-manager-modal .rdmm-empty {
   min-height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-sm);
-  color: var(--gray-500);
+  font-size: var(--rdmm-font-sm);
+  color: var(--rdmm-gray-500);
 }
 
-/* ====== ADAPTIVE ====== */
-
 @media (max-width: 768px) {
-  .modal-card {
+  .request-details-manager-modal .rdmm-card {
     max-width: 95vw;
-    padding: var(--space-md);
+    padding: var(--rdmm-space-md);
   }
 
-  .details-row {
+  .request-details-manager-modal .rdmm-row {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .comments-list {
+  .request-details-manager-modal .rdmm-comments-list {
     max-height: 160px;
   }
 }

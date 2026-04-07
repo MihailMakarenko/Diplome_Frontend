@@ -1,4 +1,42 @@
-.assign-overlay {
+.assign-employee-modal {
+  --aem-accent-yellow: #fbbf24;
+  --aem-accent-pink: #f472b6;
+  --aem-accent-purple: #a78bfa;
+  --aem-accent-blue: #60a5fa;
+
+  --aem-gray-50: #f8fafc;
+  --aem-gray-100: #f1f5f9;
+  --aem-gray-200: #e2e8f0;
+  --aem-gray-300: #cbd5e1;
+  --aem-gray-400: #94a3b8;
+  --aem-gray-500: #64748b;
+  --aem-gray-600: #475569;
+  --aem-gray-700: #334155;
+  --aem-gray-800: #1e293b;
+
+  --aem-radius-sm: 12px;
+  --aem-radius-md: 16px;
+  --aem-radius-lg: 24px;
+
+  --aem-space-xs: 8px;
+  --aem-space-sm: 12px;
+  --aem-space-md: 16px;
+  --aem-space-lg: 24px;
+  --aem-space-xl: 32px;
+
+  --aem-font-xs: 12px;
+  --aem-font-sm: 14px;
+  --aem-font-base: 16px;
+  --aem-font-lg: 20px;
+}
+
+.assign-employee-modal *,
+.assign-employee-modal *::before,
+.assign-employee-modal *::after {
+  box-sizing: border-box;
+}
+
+.assign-employee-modal .assign-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
@@ -7,25 +45,26 @@
   align-items: center;
   justify-content: center;
   z-index: 70;
+  padding: 16px;
 }
 
-.assign-card {
+.assign-employee-modal .assign-card {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(18px);
-  border-radius: var(--radius-lg);
+  border-radius: var(--aem-radius-lg);
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.35);
-  padding: var(--space-lg);
+  padding: var(--aem-space-lg);
   width: 100%;
   max-width: 720px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--aem-space-md);
   position: relative;
   overflow: hidden;
 }
 
-.assign-card::before {
+.assign-employee-modal .assign-card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -34,201 +73,194 @@
   height: 5px;
   background: linear-gradient(
     90deg,
-    var(--accent-yellow),
-    var(--accent-pink),
-    var(--accent-purple),
-    var(--accent-blue)
+    var(--aem-accent-yellow),
+    var(--aem-accent-pink),
+    var(--aem-accent-purple),
+    var(--aem-accent-blue)
   );
 }
 
-/* HEADER */
-
-.assign-header {
+.assign-employee-modal .assign-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-md);
+  gap: var(--aem-space-md);
 }
 
-.assign-title {
-  font-size: var(--font-lg);
+.assign-employee-modal .assign-title {
+  font-size: var(--aem-font-lg);
   font-weight: 700;
-  color: var(--gray-800);
+  color: var(--aem-gray-800);
   margin: 0;
 }
 
-.assign-subtitle {
+.assign-employee-modal .assign-subtitle {
   margin-top: 4px;
-  font-size: var(--font-sm);
-  color: var(--gray-500);
+  font-size: var(--aem-font-sm);
+  color: var(--aem-gray-500);
 }
 
-.assign-close-btn {
+.assign-employee-modal .assign-close-btn {
   border: none;
   background: none;
   font-size: 1.8rem;
   cursor: pointer;
-  color: var(--gray-400);
+  color: var(--aem-gray-400);
   transition: 0.2s ease;
+  line-height: 1;
 }
 
-.assign-close-btn:hover {
-  color: var(--gray-600);
+.assign-employee-modal .assign-close-btn:hover {
+  color: var(--aem-gray-600);
   transform: scale(1.05);
 }
 
-/* CONTENT */
-
-.assign-content {
+.assign-employee-modal .assign-content {
   flex: 1;
-  margin-top: var(--space-xs);
+  margin-top: var(--aem-space-xs);
   overflow-y: auto;
   max-height: calc(80vh - 200px);
   padding-right: 4px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md); /* увеличил отступы между блоками */
+  gap: var(--aem-space-md);
 }
 
-/* Заголовки секций — теперь с разделителем между блоками */
-.assign-section-title {
-  font-size: var(--font-xs);
+.assign-employee-modal .assign-section-title {
+  font-size: var(--aem-font-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gray-500);
+  color: var(--aem-gray-500);
   text-align: center;
-  margin: var(--space-sm) 0;
+  margin: var(--aem-space-sm) 0;
 }
 
-/* Добавляем красивый разделитель между «Уже назначены» и «Доступные кандидаты» */
-.assign-content > .assign-section-title:not(:first-child) {
-  margin-top: var(--space-xl);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--gray-200);
+.assign-employee-modal
+  .assign-content
+  > .assign-section-title:not(:first-child) {
+  margin-top: var(--aem-space-xl);
+  padding-top: var(--aem-space-md);
+  border-top: 1px solid var(--aem-gray-200);
 }
 
-/* Список центрируем и ограничиваем по ширине */
-.assign-list {
+.assign-employee-modal .assign-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--aem-space-sm);
   max-width: 640px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.assign-empty {
+.assign-employee-modal .assign-empty {
   text-align: center;
-  font-size: var(--font-sm);
-  color: var(--gray-500);
-  padding: var(--space-md) 0;
+  font-size: var(--aem-font-sm);
+  color: var(--aem-gray-500);
+  padding: var(--aem-space-md) 0;
 }
 
-/* Элемент списка сотрудников — больше воздуха слева и справа */
-.assign-item {
+.assign-employee-modal .assign-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-sm);
-  padding: 14px 18px; /* увеличил горизонтальные отступы — текст больше не прижат к краю */
-  border-radius: var(--radius-md);
-  border: 1px solid var(--gray-200);
+  gap: var(--aem-space-sm);
+  padding: 14px 18px;
+  border-radius: var(--aem-radius-md);
+  border: 1px solid var(--aem-gray-200);
   background: #ffffff;
   cursor: pointer;
   transition: 0.15s ease;
 }
 
-.assign-item:hover {
-  border-color: var(--accent-purple);
+.assign-employee-modal .assign-item:hover {
+  border-color: var(--aem-accent-purple);
   box-shadow: 0 6px 18px rgba(129, 140, 248, 0.2);
 }
 
-.assign-item-selected {
-  border-color: var(--accent-purple);
+.assign-employee-modal .assign-item-selected {
+  border-color: var(--aem-accent-purple);
   background: #f5f3ff;
   box-shadow: 0 6px 18px rgba(129, 140, 248, 0.4);
 }
 
-.assign-item-assigned {
-  background: var(--gray-50);
+.assign-employee-modal .assign-item-assigned {
+  background: var(--aem-gray-50);
   cursor: default;
 }
 
-.assign-item input[type="radio"] {
+.assign-employee-modal .assign-item input[type="radio"] {
   margin-top: 4px;
 }
 
-.assign-item-content {
+.assign-employee-modal .assign-item-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
 }
 
-.assign-emp-name {
-  font-size: var(--font-base);
+.assign-employee-modal .assign-emp-name {
+  font-size: var(--aem-font-base);
   font-weight: 600;
-  color: var(--gray-800);
+  color: var(--aem-gray-800);
 }
 
-.assign-emp-role {
-  font-size: var(--font-xs);
-  color: var(--gray-500);
+.assign-employee-modal .assign-emp-role {
+  font-size: var(--aem-font-xs);
+  color: var(--aem-gray-500);
 }
 
-.assign-emp-location {
-  font-size: var(--font-xs);
-  color: var(--gray-400);
+.assign-employee-modal .assign-emp-location {
+  font-size: var(--aem-font-xs);
+  color: var(--aem-gray-400);
+  word-break: break-word;
 }
 
-/* PAGINATION */
-
-.assign-pagination {
+.assign-employee-modal .assign-pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
+  gap: var(--aem-space-sm);
+  margin-top: var(--aem-space-sm);
 }
 
-.assign-page-btn {
+.assign-employee-modal .assign-page-btn {
   padding: 6px 10px;
-  border-radius: var(--radius-md);
+  border-radius: var(--aem-radius-md);
   border: none;
-  background: var(--gray-200);
-  font-size: var(--font-xs);
+  background: var(--aem-gray-200);
+  font-size: var(--aem-font-xs);
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.assign-page-btn:disabled {
+.assign-employee-modal .assign-page-btn:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.assign-page-btn:hover:not(:disabled) {
-  background: var(--accent-purple);
+.assign-employee-modal .assign-page-btn:hover:not(:disabled) {
+  background: var(--aem-accent-purple);
   color: #ffffff;
 }
 
-.assign-page-info {
-  font-size: var(--font-xs);
-  color: var(--gray-600);
+.assign-employee-modal .assign-page-info {
+  font-size: var(--aem-font-xs);
+  color: var(--aem-gray-600);
 }
 
-/* FOOTER */
-
-.assign-footer {
+.assign-employee-modal .assign-footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
+  gap: var(--aem-space-sm);
+  margin-top: var(--aem-space-sm);
 }
 
-.assign-btn {
+.assign-employee-modal .assign-btn {
   padding: 9px 16px;
-  border-radius: var(--radius-md);
-  font-size: var(--font-sm);
+  border-radius: var(--aem-radius-md);
+  font-size: var(--aem-font-sm);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -236,56 +268,58 @@
   white-space: nowrap;
 }
 
-.assign-btn-primary {
-  background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
+.assign-employee-modal .assign-btn-primary {
+  background: linear-gradient(
+    90deg,
+    var(--aem-accent-purple),
+    var(--aem-accent-blue)
+  );
   color: #ffffff;
 }
 
-.assign-btn-primary:hover:not(:disabled) {
+.assign-employee-modal .assign-btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(129, 140, 248, 0.4);
 }
 
-.assign-btn-primary:disabled {
+.assign-employee-modal .assign-btn-primary:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.assign-btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-700);
+.assign-employee-modal .assign-btn-secondary {
+  background: var(--aem-gray-100);
+  color: var(--aem-gray-700);
 }
 
-.assign-btn-secondary:hover:not(:disabled) {
-  background: var(--gray-200);
+.assign-employee-modal .assign-btn-secondary:hover:not(:disabled) {
+  background: var(--aem-gray-200);
 }
 
-/* ADAPTIVE */
+.assign-employee-modal .assign-content h4 {
+  text-align: center;
+}
 
 @media (max-width: 640px) {
-  .assign-card {
+  .assign-employee-modal .assign-card {
     max-width: 95vw;
-    padding: var(--space-md);
+    padding: var(--aem-space-md);
   }
 
-  .assign-list {
+  .assign-employee-modal .assign-list {
     max-width: 100%;
   }
 
-  .assign-footer {
+  .assign-employee-modal .assign-footer {
     flex-direction: column-reverse;
   }
 
-  .assign-btn {
+  .assign-employee-modal .assign-btn {
     width: 100%;
     text-align: center;
   }
 
-  .assign-item {
-    padding: 12px 16px; /* чуть меньше на мобильных */
+  .assign-employee-modal .assign-item {
+    padding: 12px 16px;
   }
-}
-
-.assign-content h4 {
-  text-align: center;
 }

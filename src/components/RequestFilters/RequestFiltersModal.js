@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./RequestFiltersModal.css";
 
 import BuilgingApi from "../../apiServices/buildingApi";
@@ -61,9 +61,9 @@ const RequestFiltersModal = ({
   const [sortFields, setSortFields] = useState(["CreateAt"]);
   const [sortDirection, setSortDirection] = useState("desc");
 
-  const buildingApi = new BuilgingApi();
-  const floorApi = new FloorApi();
-  const locationApi = new LocationApi();
+  const buildingApi = useMemo(() => new BuilgingApi(), []);
+  const floorApi = useMemo(() => new FloorApi(), []);
+  const locationApi = useMemo(() => new LocationApi(), []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -121,7 +121,7 @@ const RequestFiltersModal = ({
     };
 
     loadBuildings();
-  }, [isOpen, currentFilters]);
+  }, [isOpen, currentFilters, buildingApi]);
 
   useEffect(() => {
     const loadFloors = async () => {
@@ -140,7 +140,7 @@ const RequestFiltersModal = ({
     };
 
     loadFloors();
-  }, [filters.buildingId]);
+  }, [filters.buildingId, floorApi]);
 
   useEffect(() => {
     const loadLocations = async () => {
@@ -158,7 +158,7 @@ const RequestFiltersModal = ({
     };
 
     loadLocations();
-  }, [filters.floorId]);
+  }, [filters.floorId, locationApi]);
 
   if (!isOpen) return null;
 
@@ -227,238 +227,247 @@ const RequestFiltersModal = ({
   };
 
   return (
-    <div className="rfm-overlay" onClick={onClose}>
-      <div
-        className="rfm-card rfm-card-large"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="rfm-header">
-          <div>
-            <h3 className="rfm-title">Фильтры заявок</h3>
-            <p className="rfm-subtitle">
-              Период, приоритет, статус, расположение и порядок сортировки
-            </p>
+    <div className="request-filters-modal">
+      <div className="rfm-overlay" onClick={onClose}>
+        <div
+          className="rfm-card rfm-card-large"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="rfm-header">
+            <div>
+              <h3 className="rfm-title">Фильтры заявок</h3>
+              <p className="rfm-subtitle">
+                Период, приоритет, статус, расположение и порядок сортировки
+              </p>
+            </div>
+
+            <button className="rfm-close-btn" onClick={onClose}>
+              &times;
+            </button>
           </div>
-          <button className="rfm-close-btn" onClick={onClose}>
-            &times;
-          </button>
-        </div>
 
-        <div className="rfm-content">
-          <section className="rfm-section">
-            <div className="rfm-section-title">Период создания</div>
-            <div className="rfm-grid-2">
-              <div className="rfm-field">
-                <label className="rfm-label">Минимальная дата и время</label>
-                <input
-                  type="datetime-local"
-                  name="minCreatedAt"
-                  className="rfm-input rfm-input-lg"
-                  value={filters.minCreatedAt}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="rfm-field">
-                <label className="rfm-label">Максимальная дата и время</label>
-                <input
-                  type="datetime-local"
-                  name="maxCreatedAt"
-                  className="rfm-input rfm-input-lg"
-                  value={filters.maxCreatedAt}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-          </section>
+          <div className="rfm-content">
+            <section className="rfm-section">
+              <div className="rfm-section-title">Период создания</div>
 
-          <section className="rfm-section">
-            <div className="rfm-grid-2">
-              <div className="rfm-field">
-                <div className="rfm-label rfm-label-center">Приоритет</div>
-                <div className="rfm-chips">
-                  {PRIORITY_OPTIONS.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      className={
-                        "rfm-chip" +
-                        (filters.priorities.includes(p)
-                          ? " rfm-chip-active"
-                          : "")
-                      }
-                      onClick={() => handleArrayToggle("priorities", p)}
-                    >
-                      {p}
-                    </button>
-                  ))}
+              <div className="rfm-grid-2">
+                <div className="rfm-field">
+                  <label className="rfm-label">Минимальная дата и время</label>
+                  <input
+                    type="datetime-local"
+                    name="minCreatedAt"
+                    className="rfm-input rfm-input-lg"
+                    value={filters.minCreatedAt}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="rfm-field">
+                  <label className="rfm-label">Максимальная дата и время</label>
+                  <input
+                    type="datetime-local"
+                    name="maxCreatedAt"
+                    className="rfm-input rfm-input-lg"
+                    value={filters.maxCreatedAt}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
+            </section>
 
-              <div className="rfm-field">
-                <div className="rfm-label rfm-label-center">Статус</div>
-                <div className="rfm-chips">
-                  {STATUS_OPTIONS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      className={
-                        "rfm-chip" +
-                        (filters.statuses.includes(s) ? " rfm-chip-active" : "")
-                      }
-                      onClick={() => handleArrayToggle("statuses", s)}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rfm-section">
-            <div className="rfm-section-title">Местоположение</div>
-            <div className="rfm-grid-3">
-              <div className="rfm-field">
-                <label className="rfm-label">Здание</label>
-                <select
-                  name="buildingId"
-                  className="rfm-select rfm-input-lg rfm-select-decorated"
-                  value={filters.buildingId}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Все</option>
-                  {buildings.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="rfm-field">
-                <label className="rfm-label">Этаж</label>
-                <select
-                  name="floorId"
-                  className="rfm-select rfm-input-lg rfm-select-decorated"
-                  value={filters.floorId}
-                  onChange={handleInputChange}
-                  disabled={!filters.buildingId}
-                >
-                  <option value="">Все</option>
-                  {floors.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name || f.floorNumber
-                        ? `Этаж ${f.floorNumber}`
-                        : `Этаж ${f.number}`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="rfm-field">
-                <label className="rfm-label">Помещение</label>
-                <select
-                  name="locationId"
-                  className="rfm-select rfm-input-lg rfm-select-decorated"
-                  value={filters.locationId}
-                  onChange={handleInputChange}
-                  disabled={!filters.floorId}
-                >
-                  <option value="">Все</option>
-                  {locations.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </section>
-
-          <section className="rfm-section">
-            <div className="rfm-section-title">
-              Сортировка (несколько полей, одно направление)
-            </div>
-
-            <div className="rfm-field">
-              <label className="rfm-label">Направление сортировки</label>
-              <div className="rfm-chips">
-                {DIRECTIONS.map((d) => (
-                  <button
-                    key={d.value}
-                    type="button"
-                    className={
-                      "rfm-chip" +
-                      (sortDirection === d.value ? " rfm-chip-active" : "")
-                    }
-                    onClick={() => setSortDirection(d.value)}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rfm-sort-list">
-              {sortFields.map((field, index) => {
-                const available = SORT_FIELDS.filter(
-                  (f) => f.value === field || !sortFields.includes(f.value),
-                );
-
-                return (
-                  <div key={index} className="rfm-sort-row">
-                    <select
-                      className="rfm-select rfm-input-lg rfm-select-decorated"
-                      value={field}
-                      onChange={(e) => changeSortField(index, e.target.value)}
-                    >
-                      {available.map((f) => (
-                        <option key={f.value} value={f.value}>
-                          {f.label}
-                        </option>
-                      ))}
-                    </select>
-
-                    {sortFields.length > 1 && (
+            <section className="rfm-section">
+              <div className="rfm-grid-2">
+                <div className="rfm-field">
+                  <div className="rfm-label rfm-label-center">Приоритет</div>
+                  <div className="rfm-chips">
+                    {PRIORITY_OPTIONS.map((p) => (
                       <button
+                        key={p}
                         type="button"
-                        className="rfm-sort-remove"
-                        onClick={() => removeSortField(index)}
+                        className={
+                          "rfm-chip" +
+                          (filters.priorities.includes(p)
+                            ? " rfm-chip-active"
+                            : "")
+                        }
+                        onClick={() => handleArrayToggle("priorities", p)}
                       >
-                        ×
+                        {p}
                       </button>
-                    )}
+                    ))}
                   </div>
-                );
-              })}
+                </div>
 
-              <button
-                type="button"
-                className="rfm-sort-add"
-                onClick={addSortField}
-                disabled={sortFields.length >= SORT_FIELDS.length}
-              >
-                + Добавить поле сортировки
-              </button>
-            </div>
-          </section>
-        </div>
+                <div className="rfm-field">
+                  <div className="rfm-label rfm-label-center">Статус</div>
+                  <div className="rfm-chips">
+                    {STATUS_OPTIONS.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={
+                          "rfm-chip" +
+                          (filters.statuses.includes(s)
+                            ? " rfm-chip-active"
+                            : "")
+                        }
+                        onClick={() => handleArrayToggle("statuses", s)}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        <div className="rfm-footer">
-          <button
-            type="button"
-            className="rfm-btn rfm-btn-secondary"
-            onClick={handleReset}
-          >
-            Сбросить
-          </button>
-          <button
-            type="button"
-            className="rfm-btn rfm-btn-primary"
-            onClick={handleApply}
-          >
-            Применить
-          </button>
+            <section className="rfm-section">
+              <div className="rfm-section-title">Местоположение</div>
+
+              <div className="rfm-grid-3">
+                <div className="rfm-field">
+                  <label className="rfm-label">Здание</label>
+                  <select
+                    name="buildingId"
+                    className="rfm-select rfm-input-lg rfm-select-decorated"
+                    value={filters.buildingId}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Все</option>
+                    {buildings.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rfm-field">
+                  <label className="rfm-label">Этаж</label>
+                  <select
+                    name="floorId"
+                    className="rfm-select rfm-input-lg rfm-select-decorated"
+                    value={filters.floorId}
+                    onChange={handleInputChange}
+                    disabled={!filters.buildingId}
+                  >
+                    <option value="">Все</option>
+                    {floors.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name || f.floorNumber
+                          ? `Этаж ${f.floorNumber}`
+                          : `Этаж ${f.number}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="rfm-field">
+                  <label className="rfm-label">Помещение</label>
+                  <select
+                    name="locationId"
+                    className="rfm-select rfm-input-lg rfm-select-decorated"
+                    value={filters.locationId}
+                    onChange={handleInputChange}
+                    disabled={!filters.floorId}
+                  >
+                    <option value="">Все</option>
+                    {locations.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section className="rfm-section">
+              <div className="rfm-section-title">
+                Сортировка (несколько полей, одно направление)
+              </div>
+
+              <div className="rfm-field">
+                <label className="rfm-label">Направление сортировки</label>
+                <div className="rfm-chips">
+                  {DIRECTIONS.map((d) => (
+                    <button
+                      key={d.value}
+                      type="button"
+                      className={
+                        "rfm-chip" +
+                        (sortDirection === d.value ? " rfm-chip-active" : "")
+                      }
+                      onClick={() => setSortDirection(d.value)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rfm-sort-list">
+                {sortFields.map((field, index) => {
+                  const available = SORT_FIELDS.filter(
+                    (f) => f.value === field || !sortFields.includes(f.value),
+                  );
+
+                  return (
+                    <div key={index} className="rfm-sort-row">
+                      <select
+                        className="rfm-select rfm-input-lg rfm-select-decorated"
+                        value={field}
+                        onChange={(e) => changeSortField(index, e.target.value)}
+                      >
+                        {available.map((f) => (
+                          <option key={f.value} value={f.value}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      {sortFields.length > 1 && (
+                        <button
+                          type="button"
+                          className="rfm-sort-remove"
+                          onClick={() => removeSortField(index)}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  className="rfm-sort-add"
+                  onClick={addSortField}
+                  disabled={sortFields.length >= SORT_FIELDS.length}
+                >
+                  + Добавить поле сортировки
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <div className="rfm-footer">
+            <button
+              type="button"
+              className="rfm-btn rfm-btn-secondary"
+              onClick={handleReset}
+            >
+              Сбросить
+            </button>
+
+            <button
+              type="button"
+              className="rfm-btn rfm-btn-primary"
+              onClick={handleApply}
+            >
+              Применить
+            </button>
+          </div>
         </div>
       </div>
     </div>

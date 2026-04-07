@@ -1,4 +1,18 @@
-.sa-pagination {
+.structure-sa-pagination {
+  --sap-border: #e2e8f0;
+  --sap-bg: #fff;
+  --sap-bg-hover: #f8fafc;
+  --sap-text: #0f172a;
+  --sap-primary: #0ea5e9;
+}
+
+.structure-sa-pagination *,
+.structure-sa-pagination *::before,
+.structure-sa-pagination *::after {
+  box-sizing: border-box;
+}
+
+.structure-sa-pagination .sa-pagination {
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -6,28 +20,29 @@
   flex-wrap: wrap;
 }
 
-.sa-pageBtn {
+.structure-sa-pagination .sa-pageBtn {
   min-width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  color: #0f172a;
+  border: 1px solid var(--sap-border);
+  background: var(--sap-bg);
+  color: var(--sap-text);
   font-weight: 700;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-.sa-pageBtn:hover:not(:disabled) {
-  background: #f8fafc;
+.structure-sa-pagination .sa-pageBtn:hover:not(:disabled) {
+  background: var(--sap-bg-hover);
 }
 
-.sa-pageBtn:disabled {
+.structure-sa-pagination .sa-pageBtn:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
-.sa-pageBtn.isActive {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+.structure-sa-pagination .sa-pageBtn.isActive {
+  background: var(--sap-primary);
+  border-color: var(--sap-primary);
   color: #fff;
 }

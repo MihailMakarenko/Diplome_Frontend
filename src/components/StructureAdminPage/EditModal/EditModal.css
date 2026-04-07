@@ -1,4 +1,20 @@
-.sa-modalOverlay {
+.structure-edit-modal {
+  --sem-primary: #6366f1;
+  --sem-primary-hover: #4f46e5;
+  --sem-text-main: #0f172a;
+  --sem-text-muted: #334155;
+  --sem-border: #e2e8f0;
+  --sem-bg: rgba(255, 255, 255, 0.98);
+  --sem-radius-lg: 18px;
+}
+
+.structure-edit-modal *,
+.structure-edit-modal *::before,
+.structure-edit-modal *::after {
+  box-sizing: border-box;
+}
+
+.structure-edit-modal .sa-modalOverlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.55);
@@ -9,62 +25,81 @@
   z-index: 2000;
 }
 
-.sa-modalCard {
+.structure-edit-modal .sa-modalCard {
   width: min(720px, 96vw);
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 18px;
+  background: var(--sem-bg);
+  border-radius: var(--sem-radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
-
-  /* Ключевое: модалка — колонка, тело растягивается */
   display: flex;
   flex-direction: column;
-
-  /* Ключевое: чтобы форма не “вылетала” и была прокрутка внутри */
   max-height: min(80dvh, 760px);
   overflow: hidden;
 }
 
-.sa-modalHeader {
+.structure-edit-modal .sa-modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 16px 16px 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--sem-border);
 }
 
-.sa-modalTitle {
+.structure-edit-modal .sa-modalTitle {
   margin: 0;
   font-size: 18px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--sem-text-main);
 }
 
-.sa-closeBtn {
+.structure-edit-modal .sa-closeBtn {
   border: none;
   background: transparent;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
-  color: #334155;
+  color: var(--sem-text-muted);
+  transition: 0.2s;
 }
 
-.sa-modalBody {
-  /* Ключевое: тело занимает оставшуюся высоту и прокручивается */
+.structure-edit-modal .sa-closeBtn:hover {
+  color: #ef4444;
+}
+
+.structure-edit-modal .sa-modalBody {
   flex: 1;
   min-height: 0;
   overflow: auto;
-
   padding: 14px 16px;
 }
 
-.sa-modalFooter {
+.structure-edit-modal .sa-modalFooter {
   padding: 12px 16px 16px 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--sem-border);
   background: rgba(255, 255, 255, 0.96);
 }
 
-.sa-saveBtn {
+.structure-edit-modal .sa-saveBtn {
   width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--sem-primary), #8b5cf6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.structure-edit-modal .sa-saveBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--sem-primary-hover), #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.25);
+}
+
+.structure-edit-modal .sa-saveBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }

@@ -1,27 +1,21 @@
-/* ========================================= */
-/* 1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ И ПЕРЕМЕННЫЕ      */
-/* ========================================= */
-:root {
-  --primary: #6366f1; /* Indigo */
-  --secondary: #ec4899; /* Pink */
-  --success: #10b981; /* Green */
-  --warning: #f59e0b; /* Amber */
-  --danger: #ef4444; /* Red */
+.admin-panel-page {
+  --primary: #6366f1;
+  --secondary: #ec4899;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
 
-  --text-main: #1e293b; /* Slate 800 */
-  --text-muted: #64748b; /* Slate 500 */
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.5);
-  --header-bg: #f3f0ff; /* Светло-фиолетовый фон для шапки */
+  --header-bg: #f3f0ff;
 
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
-}
 
-body {
-  margin: 0;
   font-family:
     "Inter",
     system-ui,
@@ -32,8 +26,7 @@ body {
   min-height: 100vh;
 }
 
-/* Анимированный фон (Aurora) */
-.aurora-bg {
+.admin-panel-page .aurora-bg {
   position: fixed;
   top: 0;
   left: 0;
@@ -42,10 +35,10 @@ body {
   z-index: -1;
   background: linear-gradient(-45deg, #c4b5fd, #a5b4fc, #fbcfe8, #bae6fd);
   background-size: 400% 400%;
-  animation: auroraFlow 15s ease infinite;
+  animation: adminPanelAuroraFlow 15s ease infinite;
 }
 
-@keyframes auroraFlow {
+@keyframes adminPanelAuroraFlow {
   0% {
     background-position: 0% 50%;
   }
@@ -57,10 +50,7 @@ body {
   }
 }
 
-/* ========================================= */
-/* 2. HEADER И ОСНОВНОЙ ЛЕЙАУТ               */
-/* ========================================= */
-.admin-header {
+.admin-panel-page .admin-header {
   height: 70px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
@@ -74,7 +64,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.brand-logo {
+.admin-panel-page .brand-logo {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-main);
@@ -83,7 +73,7 @@ body {
   gap: 8px;
 }
 
-.admin-badge {
+.admin-panel-page .admin-badge {
   background: var(--primary);
   color: white;
   padding: 4px 8px;
@@ -93,19 +83,18 @@ body {
   margin-left: 8px;
 }
 
-.header-actions {
+.admin-panel-page .header-actions {
   display: flex;
   gap: 15px;
 }
 
-.admin-container {
+.admin-panel-page .admin-container {
   max-width: 1400px;
   margin: 30px auto;
   padding: 0 20px;
 }
 
-/* Панель инструментов (Поиск, Кнопки) */
-.toolbar {
+.admin-panel-page .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -114,14 +103,14 @@ body {
   gap: 15px;
 }
 
-.toolbar-left {
+.admin-panel-page .toolbar-left {
   display: flex;
   gap: 15px;
   align-items: center;
 }
 
-.search-input {
-  padding: 10px 15px 10px 35px; /* Отступ слева для иконки */
+.admin-panel-page .search-input {
+  padding: 10px 15px 10px 35px;
   border-radius: var(--radius-sm);
   border: 1px solid #cbd5e1;
   background: rgba(255, 255, 255, 0.8);
@@ -130,14 +119,14 @@ body {
   font-size: 0.9rem;
   transition: 0.2s;
 }
-.search-input:focus {
+
+.admin-panel-page .search-input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* Кнопки */
-.btn {
+.admin-panel-page .btn {
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 20px;
@@ -150,30 +139,29 @@ body {
   font-size: 0.9rem;
 }
 
-.btn-primary {
+.admin-panel-page .btn-primary {
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
   color: white;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
-.btn-primary:hover {
+
+.admin-panel-page .btn-primary:hover {
   transform: translateY(-2px);
 }
 
-.btn-outline {
+.admin-panel-page .btn-outline {
   background: white;
   border: 1px solid #cbd5e1;
   color: var(--text-main);
 }
-.btn-outline:hover {
+
+.admin-panel-page .btn-outline:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
 
-/* ========================================= */
-/* 3. ТАБЛИЦА (TABLE STYLES)                 */
-/* ========================================= */
-.glass-table-container {
-  background: white; /* Чистый белый фон для контента таблицы */
+.admin-panel-page .glass-table-container {
+  background: white;
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
@@ -184,21 +172,20 @@ body {
   justify-content: space-between;
 }
 
-.users-table {
+.admin-panel-page .users-table {
   width: 100%;
-  border-collapse: separate; /* Позволяет использовать border-radius на th/tr */
+  border-collapse: separate;
   border-spacing: 0;
-  min-width: 1000px; /* Чуть шире для новой колонки */
-  table-layout: fixed; /* Фиксируем ширину колонок */
+  min-width: 1000px;
+  table-layout: fixed;
 }
 
-/* --- ШАПКА ТАБЛИЦЫ --- */
-.users-table thead tr {
-  background-color: var(--header-bg); /* Цветной фон шапки */
+.admin-panel-page .users-table thead tr {
+  background-color: var(--header-bg);
 }
 
-.users-table th {
-  text-align: left; /* Глобальное выравнивание ВЛЕВО для заголовков */
+.admin-panel-page .users-table th {
+  text-align: left;
   padding: 18px 20px;
   color: var(--text-muted);
   font-size: 0.75rem;
@@ -208,20 +195,19 @@ body {
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* Скругление углов шапки */
-.users-table th:first-child {
+.admin-panel-page .users-table th:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
-.users-table th:last-child {
+
+.admin-panel-page .users-table th:last-child {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
-  text-align: right; /* Действия справа */
+  text-align: right;
 }
 
-/* --- ТЕЛО ТАБЛИЦЫ --- */
-.users-table td {
-  text-align: left; /* Глобальное выравнивание ВЛЕВО для ячеек */
+.admin-panel-page .users-table td {
+  text-align: left;
   padding: 16px 20px;
   vertical-align: middle;
   border-bottom: 1px solid #f1f5f9;
@@ -232,41 +218,45 @@ body {
   text-overflow: ellipsis;
 }
 
-.users-table td:last-child {
-  text-align: right; /* Только действия справа */
+.admin-panel-page .users-table td:last-child {
+  text-align: right;
 }
 
-.users-table tr:hover td {
-  background-color: #f8fafc; /* Легкая подсветка строки */
+.admin-panel-page .users-table tr:hover td {
+  background-color: #f8fafc;
 }
 
-/* --- Ширина Колонок (Пересчитано) --- */
-.col-user {
+.admin-panel-page .col-user {
   width: 25%;
 }
-.col-phone {
-  width: 15%;
-}
-.col-date {
-  width: 17%;
-} /* Новая колонка */
-.col-role {
-  width: 13%;
-}
-.col-status {
-  width: 15%;
-}
-.col-actions {
+
+.admin-panel-page .col-phone {
   width: 15%;
 }
 
-/* --- Элементы Таблицы --- */
-.user-cell {
+.admin-panel-page .col-date {
+  width: 17%;
+}
+
+.admin-panel-page .col-role {
+  width: 13%;
+}
+
+.admin-panel-page .col-status {
+  width: 15%;
+}
+
+.admin-panel-page .col-actions {
+  width: 15%;
+}
+
+.admin-panel-page .user-cell {
   display: flex;
   align-items: center;
   gap: 15px;
 }
-.table-avatar {
+
+.admin-panel-page .table-avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -275,23 +265,25 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
-.user-info {
+
+.admin-panel-page .user-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.user-name {
+
+.admin-panel-page .user-name {
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-main);
 }
-.user-email {
+
+.admin-panel-page .user-email {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-/* Бейджи ролей - Выровнены по левому краю */
-.role-badge {
+.admin-panel-page .role-badge {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 8px;
@@ -302,60 +294,69 @@ body {
   text-align: center;
   min-width: 70px;
 }
-.role-badge.Admin {
+
+.admin-panel-page .role-badge.Admin {
   background: #e0e7ff;
   color: var(--primary);
 }
-.role-badge.Manager {
+
+.admin-panel-page .role-badge.Manager {
   background: #fce7f3;
   color: var(--secondary);
 }
-.role-badge.User {
+
+.admin-panel-page .role-badge.User {
   background: #f1f5f9;
   color: var(--text-muted);
   border: 1px solid #cbd5e1;
 }
 
-/* Статус - Выровнен по левому краю */
-.status-indicator {
+.admin-panel-page .status-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
   font-size: 0.9rem;
 }
-.dot {
+
+.admin-panel-page .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.status-Active {
+
+.admin-panel-page .status-Active {
   color: var(--success);
 }
-.status-Active .dot {
+
+.admin-panel-page .status-Active .dot {
   background: var(--success);
 }
-.status-Blocked {
+
+.admin-panel-page .status-Blocked {
   color: var(--danger);
 }
-.status-Blocked .dot {
+
+.admin-panel-page .status-Blocked .dot {
   background: var(--danger);
 }
-.status-Pending {
+
+.admin-panel-page .status-Pending {
   color: var(--warning);
 }
-.status-Pending .dot {
+
+.admin-panel-page .status-Pending .dot {
   background: var(--warning);
 }
 
-/* Кнопки действий - Справа */
-.action-buttons {
+.admin-panel-page .action-buttons {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
-.btn-icon-small {
+
+.admin-panel-page .btn-icon-small {
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -368,58 +369,50 @@ body {
   cursor: pointer;
   transition: 0.2s;
 }
-.btn-icon-small:hover {
+
+.admin-panel-page .btn-icon-small:hover {
   border-color: var(--primary);
   color: var(--primary);
   transform: translateY(-2px);
 }
-.btn-delete:hover {
+
+.admin-panel-page .btn-delete:hover {
   border-color: var(--danger);
   color: var(--danger);
 }
 
-/* ========================================= */
-/* 4. ПАГИНАЦИЯ И ФУТЕР ТАБЛИЦЫ              */
-/* ========================================= */
-
-.pagination-container {
+.admin-panel-page .pagination-container {
   display: flex;
-  justify-content: flex-end; /* Прижать всё вправо */
-  align-items: center; /* Вертикальное центрирование */
+  justify-content: flex-end;
+  align-items: center;
   margin-top: 20px;
   padding-top: 15px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05); /* Легкая линия сверху */
-  gap: 20px; /* Отступ между блоком выбора и кнопками */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 20px;
 }
 
-/* Блок "Строк на странице" */
-.rows-per-page {
+.admin-panel-page .rows-per-page {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
-  color: #64748b; /* Серый текст */
+  color: #64748b;
   font-weight: 500;
 }
 
-/* Стилизация выпадающего списка (Select) */
-.page-size-select {
-  appearance: none; /* Убираем стандартную стрелку браузера */
+.admin-panel-page .page-size-select {
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
   background-color: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  padding: 6px 32px 6px 12px; /* Отступ справа под стрелку */
-
+  padding: 6px 32px 6px 12px;
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
   color: #1e293b;
   cursor: pointer;
-
-  /* Кастомная стрелочка SVG */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 8px center;
@@ -427,23 +420,23 @@ body {
   transition: all 0.2s;
 }
 
-.page-size-select:hover {
+.admin-panel-page .page-size-select:hover {
   border-color: var(--primary);
 }
-.page-size-select:focus {
+
+.admin-panel-page .page-size-select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* Блок кнопок переключения (Вперед/Назад) */
-.pagination-controls {
+.admin-panel-page .pagination-controls {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.page-info {
+.admin-panel-page .page-info {
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 500;
@@ -451,7 +444,7 @@ body {
   text-align: center;
 }
 
-.page-btn {
+.admin-panel-page .page-btn {
   width: 32px;
   height: 32px;
   display: flex;
@@ -467,33 +460,23 @@ body {
   padding: 0;
 }
 
-.page-btn:hover:not(:disabled) {
+.admin-panel-page .page-btn:hover:not(:disabled) {
   background-color: #f1f5f9;
   border-color: var(--primary);
   color: var(--primary);
 }
-.page-btn:active:not(:disabled) {
+
+.admin-panel-page .page-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
-.page-btn:disabled {
+
+.admin-panel-page .page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: #f8fafc;
 }
 
-/* Адаптивность для мобильных */
-@media (max-width: 600px) {
-  .pagination-container {
-    flex-direction: column;
-    justify-content: center;
-    gap: 15px;
-  }
-}
-
-/* ========================================= */
-/* 5. МОДАЛЬНЫЕ ОКНА                         */
-/* ========================================= */
-.modal-overlay {
+.admin-panel-page .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.5);
@@ -504,17 +487,17 @@ body {
   z-index: 100;
 }
 
-.modal-card {
+.admin-panel-page .modal-card {
   background: white;
   width: 100%;
   max-width: 500px;
   border-radius: var(--radius-lg);
   padding: 30px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.3s ease-out;
+  animation: adminPanelSlideUp 0.3s ease-out;
 }
 
-@keyframes slideUp {
+@keyframes adminPanelSlideUp {
   from {
     transform: translateY(20px);
     opacity: 0;
@@ -525,31 +508,34 @@ body {
   }
 }
 
-.modal-header {
+.admin-panel-page .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
-.modal-header h2 {
+
+.admin-panel-page .modal-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-main);
   margin: 0;
 }
 
-.form-group {
+.admin-panel-page .form-group {
   margin-bottom: 15px;
 }
-.form-label {
+
+.admin-panel-page .form-label {
   display: block;
   margin-bottom: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
 }
-.form-input,
-.form-select {
+
+.admin-panel-page .form-input,
+.admin-panel-page .form-select {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
@@ -559,13 +545,22 @@ body {
   font-size: 0.95rem;
   box-sizing: border-box;
 }
-.form-input:focus,
-.form-select:focus {
+
+.admin-panel-page .form-input:focus,
+.admin-panel-page .form-select:focus {
   outline: none;
   border-color: var(--primary);
   background: white;
 }
 
-.btn-close:hover {
+.admin-panel-page .btn-close:hover {
   color: #ef4444 !important;
+}
+
+@media (max-width: 600px) {
+  .admin-panel-page .pagination-container {
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+  }
 }

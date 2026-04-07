@@ -5,7 +5,6 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
 class EmployeeServerApi {
   constructor() {
     this.baseUrl = `${baseUrl}/employees`;
-
     const token = localStorage.getItem("accessToken");
 
     this.api = axios.create({
@@ -159,6 +158,25 @@ class EmployeeServerApi {
         message:
           error.response?.data?.message ||
           "Не удалось обновить здание по умолчанию",
+      };
+    }
+  }
+
+  async GetEmployeeById(employeeId) {
+    try {
+      console.log("strtrstrtrrtsr");
+      const response = await this.api.get(`/${employeeId}`);
+      console.log(response.data);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error("GetEmployeeById Error:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Ошибка получения сотрудника",
+        data: null,
       };
     }
   }

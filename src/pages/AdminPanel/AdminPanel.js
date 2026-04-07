@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./AdminPanel.css";
 import UserApi from "../../apiServices/usersApi";
 import { toast } from "react-toastify";
 
-// Импорт модальных окон
 import RegistrationModal from "../../components/Registration/RegistrationModal";
-import ConfirmModal from "../../components/ConfirmModal/ConfirmModal.js"; // <--- Импорт компонента подтверждения
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal.js";
 
-// Импорт иконок
 import {
   IconUsers,
   IconReport,
@@ -19,11 +17,9 @@ import {
 } from "../../components/Icons";
 
 function AdminPanel() {
-  // --- STATE ---
   const [users, setUsers] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Для регистрации
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Состояние для модального окна удаления
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     userId: null,
@@ -32,7 +28,6 @@ function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- PAGINATION STATE ---
   const [requestPage, setRequestPage] = useState(1);
   const [requestPageSize, setRequestPageSize] = useState(5);
 
@@ -45,9 +40,8 @@ function AdminPanel() {
     HasNext: false,
   });
 
-  const userServerApi = new UserApi();
+  const userServerApi = useMemo(() => new UserApi(), []);
 
-  // --- API FETCH ---
   const fetchUsers = async (pageNumber, pageSize) => {
     setIsLoading(true);
     try {
@@ -57,18 +51,28 @@ function AdminPanel() {
       );
 
       if (response.success) {
-        setUsers(response.users);
+        setUsers(response.users || []);
 
         if (response.pagination) {
           setPagination(response.pagination);
         } else {
           console.warn("Пагинация не найдена в ответе");
+          setPagination({
+            CurrentPage: pageNumber,
+            TotalPages: 1,
+            PageSize: pageSize,
+            TotalCount: response.users?.length || 0,
+            HasPrevious: pageNumber > 1,
+            HasNext: false,
+          });
         }
       } else {
         console.error("Ошибка API:", response.message);
+        toast.error(response.message || "Не удалось загрузить пользователей");
       }
     } catch (error) {
       console.error("Системная ошибка:", error);
+      toast.error("Ошибка при загрузке пользователей");
     } finally {
       setIsLoading(false);
     }
@@ -76,10 +80,7 @@ function AdminPanel() {
 
   useEffect(() => {
     fetchUsers(requestPage, requestPageSize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestPage, requestPageSize]);
-
-  // --- HANDLERS ---
+  }, [requestPage, requestPageSize, userServerApi]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -105,9 +106,9 @@ function AdminPanel() {
     setRequestPage(1);
   };
 
-  // Блокировка / Разблокировка
   const toggleBlockUser = async (id, isBlockedCurrent) => {
     let result;
+
     if (isBlockedCurrent) {
       result = await userServerApi.activateUser(id);
     } else {
@@ -120,6 +121,7 @@ function AdminPanel() {
           u.id === id ? { ...u, isBlocked: !isBlockedCurrent } : u,
         ),
       );
+
       toast.success(
         isBlockedCurrent
           ? "Пользователь разблокирован"
@@ -132,14 +134,10 @@ function AdminPanel() {
     }
   };
 
-  // --- ЛОГИКА УДАЛЕНИЯ ЧЕРЕЗ CONFIRM MODAL ---
-
-  // 1. Открытие модального окна (вызывается кнопкой корзины)
   const openDeleteModal = (id) => {
     setConfirmModal({ isOpen: true, userId: id });
   };
 
-  // 2. Реальное удаление (вызывается кнопкой "Удалить" в модалке)
   const executeDeleteUser = async () => {
     const id = confirmModal.userId;
     if (!id) return;
@@ -153,15 +151,10 @@ function AdminPanel() {
       toast.error(`Ошибка удаления: ${response.message}`);
     }
 
-    // Закрываем модалку после попытки
     setConfirmModal({ isOpen: false, userId: null });
   };
 
-  // --- ЛОГИКА РЕГИСТРАЦИИ ---
-
   const handleRegisterUser = async (userData) => {
-    // Вызов API регистрации (предполагаем, что он есть в userServerApi или authApi)
-    // const result = await userServerApi.register(userData);
     console.log("Register data:", userData);
 
     setIsModalOpen(false);
@@ -170,11 +163,11 @@ function AdminPanel() {
     toast.success("Пользователь создан (Демо)");
   };
 
-  // --- HELPERS ---
   const getUserRole = (user) => (user.employee ? "Сотрудник" : "Пользователь");
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
+
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString("ru-RU", {
@@ -190,7 +183,7 @@ function AdminPanel() {
   };
 
   return (
-    <>
+    <div className="admin-panel-page">
       <div className="aurora-bg"></div>
 
       <header className="admin-header">
@@ -198,6 +191,7 @@ function AdminPanel() {
           <IconUsers /> AdminPanel{" "}
           <span className="admin-badge">SuperUser</span>
         </div>
+
         <div className="header-actions">
           <button
             className="btn btn-outline"
@@ -209,7 +203,6 @@ function AdminPanel() {
       </header>
 
       <div className="admin-container">
-        {/* TOOLBAR */}
         <div className="toolbar">
           <div className="toolbar-left">
             <div style={{ position: "relative" }}>
@@ -231,6 +224,7 @@ function AdminPanel() {
               </span>
             </div>
           </div>
+
           <div className="toolbar-right" style={{ display: "flex", gap: 15 }}>
             <button
               className="btn btn-outline"
@@ -238,6 +232,7 @@ function AdminPanel() {
             >
               <IconReport /> Отчеты
             </button>
+
             <button
               className="btn btn-primary"
               onClick={() => setIsModalOpen(true)}
@@ -247,7 +242,6 @@ function AdminPanel() {
           </div>
         </div>
 
-        {/* TABLE CONTAINER */}
         <div className="glass-table-container">
           {isLoading ? (
             <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
@@ -266,6 +260,7 @@ function AdminPanel() {
                     <th className="col-actions">Действия</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredUsers.length > 0 ? (
                     filteredUsers.map((user) => (
@@ -285,6 +280,7 @@ function AdminPanel() {
                                   "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
                               }}
                             />
+
                             <div className="user-info">
                               <span className="user-name">
                                 {user.fullName || "Без имени"}
@@ -293,8 +289,10 @@ function AdminPanel() {
                             </div>
                           </div>
                         </td>
+
                         <td>{user.phoneNumber || "—"}</td>
                         <td>{formatDate(user.createdAt)}</td>
+
                         <td>
                           <span
                             className={`role-badge ${user.employee ? "Manager" : "User"}`}
@@ -302,6 +300,7 @@ function AdminPanel() {
                             {getUserRole(user)}
                           </span>
                         </td>
+
                         <td>
                           <div
                             className={`status-indicator ${user.isBlocked ? "status-Blocked" : "status-Active"}`}
@@ -310,6 +309,7 @@ function AdminPanel() {
                             {user.isBlocked ? "Заблокирован" : "Активен"}
                           </div>
                         </td>
+
                         <td>
                           <div className="action-buttons">
                             <button
@@ -326,7 +326,6 @@ function AdminPanel() {
                               {user.isBlocked ? <IconUnlock /> : <IconLock />}
                             </button>
 
-                            {/* Кнопка открытия модалки удаления */}
                             <button
                               className="btn-icon-small btn-delete"
                               title="Удалить"
@@ -355,7 +354,6 @@ function AdminPanel() {
                 </tbody>
               </table>
 
-              {/* PAGINATION & PAGE SIZE CONTROLS */}
               <div className="pagination-container">
                 <div className="rows-per-page">
                   <span>Строк на странице:</span>
@@ -398,10 +396,10 @@ function AdminPanel() {
         </div>
       </div>
 
-      {/* REGISTRATION MODAL COMPONENT */}
       <RegistrationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onRegister={handleRegisterUser}
         onRegisterSuccess={() => {
           setIsModalOpen(false);
           setRequestPage(1);
@@ -409,7 +407,6 @@ function AdminPanel() {
         }}
       />
 
-      {/* CONFIRM DELETE MODAL COMPONENT */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ isOpen: false, userId: null })}
@@ -417,7 +414,7 @@ function AdminPanel() {
         title="Удаление пользователя"
         message="Вы действительно хотите удалить этого пользователя? Это действие нельзя будет отменить."
       />
-    </>
+    </div>
   );
 }
 

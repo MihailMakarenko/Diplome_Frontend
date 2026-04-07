@@ -62,12 +62,18 @@ function EmployeeProfile() {
   });
 
   const [buildings, setBuildings] = useState([]);
+
   const [employeeId, setEmployeeId] = useState(
     localStorage.getItem("employeeId") || "",
   );
+
+  const [employeeData, setEmployeeData] = useState(null);
   const [isAvailable, setIsAvailable] = useState(false);
   const [currentBuildingId, setCurrentBuildingId] = useState("");
   const [defaultBuildingId, setDefaultBuildingId] = useState("");
+
+  const [hasTelegram, setHasTelegram] = useState(false);
+  const [telegramId, setTelegramId] = useState(null);
 
   const [draftIsAvailable, setDraftIsAvailable] = useState(false);
   const [draftCurrentBuildingId, setDraftCurrentBuildingId] = useState("");
@@ -82,7 +88,6 @@ function EmployeeProfile() {
     patronymic: "",
     phone: "",
     email: "",
-    telegramId: null,
     avatar:
       "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
   });
@@ -121,28 +126,28 @@ function EmployeeProfile() {
             patronymic: fullNameParts[2] || "",
             phone: p.phoneNumber || "",
             email: p.email || "",
-            telegramId: p.telegramId || null,
             avatar:
               p.profilePhotoUrl ||
               "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
           });
 
-          if (p.employeeId) {
-            setEmployeeId(p.employeeId);
-            localStorage.setItem("employeeId", p.employeeId);
+          setHasTelegram(!!p.tgUser);
+          setTelegramId(
+            p.tgUser?.userName
+              ? `@${p.tgUser.userName}`
+              : p.tgUser?.chatId
+                ? String(p.tgUser.chatId)
+                : null,
+          );
+
+          const profileEmployeeId =
+            p.employeeId || p.employee?.id || p.employee?.employeeId || "";
+
+          if (profileEmployeeId) {
+            const normalizedEmployeeId = String(profileEmployeeId);
+            setEmployeeId(normalizedEmployeeId);
+            localStorage.setItem("employeeId", normalizedEmployeeId);
           }
-
-          const available = !!p.isAvailable;
-          const currentBuilding = p.currentBuilding?.id || "";
-          const defaultBuilding = p.defaultBuilding?.id || "";
-
-          setIsAvailable(available);
-          setCurrentBuildingId(currentBuilding);
-          setDefaultBuildingId(defaultBuilding);
-
-          setDraftIsAvailable(available);
-          setDraftCurrentBuildingId(currentBuilding);
-          setDraftDefaultBuildingId(defaultBuilding);
         }
       } catch (e) {
         console.error("Profile error:", e);
@@ -153,6 +158,46 @@ function EmployeeProfile() {
 
     fetchProfile();
   }, [userApi]);
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      if (!employeeId) return;
+
+      try {
+        const employeeRes = await employeeApi.GetEmployeeById(employeeId);
+
+        if (employeeRes.success && employeeRes.data) {
+          const emp = employeeRes.data;
+
+          setEmployeeData(emp);
+          setIsAvailable(!!emp.isAvailable);
+
+          const currentId =
+            emp.currentBuilding?.id !== undefined &&
+            emp.currentBuilding?.id !== null
+              ? String(emp.currentBuilding.id)
+              : "";
+
+          const defaultId =
+            emp.defaultBuilding?.id !== undefined &&
+            emp.defaultBuilding?.id !== null
+              ? String(emp.defaultBuilding.id)
+              : "";
+
+          setCurrentBuildingId(currentId);
+          setDefaultBuildingId(defaultId);
+
+          setDraftIsAvailable(!!emp.isAvailable);
+          setDraftCurrentBuildingId(currentId);
+          setDraftDefaultBuildingId(defaultId);
+        }
+      } catch (e) {
+        console.error("Employee load error:", e);
+      }
+    };
+
+    fetchEmployee();
+  }, [employeeId, employeeApi]);
 
   useEffect(() => {
     const loadBuildings = async () => {
@@ -283,6 +328,22 @@ function EmployeeProfile() {
     setEmployeeSettingsLoading(true);
 
     try {
+      if (draftIsAvailable) {
+        if (!draftCurrentBuildingId) {
+          alert(
+            "Чтобы отметить сотрудника как доступного, выберите текущее здание",
+          );
+          return;
+        }
+
+        if (!draftDefaultBuildingId) {
+          alert(
+            "Чтобы отметить сотрудника как доступного, выберите здание по умолчанию",
+          );
+          return;
+        }
+      }
+
       if (draftIsAvailable !== isAvailable) {
         const availabilityRes = await employeeApi.UpdateEmployeeAvailability(
           employeeId,
@@ -291,15 +352,11 @@ function EmployeeProfile() {
 
         if (!availabilityRes.success) {
           alert(availabilityRes.message || "Не удалось обновить доступность");
-          setEmployeeSettingsLoading(false);
           return;
         }
       }
 
-      if (
-        draftCurrentBuildingId &&
-        draftCurrentBuildingId !== currentBuildingId
-      ) {
+      if (draftCurrentBuildingId !== currentBuildingId) {
         const currentBuildingRes = await employeeApi.UpdateCurrentBuilding(
           employeeId,
           draftCurrentBuildingId,
@@ -309,15 +366,11 @@ function EmployeeProfile() {
           alert(
             currentBuildingRes.message || "Не удалось обновить текущее здание",
           );
-          setEmployeeSettingsLoading(false);
           return;
         }
       }
 
-      if (
-        draftDefaultBuildingId &&
-        draftDefaultBuildingId !== defaultBuildingId
-      ) {
+      if (draftDefaultBuildingId !== defaultBuildingId) {
         const defaultBuildingRes = await employeeApi.UpdateDefaultBuilding(
           employeeId,
           draftDefaultBuildingId,
@@ -328,7 +381,6 @@ function EmployeeProfile() {
             defaultBuildingRes.message ||
               "Не удалось обновить здание по умолчанию",
           );
-          setEmployeeSettingsLoading(false);
           return;
         }
       }
@@ -337,6 +389,33 @@ function EmployeeProfile() {
       setCurrentBuildingId(draftCurrentBuildingId);
       setDefaultBuildingId(draftDefaultBuildingId);
       setIsEditingSettings(false);
+
+      const employeeRes = await employeeApi.GetEmployeeById(employeeId);
+      if (employeeRes.success && employeeRes.data) {
+        const emp = employeeRes.data;
+
+        setEmployeeData(emp);
+        setIsAvailable(!!emp.isAvailable);
+
+        const currentId =
+          emp.currentBuilding?.id !== undefined &&
+          emp.currentBuilding?.id !== null
+            ? String(emp.currentBuilding.id)
+            : "";
+
+        const defaultId =
+          emp.defaultBuilding?.id !== undefined &&
+          emp.defaultBuilding?.id !== null
+            ? String(emp.defaultBuilding.id)
+            : "";
+
+        setCurrentBuildingId(currentId);
+        setDefaultBuildingId(defaultId);
+
+        setDraftIsAvailable(!!emp.isAvailable);
+        setDraftCurrentBuildingId(currentId);
+        setDraftDefaultBuildingId(defaultId);
+      }
     } catch (e) {
       console.error("Employee settings update error:", e);
       alert("Ошибка при сохранении настроек сотрудника");
@@ -564,11 +643,15 @@ function EmployeeProfile() {
     : [];
 
   if (profileLoading) {
-    return <div className="employee-page-loading">Загрузка профиля...</div>;
+    return (
+      <div className="employee-profile-page">
+        <div className="employee-page-loading">Загрузка профиля...</div>
+      </div>
+    );
   }
 
   return (
-    <>
+    <div className="employee-profile-page">
       <div className="aurora-bg"></div>
 
       <header className="app-header">
@@ -616,9 +699,9 @@ function EmployeeProfile() {
           </div>
 
           <div className="telegram-section">
-            {user.telegramId ? (
+            {hasTelegram ? (
               <div className="tg-badge">
-                <span>TG: {user.telegramId}</span>
+                <IconTelegram /> {telegramId}
               </div>
             ) : (
               <div className="tg-placeholder">
@@ -683,9 +766,11 @@ function EmployeeProfile() {
                 disabled={!isEditingSettings || employeeSettingsLoading}
                 onChange={(e) => setDraftCurrentBuildingId(e.target.value)}
               >
-                <option value="">Выберите здание</option>
+                <option value="" disabled>
+                  Выберите здание
+                </option>
                 {buildings.map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <option key={b.id} value={String(b.id)}>
                     {b.name}
                   </option>
                 ))}
@@ -702,9 +787,11 @@ function EmployeeProfile() {
                 disabled={!isEditingSettings || employeeSettingsLoading}
                 onChange={(e) => setDraftDefaultBuildingId(e.target.value)}
               >
-                <option value="">Выберите здание</option>
+                <option value="" disabled>
+                  Выберите здание
+                </option>
                 {buildings.map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <option key={b.id} value={String(b.id)}>
                     {b.name}
                   </option>
                 ))}
@@ -849,7 +936,7 @@ function EmployeeProfile() {
             </div>
           </div>
         )}
-    </>
+    </div>
   );
 }
 

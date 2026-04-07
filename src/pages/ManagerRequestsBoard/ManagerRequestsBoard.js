@@ -44,6 +44,7 @@ const ManagerRequestsBoard = () => {
 
   const fetchRequests = async () => {
     setIsLoading(true);
+
     try {
       const response = await requestApi.GetRequests(
         currentPage,
@@ -53,6 +54,7 @@ const ManagerRequestsBoard = () => {
 
       if (response.success && response.data) {
         setRequests(response.data);
+
         if (response.pagination) {
           setTotalPages(response.pagination.TotalPages || 1);
         } else {
@@ -167,166 +169,168 @@ const ManagerRequestsBoard = () => {
   };
 
   return (
-    <div className="manager-requests-page">
-      <div className="manager-requests-shell">
-        <header className="manager-requests-header">
-          <div className="manager-requests-headerText">
-            <h1 className="manager-requests-title">Управление заявками</h1>
-            <p className="manager-requests-subtitle">
-              Центр мониторинга и распределения задач
-            </p>
-          </div>
+    <div className="manager-requests-board-page">
+      <div className="manager-requests-page">
+        <div className="manager-requests-shell">
+          <header className="manager-requests-header">
+            <div className="manager-requests-headerText">
+              <h1 className="manager-requests-title">Управление заявками</h1>
+              <p className="manager-requests-subtitle">
+                Центр мониторинга и распределения задач
+              </p>
+            </div>
 
-          <button
-            className="manager-requests-filterBtn"
-            onClick={() => setIsFilterOpen(true)}
-          >
-            <IconSearch size={18} />
-            <span>Фильтры</span>
-          </button>
-        </header>
+            <button
+              className="manager-requests-filterBtn"
+              onClick={() => setIsFilterOpen(true)}
+            >
+              <IconSearch size={18} />
+              <span>Фильтры</span>
+            </button>
+          </header>
 
-        {isLoading ? (
-          <div className="manager-requests-loaderBox">
-            <div className="manager-requests-spinner"></div>
-            <p className="manager-requests-loaderText">
-              Синхронизация данных...
-            </p>
-          </div>
-        ) : (
-          <>
-            <main className="manager-requests-grid">
-              {requests.map((req) => (
-                <article
-                  key={req.id}
-                  className={`manager-request-card ${
-                    req.priority === "Высокий"
-                      ? "manager-request-card--high"
-                      : ""
-                  }`}
-                >
-                  <div className="manager-request-cardBody">
-                    <div className="manager-request-topRow">
-                      <span className="manager-request-id">
-                        #
-                        {req.number ||
-                          req.id.toString().substring(0, 6).toUpperCase()}
-                      </span>
+          {isLoading ? (
+            <div className="manager-requests-loaderBox">
+              <div className="manager-requests-spinner"></div>
+              <p className="manager-requests-loaderText">
+                Синхронизация данных...
+              </p>
+            </div>
+          ) : (
+            <>
+              <main className="manager-requests-grid">
+                {requests.map((req) => (
+                  <article
+                    key={req.id}
+                    className={`manager-request-card ${
+                      req.priority === "Высокий"
+                        ? "manager-request-card--high"
+                        : ""
+                    }`}
+                  >
+                    <div className="manager-request-cardBody">
+                      <div className="manager-request-topRow">
+                        <span className="manager-request-id">
+                          #
+                          {req.number ||
+                            req.id.toString().substring(0, 6).toUpperCase()}
+                        </span>
 
-                      <time className="manager-request-date">
-                        {new Date(req.createAt).toLocaleString("ru-RU", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </time>
+                        <time className="manager-request-date">
+                          {new Date(req.createAt).toLocaleString("ru-RU", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </time>
+                      </div>
+
+                      <h3 className="manager-request-title">
+                        {req.typeOfProblem?.title || "Обращение в сервис"}
+                      </h3>
+
+                      <p className="manager-request-description">
+                        {req.description ||
+                          "Клиент не предоставил детальное описание проблемы."}
+                      </p>
+
+                      <div className="manager-request-badges">
+                        <span className="manager-request-status">
+                          {req.status || "В очереди"}
+                        </span>
+
+                        <span
+                          className={`manager-request-priority ${
+                            req.priority === "Высокий"
+                              ? "manager-request-priority--high"
+                              : ""
+                          }`}
+                        >
+                          {req.priority || "Обычный"}
+                        </span>
+                      </div>
+
+                      <div className="manager-request-actions">
+                        <button
+                          type="button"
+                          className="manager-request-btn manager-request-btn--secondary"
+                          onClick={() => openDetails(req)}
+                        >
+                          Просмотр
+                        </button>
+
+                        <button
+                          type="button"
+                          className="manager-request-btn manager-request-btn--primary"
+                          onClick={() => openAssignModal(req)}
+                        >
+                          Назначить
+                        </button>
+                      </div>
                     </div>
+                  </article>
+                ))}
+              </main>
 
-                    <h3 className="manager-request-title">
-                      {req.typeOfProblem?.title || "Обращение в сервис"}
-                    </h3>
+              {totalPages > 1 && (
+                <nav className="manager-requests-pagination">
+                  <button
+                    type="button"
+                    className="manager-requests-pageBtn"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                  >
+                    ← Назад
+                  </button>
 
-                    <p className="manager-request-description">
-                      {req.description ||
-                        "Клиент не предоставил детальное описание проблемы."}
-                    </p>
-
-                    <div className="manager-request-badges">
-                      <span className="manager-request-status">
-                        {req.status || "В очереди"}
-                      </span>
-
-                      <span
-                        className={`manager-request-priority ${
-                          req.priority === "Высокий"
-                            ? "manager-request-priority--high"
-                            : ""
-                        }`}
-                      >
-                        {req.priority || "Обычный"}
-                      </span>
-                    </div>
-
-                    <div className="manager-request-actions">
-                      <button
-                        type="button"
-                        className="manager-request-btn manager-request-btn--secondary"
-                        onClick={() => openDetails(req)}
-                      >
-                        Просмотр
-                      </button>
-
-                      <button
-                        type="button"
-                        className="manager-request-btn manager-request-btn--primary"
-                        onClick={() => openAssignModal(req)}
-                      >
-                        Назначить
-                      </button>
-                    </div>
+                  <div className="manager-requests-pageCounter">
+                    <span>{currentPage}</span> / {totalPages}
                   </div>
-                </article>
-              ))}
-            </main>
 
-            {totalPages > 1 && (
-              <nav className="manager-requests-pagination">
-                <button
-                  type="button"
-                  className="manager-requests-pageBtn"
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  ← Назад
-                </button>
+                  <button
+                    type="button"
+                    className="manager-requests-pageBtn"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                  >
+                    Вперед →
+                  </button>
+                </nav>
+              )}
+            </>
+          )}
 
-                <div className="manager-requests-pageCounter">
-                  <span>{currentPage}</span> / {totalPages}
-                </div>
+          <RequestFiltersModal
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+            onApply={handleApplyFilters}
+            currentFilters={filters}
+          />
 
-                <button
-                  type="button"
-                  className="manager-requests-pageBtn"
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  Вперед →
-                </button>
-              </nav>
-            )}
-          </>
-        )}
+          <RequestDetailsForManagerModal
+            isOpen={isDetailsOpen}
+            onClose={() => {
+              setIsDetailsOpen(false);
+              setSelectedRequest(null);
+            }}
+            request={selectedRequest}
+            photoLoading={photoLoading}
+          />
 
-        <RequestFiltersModal
-          isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          onApply={handleApplyFilters}
-          currentFilters={filters}
-        />
-
-        <RequestDetailsForManagerModal
-          isOpen={isDetailsOpen}
-          onClose={() => {
-            setIsDetailsOpen(false);
-            setSelectedRequest(null);
-          }}
-          request={selectedRequest}
-          photoLoading={photoLoading}
-        />
-
-        <AssignEmployeeModal
-          isOpen={isAssignOpen}
-          onClose={() => {
-            setIsAssignOpen(false);
-            setAssignRequestId(null);
-            setAssignProblemId(null);
-          }}
-          requestId={assignRequestId}
-          problemId={assignProblemId}
-          onAssign={handleAssign}
-        />
+          <AssignEmployeeModal
+            isOpen={isAssignOpen}
+            onClose={() => {
+              setIsAssignOpen(false);
+              setAssignRequestId(null);
+              setAssignProblemId(null);
+            }}
+            requestId={assignRequestId}
+            problemId={assignProblemId}
+            onAssign={handleAssign}
+          />
+        </div>
       </div>
     </div>
   );
