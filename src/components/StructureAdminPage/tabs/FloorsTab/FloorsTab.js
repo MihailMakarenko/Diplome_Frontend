@@ -20,6 +20,7 @@ export default function FloorsTab({
   onDeleteFloor,
 }) {
   const MAX_LEN = 20;
+  const [errors, setErrors] = useState({});
 
   const cut = useMemo(
     () => (s) => {
@@ -34,6 +35,37 @@ export default function FloorsTab({
   const [expandedId, setExpandedId] = useState(null);
   const toggle = (id) => setExpandedId((prev) => (prev === id ? null : id));
 
+  // Валидация перед вызовом родительского onSubmit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    // Валидация здания
+    if (!selectedBuildingId) {
+      newErrors.building = "Необходимо выбрать здание";
+    }
+
+    // Валидация этажа (0-40)
+    const fNum = parseInt(floorForm.floorNumber);
+    if (isNaN(fNum) || fNum < 0 || fNum > 40) {
+      newErrors.floorNumber = "Номер этажа должен быть от 0 до 40";
+    }
+
+    // Валидация описания (2-200)
+    const descLen = floorForm.description?.trim().length || 0;
+    if (descLen < 2 || descLen > 200) {
+      newErrors.description = "Описание должно быть от 2 до 200 символов";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onSubmitFloor(e);
+  };
+
   return (
     <div className="structure-floors-tab">
       <div className="sa-tabGrid">
@@ -42,9 +74,12 @@ export default function FloorsTab({
             <div className="sft-form-group">
               <label className="sft-form-label">Здание</label>
               <select
-                className="sft-form-select"
+                className={`sft-form-select ${errors.building ? "sa-inputError" : ""}`}
                 value={selectedBuildingId}
-                onChange={(e) => setSelectedBuildingId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedBuildingId(e.target.value);
+                  setErrors((prev) => ({ ...prev, building: null }));
+                }}
               >
                 <option value="">-- Выберите здание --</option>
                 {buildings.map((b) => (
@@ -53,31 +88,60 @@ export default function FloorsTab({
                   </option>
                 ))}
               </select>
+              {errors.building && (
+                <span className="sa-errorText">{errors.building}</span>
+              )}
             </div>
 
-            <form onSubmit={onSubmitFloor} className="sa-form">
+            <form onSubmit={handleSubmit} className="sa-form">
               <div className="sft-form-group">
-                <label className="sft-form-label">Номер этажа</label>
+                <label className="sft-form-label">Номер этажа (0 - 40)</label>
                 <input
                   type="number"
-                  className="sft-form-input"
+                  min="0"
+                  max="40"
+                  className={`sft-form-input ${errors.floorNumber ? "sa-inputError" : ""}`}
                   value={floorForm.floorNumber}
-                  onChange={(e) =>
-                    setFloorForm((p) => ({ ...p, floorNumber: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setFloorForm((p) => ({
+                      ...p,
+                      floorNumber: e.target.value,
+                    }));
+                    setErrors((prev) => ({ ...prev, floorNumber: null }));
+                  }}
                   required
                 />
+                {errors.floorNumber && (
+                  <span className="sa-errorText">{errors.floorNumber}</span>
+                )}
               </div>
 
               <div className="sft-form-group">
-                <label className="sft-form-label">Описание</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="sft-form-label">Описание</label>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>
+                    {floorForm.description?.length || 0}/200
+                  </span>
+                </div>
                 <input
-                  className="sft-form-input"
+                  className={`sft-form-input ${errors.description ? "sa-inputError" : ""}`}
                   value={floorForm.description}
-                  onChange={(e) =>
-                    setFloorForm((p) => ({ ...p, description: e.target.value }))
-                  }
+                  maxLength="200"
+                  placeholder="От 2 до 200 символов"
+                  onChange={(e) => {
+                    setFloorForm((p) => ({
+                      ...p,
+                      description: e.target.value,
+                    }));
+                    setErrors((prev) => ({ ...prev, description: null }));
+                  }}
+                  required
                 />
+                {errors.description && (
+                  <span className="sa-errorText">{errors.description}</span>
+                )}
               </div>
 
               <button

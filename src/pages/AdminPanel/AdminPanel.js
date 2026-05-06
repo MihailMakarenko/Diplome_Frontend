@@ -5,27 +5,39 @@ import { toast } from "react-toastify";
 
 import RegistrationModal from "../../components/Registration/RegistrationModal";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal.js";
+import UserFiltersModal from "../../components/UserFiltersModal/UserFiltersModal";
+import Header from "../../components/Header/Header.js";
+import { useNavigate } from "react-router-dom";
+import { Building2 } from "lucide-react";
+import avatar from "../../imgs/avatar.jpg";
 
 import {
-  IconUsers,
   IconReport,
   IconPlus,
   IconLock,
   IconUnlock,
   IconTrash,
-  IconSearch,
 } from "../../components/Icons";
 
+import AdminReportsDownloadModal from "../../components/ReportsModal/AdminReportsDownloadModal";
+
 function AdminPanel() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [filtersModalOpen, setFiltersModalOpen] = useState(false);
+  const [userFilters, setUserFilters] = useState({
+    OrderBy: "CreatedAt desc",
+  });
+
+  const [reportsModalOpen, setReportsModalOpen] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     userId: null,
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [requestPage, setRequestPage] = useState(1);
@@ -42,12 +54,13 @@ function AdminPanel() {
 
   const userServerApi = useMemo(() => new UserApi(), []);
 
-  const fetchUsers = async (pageNumber, pageSize) => {
+  const fetchUsers = async (pageNumber, pageSize, filters = userFilters) => {
     setIsLoading(true);
     try {
       const response = await userServerApi.getUsersWithPagination(
         pageNumber,
         pageSize,
+        filters,
       );
 
       if (response.success) {
@@ -56,7 +69,6 @@ function AdminPanel() {
         if (response.pagination) {
           setPagination(response.pagination);
         } else {
-          console.warn("Пагинация не найдена в ответе");
           setPagination({
             CurrentPage: pageNumber,
             TotalPages: 1,
@@ -67,11 +79,10 @@ function AdminPanel() {
           });
         }
       } else {
-        console.error("Ошибка API:", response.message);
         toast.error(response.message || "Не удалось загрузить пользователей");
       }
     } catch (error) {
-      console.error("Системная ошибка:", error);
+      console.error(error);
       toast.error("Ошибка при загрузке пользователей");
     } finally {
       setIsLoading(false);
@@ -79,18 +90,9 @@ function AdminPanel() {
   };
 
   useEffect(() => {
-    fetchUsers(requestPage, requestPageSize);
-  }, [requestPage, requestPageSize, userServerApi]);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const filteredUsers = users.filter(
-    (user) =>
-      (user.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.email || "").toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+    fetchUsers(requestPage, requestPageSize, userFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestPage, requestPageSize, userFilters, userServerApi]);
 
   const handlePageChange = (direction) => {
     if (direction === "prev" && pagination.HasPrevious) {
@@ -109,11 +111,8 @@ function AdminPanel() {
   const toggleBlockUser = async (id, isBlockedCurrent) => {
     let result;
 
-    if (isBlockedCurrent) {
-      result = await userServerApi.activateUser(id);
-    } else {
-      result = await userServerApi.deactivateUser(id);
-    }
+    if (isBlockedCurrent) result = await userServerApi.activateUser(id);
+    else result = await userServerApi.deactivateUser(id);
 
     if (result.success) {
       setUsers((prev) =>
@@ -134,8 +133,12 @@ function AdminPanel() {
     }
   };
 
-  const openDeleteModal = (id) => {
-    setConfirmModal({ isOpen: true, userId: id });
+  const openDeleteModal = (user) => {
+    if (user?.emailConfirmed) {
+      toast.info("Нельзя удалить пользователя с подтверждённой почтой");
+      return;
+    }
+    setConfirmModal({ isOpen: true, userId: user.id });
   };
 
   const executeDeleteUser = async () => {
@@ -154,20 +157,15 @@ function AdminPanel() {
     setConfirmModal({ isOpen: false, userId: null });
   };
 
-  const handleRegisterUser = async (userData) => {
-    console.log("Register data:", userData);
-
+  const handleRegisterUser = async () => {
     setIsModalOpen(false);
     setRequestPage(1);
-    fetchUsers(1, requestPageSize);
-    toast.success("Пользователь создан (Демо)");
+    fetchUsers(1, requestPageSize, userFilters);
+    toast.success("Пользователь создан");
   };
-
-  const getUserRole = (user) => (user.employee ? "Сотрудник" : "Пользователь");
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString("ru-RU", {
@@ -177,58 +175,94 @@ function AdminPanel() {
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };
 
+  // Роль берём ТОЛЬКО из user.role
+  const getRoleCode = (user) => {
+    const raw = (user?.role ?? "").toString().trim();
+    return raw ? raw.toUpperCase() : "UNKNOWN";
+  };
+
+  // Роли по-русски без скобок
+  const getRoleLabelRu = (roleCode) => {
+    switch (roleCode) {
+      case "ADMIN":
+        return "Админ";
+      case "MANAGER":
+        return "Менеджер";
+      case "EMPLOYEE":
+        return "Сотрудник";
+      case "USER":
+        return "Пользователь";
+      default:
+        return "—";
+    }
+  };
+
+  const isTelegramConnected = (user) => !!user?.tgUser?.chatId;
+
+  const activeFiltersCount = useMemo(() => {
+    const f = userFilters || {};
+    let c = 0;
+
+    if (f.SecondName) c++;
+    if (f.Email) c++;
+    if (f.PhoneNumber) c++;
+
+    if (f.isBlocked !== undefined && f.isBlocked !== null) c++;
+    if (f.emailConfirmed !== undefined && f.emailConfirmed !== null) c++;
+    if (f.hasEmployee !== undefined && f.hasEmployee !== null) c++;
+    if (f.hasTgUser !== undefined && f.hasTgUser !== null) c++;
+
+    if (f.CreatedFrom) c++;
+    if (f.CreatedTo) c++;
+
+    return c;
+  }, [userFilters]);
+
   return (
     <div className="admin-panel-page">
+      <Header />
       <div className="aurora-bg"></div>
-
-      <header className="admin-header">
-        <div className="brand-logo">
-          <IconUsers /> AdminPanel{" "}
-          <span className="admin-badge">SuperUser</span>
-        </div>
-
-        <div className="header-actions">
-          <button
-            className="btn btn-outline"
-            style={{ border: "none", background: "transparent" }}
-          >
-            Выйти
-          </button>
-        </div>
-      </header>
 
       <div className="admin-container">
         <div className="toolbar">
           <div className="toolbar-left">
-            <div style={{ position: "relative" }}>
-              <input
-                className="search-input"
-                placeholder="Поиск по ФИО или email..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: 8,
-                  color: "#94a3b8",
-                }}
-              >
-                <IconSearch />
-              </span>
+            <div className="toolbar-meta">
+              <div className="toolbar-title">
+                Зарегистрировано {pagination?.TotalCount ?? users.length}{" "}
+                человек
+              </div>
+              <div className="toolbar-subtitle">
+                Страница {pagination?.CurrentPage ?? 1} из{" "}
+                {pagination?.TotalPages ?? 1}
+              </div>
             </div>
           </div>
 
-          <div className="toolbar-right" style={{ display: "flex", gap: 15 }}>
+          <div className="toolbar-right" style={{ display: "flex", gap: 12 }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate("/admin/infastructure")}
+            >
+              <Building2 size={18} style={{ marginRight: "8px" }} />
+              Инфраструктура
+            </button>
+
             <button
               className="btn btn-outline"
-              onClick={() => toast.info("Функция отчетов в разработке")}
+              onClick={() => setFiltersModalOpen(true)}
+              title="Фильтрация/сортировка на сервере"
+            >
+              Фильтры {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+            </button>
+
+            <button
+              className="btn btn-outline"
+              onClick={() => setReportsModalOpen(true)}
             >
               <IconReport /> Отчеты
             </button>
@@ -256,91 +290,131 @@ function AdminPanel() {
                     <th className="col-phone">Телефон</th>
                     <th className="col-date">Дата регистрации</th>
                     <th className="col-role">Роль</th>
+                    <th className="col-tg">Telegram</th>
+                    <th className="col-email-confirmed">Email</th>
                     <th className="col-status">Статус</th>
                     <th className="col-actions">Действия</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <tr key={user.id}>
-                        <td>
-                          <div className="user-cell">
-                            <img
-                              src={
-                                user.profilePhotoUrl ||
-                                "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
-                              }
-                              alt=""
-                              className="table-avatar"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src =
-                                  "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
-                              }}
-                            />
+                  {users.length > 0 ? (
+                    users.map((user) => {
+                      const roleCode = getRoleCode(user);
+                      const roleLabel = getRoleLabelRu(roleCode);
 
-                            <div className="user-info">
-                              <span className="user-name">
-                                {user.fullName || "Без имени"}
-                              </span>
-                              <span className="user-email">{user.email}</span>
+                      const tgConnected = isTelegramConnected(user);
+                      const emailOk = !!user.emailConfirmed;
+
+                      return (
+                        <tr key={user.id}>
+                          <td>
+                            <div className="user-cell">
+                              <img
+                                src={user.profilePhotoUrl || avatar}
+                                alt=""
+                                className="table-avatar"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = avatar;
+                                }}
+                              />
+
+                              <div className="user-info">
+                                <span className="user-name">
+                                  {user.fullName || "Без имени"}
+                                </span>
+                                <span className="user-email">{user.email}</span>
+                              </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td>{user.phoneNumber || "—"}</td>
-                        <td>{formatDate(user.createdAt)}</td>
+                          <td>{user.phoneNumber || "—"}</td>
+                          <td>{formatDate(user.createdAt)}</td>
 
-                        <td>
-                          <span
-                            className={`role-badge ${user.employee ? "Manager" : "User"}`}
-                          >
-                            {getUserRole(user)}
-                          </span>
-                        </td>
+                          <td>
+                            <span className={`role-badge role-${roleCode}`}>
+                              {roleLabel}
+                            </span>
+                          </td>
 
-                        <td>
-                          <div
-                            className={`status-indicator ${user.isBlocked ? "status-Blocked" : "status-Active"}`}
-                          >
-                            <div className="dot"></div>
-                            {user.isBlocked ? "Заблокирован" : "Активен"}
-                          </div>
-                        </td>
-
-                        <td>
-                          <div className="action-buttons">
-                            <button
-                              className={`btn-icon-small ${user.isBlocked ? "btn-unblock" : "btn-block"}`}
+                          <td>
+                            <span
+                              className={`status-indicator ${
+                                tgConnected ? "status-Active" : "status-Pending"
+                              }`}
                               title={
-                                user.isBlocked
-                                  ? "Разблокировать"
-                                  : "Заблокировать"
-                              }
-                              onClick={() =>
-                                toggleBlockUser(user.id, user.isBlocked)
+                                tgConnected
+                                  ? `Подключен (chatId: ${user.tgUser?.chatId})`
+                                  : "Не подключен"
                               }
                             >
-                              {user.isBlocked ? <IconUnlock /> : <IconLock />}
-                            </button>
+                              <span className="dot"></span>
+                              {tgConnected ? "Да" : "Нет"}
+                            </span>
+                          </td>
 
-                            <button
-                              className="btn-icon-small btn-delete"
-                              title="Удалить"
-                              onClick={() => openDeleteModal(user.id)}
+                          <td>
+                            <span
+                              className={`status-indicator ${
+                                emailOk ? "status-Active" : "status-Pending"
+                              }`}
+                              title={emailOk ? "Подтвержден" : "Не подтвержден"}
                             >
-                              <IconTrash />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                              <span className="dot"></span>
+                              {emailOk ? "Подтв." : "Нет"}
+                            </span>
+                          </td>
+
+                          <td>
+                            <span
+                              className={`status-indicator ${
+                                user.isBlocked
+                                  ? "status-Blocked"
+                                  : "status-Active"
+                              }`}
+                            >
+                              <span className="dot"></span>
+                              {user.isBlocked ? "Заблок." : "Активен"}
+                            </span>
+                          </td>
+
+                          <td>
+                            <div className="action-buttons">
+                              <button
+                                className={`btn-icon-small ${
+                                  user.isBlocked ? "btn-unblock" : "btn-block"
+                                }`}
+                                title={
+                                  user.isBlocked
+                                    ? "Разблокировать"
+                                    : "Заблокировать"
+                                }
+                                onClick={() =>
+                                  toggleBlockUser(user.id, user.isBlocked)
+                                }
+                              >
+                                {user.isBlocked ? <IconUnlock /> : <IconLock />}
+                              </button>
+
+                              {!emailOk && (
+                                <button
+                                  className="btn-icon-small btn-delete"
+                                  title="Удалить"
+                                  onClick={() => openDeleteModal(user)}
+                                >
+                                  <IconTrash />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan="8"
                         style={{
                           textAlign: "center",
                           padding: 30,
@@ -396,6 +470,25 @@ function AdminPanel() {
         </div>
       </div>
 
+      {/* Фильтры таблицы пользователей */}
+      <UserFiltersModal
+        isOpen={filtersModalOpen}
+        onClose={() => setFiltersModalOpen(false)}
+        initialFilters={userFilters}
+        onApply={(filters) => {
+          setUserFilters(filters || { OrderBy: "CreatedAt desc" });
+          setRequestPage(1);
+          setFiltersModalOpen(false);
+        }}
+      />
+
+      {/* Отчёты администратора (по пользователям) */}
+      <AdminReportsDownloadModal
+        isOpen={reportsModalOpen}
+        onClose={() => setReportsModalOpen(false)}
+        initialUserFilters={userFilters}
+      />
+
       <RegistrationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -403,7 +496,7 @@ function AdminPanel() {
         onRegisterSuccess={() => {
           setIsModalOpen(false);
           setRequestPage(1);
-          fetchUsers(1, requestPageSize);
+          fetchUsers(1, requestPageSize, userFilters);
         }}
       />
 

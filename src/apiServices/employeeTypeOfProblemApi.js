@@ -6,14 +6,16 @@ class EmployeeTypeOfProblemServerApi {
   constructor() {
     this.baseUrl = baseUrl;
 
-    const token = localStorage.getItem("accessToken");
-
     this.api = axios.create({
       baseURL: this.baseUrl,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      headers: { "Content-Type": "application/json" },
+    });
+
+    // чтобы токен всегда был актуальный
+    this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("accessToken");
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+      return config;
     });
   }
 
@@ -26,18 +28,18 @@ class EmployeeTypeOfProblemServerApi {
   }
 
   parsePagination(response) {
-    const paginationHeader = response?.headers?.["x-pagination"];
-
-    if (!paginationHeader) return null;
+    const header = response?.headers?.["x-pagination"];
+    if (!header) return null;
 
     try {
-      return JSON.parse(paginationHeader);
+      return JSON.parse(header);
     } catch (e) {
-      console.error("Ошибка парсинга заголовка x-pagination:", e);
+      console.error("Ошибка парсинга x-pagination:", e);
       return null;
     }
   }
 
+  // Назначенные типы проблем сотрудника (пагинация)
   async getEmployeeProblemTypes(employeeId, pageNumber = 1, pageSize = 3) {
     try {
       const response = await this.api.get(
@@ -50,55 +52,54 @@ class EmployeeTypeOfProblemServerApi {
         },
       );
 
-      let pagination = null;
-      const paginationHeader = response.headers["x-pagination"];
-
-      if (paginationHeader) {
-        try {
-          pagination = JSON.parse(paginationHeader);
-        } catch (e) {
-          console.error("Ошибка парсинга x-pagination:", e);
-        }
-      }
-
       return {
         success: true,
         data: response.data || [],
-        pagination,
+        pagination: this.parsePagination(response),
       };
     } catch (error) {
       console.error("getEmployeeProblemTypes Error:", error);
 
       return {
         success: false,
-        message:
-          error?.response?.data?.message ||
-          error?.response?.data?.title ||
+        message: this.extractErrorMessage(
+          error,
           "Ошибка получения назначенных типов проблем сотрудника",
+        ),
         data: [],
         pagination: null,
       };
     }
   }
 
-  async getAllProblemTypes() {
+  // Доступные для назначения типы проблем (пагинация)
+  // GET /api/problem-types/assignable?employeeId=...&PageNumber=...&PageSize=...
+  async getAssignableProblemTypes(employeeId, pageNumber = 1, pageSize = 20) {
     try {
-      const response = await this.api.get("/problem-types");
+      const response = await this.api.get(`/problem-types/assignable`, {
+        params: {
+          employeeId,
+          PageNumber: pageNumber,
+          PageSize: pageSize,
+        },
+      });
 
       return {
         success: true,
         data: response.data || [],
+        pagination: this.parsePagination(response),
       };
     } catch (error) {
-      console.error("getAllProblemTypes Error:", error);
+      console.error("getAssignableProblemTypes Error:", error);
 
       return {
         success: false,
         message: this.extractErrorMessage(
           error,
-          "Ошибка получения всех типов проблем",
+          "Ошибка получения доступных типов проблем",
         ),
         data: [],
+        pagination: null,
       };
     }
   }

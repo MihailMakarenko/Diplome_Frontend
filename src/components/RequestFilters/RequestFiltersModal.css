@@ -408,3 +408,21 @@
     text-align: center;
   }
 }
+
+.rfm-chip-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+.rfm-chip-disabled:hover {
+  transform: none;
+}
+/* embedded mode: no fixed overlay, just normal flow */
+.rfm-embedded {
+  width: 100%;
+}
+
+.rfm-card-embedded {
+  width: 100%;
+  max-width: 100%;
+}

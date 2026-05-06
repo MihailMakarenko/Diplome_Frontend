@@ -5,39 +5,51 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import RequestFiltersModal from "../../components/RequestFilters/RequestFiltersModal";
-import RequestServerApi from "../../apiServices/requestApi";
 import RequestPhotoApi from "../../apiServices/requestPhotoApi";
 import CommentsApi from "../../apiServices/commentsApi";
 import RequestDetailsForManagerModal from "../../components/RequestDetailsForManager/RequestDetailsForManager";
-import EmployeeRequestsServerApi from "../../apiServices/employeeRequestsApi";
+import { IconSearch } from "../../components/Icons";
 import avatar from "../../imgs/avatar.jpg";
 
-import { IconSearch } from "../../components/Icons";
-import "./ManagerRequestsBoard.css";
+import EmployeeRequestsServerApi from "../../apiServices/employeeRequestsApi";
+import "../ManagerRequestsBoard/ManagerRequestsBoard.css";
 
-const FINAL_STATUSES = new Set(["Выполнена", "Отклонена"]);
+const DEFAULT_PAGE_SIZE = 6;
+const DEFAULT_ASSIGNMENT_STATUS = "Назначена";
 
-const ManagerRequestsBoard = () => {
+const EmployeeAssignableRequestsBoard = () => {
+  const [searchParams] = useSearchParams();
+
+  const currentEmployeeId =
+    searchParams.get("employeeId") || "11111111-1111-1111-1111-111111111111";
+  const fullName = searchParams.get("fullName") || "Сотрудник";
+
+  const api = useMemo(() => new EmployeeRequestsServerApi(), []);
+  const requestPhotoServerApi = useMemo(() => new RequestPhotoApi(), []);
+  const commentsServerApi = useMemo(() => new CommentsApi(), []);
+
+  const [mode, setMode] = useState("assignable");
+
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState({
+    CurrentPage: 1,
+    TotalPages: 1,
+    PageSize: DEFAULT_PAGE_SIZE,
+    TotalCount: 0,
+    HasPrevious: false,
+    HasNext: false,
+  });
 
-  const pageSize = 6;
-
-  const requestApi = useMemo(() => new RequestServerApi(), []);
-  const employeeRequestsApi = useMemo(
-    () => new EmployeeRequestsServerApi(),
-    [],
-  );
-  const requestPhotoServerApi = useMemo(() => new RequestPhotoApi(), []);
-  const commentsServerApi = useMemo(() => new CommentsApi(), []);
+  const pageSize = DEFAULT_PAGE_SIZE;
 
   const [filters, setFilters] = useState({
     minCreatedAt: "",
@@ -50,7 +62,7 @@ const ManagerRequestsBoard = () => {
     sort: "CreateAt desc",
   });
 
-  // SEARCH
+  // Search by number (только для assignable)
   const [searchNumber, setSearchNumber] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
@@ -60,13 +72,14 @@ const ManagerRequestsBoard = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [photoLoading, setPhotoLoading] = useState(false);
 
+  // Assigning
+  const [assigningRequestId, setAssigningRequestId] = useState("");
+
   // Employees modal
   const [employeesModalOpen, setEmployeesModalOpen] = useState(false);
   const [employeesForRequest, setEmployeesForRequest] = useState([]);
   const [employeesLoading, setEmployeesLoading] = useState(false);
-
   const [employeesRequestId, setEmployeesRequestId] = useState(null);
-  const [employeesRequestStatus, setEmployeesRequestStatus] = useState(null); // <-- NEW
   const [employeesPage, setEmployeesPage] = useState(1);
   const [employeesPagination, setEmployeesPagination] = useState({
     CurrentPage: 1,
@@ -79,8 +92,7 @@ const ManagerRequestsBoard = () => {
 
   const [removingAssignmentId, setRemovingAssignmentId] = useState("");
 
-  // защита от гонки запросов списка заявок
-  const fetchSeqRef = useRef(0);
+  const fetchSeq = useRef(0);
 
   const normalizePagination = (p, fallbackPage, fallbackPageSize) => {
     const cp = p?.CurrentPage ?? p?.currentPage ?? fallbackPage;
@@ -100,45 +112,90 @@ const ManagerRequestsBoard = () => {
     };
   };
 
-  const fetchRequests = useCallback(async () => {
-    if (searchMode) return;
+  const sameGuid = (a, b) =>
+    String(a || "").toLowerCase() === String(b || "").toLowerCase();
 
-    const seq = ++fetchSeqRef.current;
-    setIsLoading(true);
+  const mapAssignedRowsToRequests = (rows) => {
+    // endpoint /employees/{id}/requests часто возвращает RequestsEmployee с полем request
+    const mapped = (rows || [])
+      .map((x) => x?.request ?? x?.Request ?? x)
+      .filter(Boolean)
+      .map((r) => ({ ...r, isAssigned: true })); // в assigned режиме всегда назначено
+    return mapped;
+  };
 
-    try {
-      const response = await requestApi.GetRequests(
-        currentPage,
-        pageSize,
-        filters,
-      );
+  const fetchRequests = useCallback(
+    async (page = currentPage) => {
+      if (!currentEmployeeId) return;
 
-      if (seq !== fetchSeqRef.current) return;
+      const seq = ++fetchSeq.current;
+      setIsLoading(true);
 
-      if (response.success && response.data) {
-        setRequests(response.data);
-        setTotalPages(response.pagination?.TotalPages || 1);
-      } else {
-        console.error("Error fetching requests:", response.message);
+      try {
+        let res;
+
+        if (mode === "assignable") {
+          res = await api.GetAssignableRequestsForEmployee(
+            currentEmployeeId,
+            page,
+            pageSize,
+            filters,
+          );
+        } else {
+          res = await api.GetAssignedRequestsForEmployee(
+            currentEmployeeId,
+            page,
+            pageSize,
+            filters,
+          );
+        }
+
+        if (seq !== fetchSeq.current) return;
+
+        if (!res.success) {
+          toast.error(res.message || "Ошибка загрузки заявок");
+          setRequests([]);
+          setPagination(normalizePagination(null, page, pageSize));
+          return;
+        }
+
+        const rawItems = Array.isArray(res.data) ? res.data : [];
+        const items =
+          mode === "assignable"
+            ? rawItems
+            : mapAssignedRowsToRequests(rawItems);
+
+        setRequests(items);
+        setPagination(normalizePagination(res.pagination, page, pageSize));
+      } catch (e) {
+        if (seq !== fetchSeq.current) return;
+
+        console.error(e);
+        toast.error("Ошибка загрузки заявок");
         setRequests([]);
-        setTotalPages(1);
+        setPagination(normalizePagination(null, page, pageSize));
+      } finally {
+        if (seq === fetchSeq.current) setIsLoading(false);
       }
-    } catch (error) {
-      if (seq !== fetchSeqRef.current) return;
-      console.error("Error fetching requests:", error);
-      setRequests([]);
-      setTotalPages(1);
-    } finally {
-      if (seq === fetchSeqRef.current) setIsLoading(false);
-    }
-  }, [requestApi, currentPage, pageSize, filters, searchMode]);
+    },
+    [api, currentEmployeeId, currentPage, pageSize, filters, mode],
+  );
 
   useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
+    setCurrentPage(1);
+    setSearchMode(false);
+    setSearchNumber("");
+    setMode("assignable");
+  }, [currentEmployeeId]);
+
+  useEffect(() => {
+    if (mode === "assignable" && searchMode) return;
+    fetchRequests(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEmployeeId, currentPage, filters, searchMode, mode]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= (pagination.TotalPages || 1)) {
       setCurrentPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -147,11 +204,14 @@ const ManagerRequestsBoard = () => {
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(1);
+    setIsFilterOpen(false);
     setSearchMode(false);
   };
 
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
+
+    if (mode !== "assignable") return;
 
     const n = Number(searchNumber);
     if (!searchNumber || Number.isNaN(n) || n <= 0) {
@@ -161,7 +221,7 @@ const ManagerRequestsBoard = () => {
 
     setSearchLoading(true);
     try {
-      const res = await requestApi.GetRequestByNumber(n);
+      const res = await api.GetAssignableRequestByNumber(currentEmployeeId, n);
 
       if (!res.success || !res.data) {
         toast.error(res.message || "Заявка не найдена");
@@ -170,7 +230,14 @@ const ManagerRequestsBoard = () => {
 
       setSearchMode(true);
       setRequests([res.data]);
-      setTotalPages(1);
+      setPagination({
+        CurrentPage: 1,
+        TotalPages: 1,
+        PageSize: 1,
+        TotalCount: 1,
+        HasPrevious: false,
+        HasNext: false,
+      });
       setCurrentPage(1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -185,7 +252,15 @@ const ManagerRequestsBoard = () => {
     setSearchMode(false);
     setSearchNumber("");
     setCurrentPage(1);
-    await fetchRequests();
+    await fetchRequests(1);
+  };
+
+  const switchMode = async (newMode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    setSearchMode(false);
+    setSearchNumber("");
+    setCurrentPage(1);
   };
 
   const openDetails = async (req) => {
@@ -241,13 +316,50 @@ const ManagerRequestsBoard = () => {
         comments: newComments,
       }));
     } catch (err) {
-      console.error("Details error (manager):", err);
+      console.error("Details error:", err);
     } finally {
       setPhotoLoading(false);
     }
   };
 
-  // ====== Employees modal logic ======
+  const handleAssignToThisEmployee = async (req) => {
+    if (!req?.id || !currentEmployeeId) return;
+    if (req.isAssigned === true) return;
+
+    setAssigningRequestId(req.id);
+
+    setRequests((prev) =>
+      prev.map((r) => (r.id === req.id ? { ...r, isAssigned: true } : r)),
+    );
+
+    try {
+      const res = await api.AssignEmployeeToRequest(
+        req.id,
+        currentEmployeeId,
+        DEFAULT_ASSIGNMENT_STATUS,
+      );
+
+      if (!res.success) {
+        setRequests((prev) =>
+          prev.map((r) => (r.id === req.id ? { ...r, isAssigned: false } : r)),
+        );
+        toast.error(res.message || "Не удалось назначить заявку");
+        return;
+      }
+
+      toast.success("Заявка назначена сотруднику");
+    } catch (e) {
+      console.error(e);
+      setRequests((prev) =>
+        prev.map((r) => (r.id === req.id ? { ...r, isAssigned: false } : r)),
+      );
+      toast.error("Ошибка назначения заявки");
+    } finally {
+      setAssigningRequestId("");
+    }
+  };
+
+  // ===== Employees modal + delete assignment =====
 
   const mapEmployeeAssignment = (a, idx) => {
     const assignmentId = a?.id || a?.Id;
@@ -315,11 +427,7 @@ const ManagerRequestsBoard = () => {
       setEmployeesLoading(true);
 
       try {
-        const res = await employeeRequestsApi.GetEmployeesForRequest(
-          requestId,
-          page,
-          10,
-        );
+        const res = await api.GetEmployeesForRequest(requestId, page, 10);
 
         if (!res.success) {
           toast.error(res.message || "Не удалось загрузить сотрудников");
@@ -340,12 +448,11 @@ const ManagerRequestsBoard = () => {
         setEmployeesLoading(false);
       }
     },
-    [employeeRequestsApi],
+    [api],
   );
 
   const openEmployeesModal = async (req) => {
     setEmployeesRequestId(req.id);
-    setEmployeesRequestStatus(req.status); // <-- NEW: запоминаем статус заявки
     setEmployeesModalOpen(true);
     setEmployeesPage(1);
     await loadEmployeesForRequest(req.id, 1);
@@ -355,7 +462,6 @@ const ManagerRequestsBoard = () => {
     setEmployeesModalOpen(false);
     setEmployeesForRequest([]);
     setEmployeesRequestId(null);
-    setEmployeesRequestStatus(null); // <-- NEW
     setEmployeesPage(1);
     setRemovingAssignmentId("");
   };
@@ -371,37 +477,57 @@ const ManagerRequestsBoard = () => {
   const handleRemoveEmployeeFromRequest = async (row) => {
     if (!employeesRequestId) return;
 
-    // NEW: запрет удаления для финальных статусов
-    if (FINAL_STATUSES.has(employeesRequestStatus)) {
-      toast.error("Нельзя удалить сотрудника у выполненной/отклонённой заявки");
-      return;
-    }
-
     if (!row?.assignmentId || !row?.employeeId) {
       toast.error("Не хватает данных для удаления (assignmentId/employeeId)");
       return;
     }
 
     const confirmed = window.confirm(
-      `Удалить "${row.fullName}" из назначенных?`,
+      `Удалить "${row.fullName}" из назначенных по этой заявке?`,
     );
     if (!confirmed) return;
 
+    const removingCurrentEmployee = sameGuid(row.employeeId, currentEmployeeId);
     setRemovingAssignmentId(row.assignmentId);
 
+    // optimistic:
+    if (removingCurrentEmployee) {
+      if (mode === "assignable") {
+        setRequests((prev) =>
+          prev.map((r) =>
+            r.id === employeesRequestId ? { ...r, isAssigned: false } : r,
+          ),
+        );
+      }
+    }
+
     try {
-      const res = await employeeRequestsApi.RemoveEmployeeFromRequest(
+      const res = await api.RemoveEmployeeFromRequest(
         employeesRequestId,
         row.employeeId,
         row.assignmentId,
       );
 
       if (!res.success) {
+        // rollback optimistic
+        if (removingCurrentEmployee && mode === "assignable") {
+          setRequests((prev) =>
+            prev.map((r) =>
+              r.id === employeesRequestId ? { ...r, isAssigned: true } : r,
+            ),
+          );
+        }
+
         toast.error(res.message || "Не удалось удалить назначение");
         return;
       }
 
       toast.success("Назначение удалено");
+
+      // если удалили текущего сотрудника в режиме assigned — обновим список заявок (заявка должна пропасть)
+      if (removingCurrentEmployee && mode === "assigned") {
+        await fetchRequests(currentPage);
+      }
 
       const isLastItemOnPage = employeesForRequest.length === 1;
       const nextPage =
@@ -413,13 +539,20 @@ const ManagerRequestsBoard = () => {
       await loadEmployeesForRequest(employeesRequestId, nextPage);
     } catch (e) {
       console.error(e);
+
+      if (removingCurrentEmployee && mode === "assignable") {
+        setRequests((prev) =>
+          prev.map((r) =>
+            r.id === employeesRequestId ? { ...r, isAssigned: true } : r,
+          ),
+        );
+      }
+
       toast.error("Ошибка при удалении назначения");
     } finally {
       setRemovingAssignmentId("");
     }
   };
-
-  const isFinalRequestStatus = FINAL_STATUSES.has(employeesRequestStatus);
 
   return (
     <div className="manager-requests-board-page">
@@ -427,13 +560,10 @@ const ManagerRequestsBoard = () => {
         <div className="manager-requests-shell">
           <header className="manager-requests-header">
             <div className="manager-requests-headerText">
-              <h1 className="manager-requests-title">Управление заявками</h1>
-              <p className="manager-requests-subtitle">
-                Центр мониторинга и распределения задач
-              </p>
+              <h1 className="manager-requests-title">Заявки сотрудника</h1>
+              <p className="manager-requests-subtitle">{fullName}</p>
             </div>
 
-            {/* SEARCH + FILTERS */}
             <div
               style={{
                 display: "flex",
@@ -442,48 +572,83 @@ const ManagerRequestsBoard = () => {
                 flexWrap: "wrap",
               }}
             >
-              <form
-                onSubmit={handleSearchSubmit}
-                style={{ display: "flex", gap: 8, alignItems: "center" }}
+              <button
+                className="manager-requests-filterBtn"
+                onClick={() => switchMode("assignable")}
+                style={
+                  mode === "assignable"
+                    ? undefined
+                    : {
+                        background: "#fff",
+                        border: "1px solid #cbd5e1",
+                        color: "#111827",
+                      }
+                }
               >
-                <input
-                  value={searchNumber}
-                  onChange={(e) => setSearchNumber(e.target.value)}
-                  placeholder="№ заявки"
-                  inputMode="numeric"
-                  style={{
-                    height: 38,
-                    borderRadius: 10,
-                    border: "1px solid #cbd5e1",
-                    padding: "0 12px",
-                    background: "rgba(255,255,255,0.9)",
-                    minWidth: 140,
-                  }}
-                />
+                Все заявки
+              </button>
 
-                <button
-                  type="submit"
-                  className="manager-requests-filterBtn"
-                  disabled={searchLoading}
+              <button
+                className="manager-requests-filterBtn"
+                onClick={() => switchMode("assigned")}
+                style={
+                  mode === "assigned"
+                    ? undefined
+                    : {
+                        background: "#fff",
+                        border: "1px solid #cbd5e1",
+                        color: "#111827",
+                      }
+                }
+              >
+                Назначенные
+              </button>
+
+              {/* поиск только в assignable */}
+              {mode === "assignable" && (
+                <form
+                  onSubmit={handleSearchSubmit}
+                  style={{ display: "flex", gap: 8, alignItems: "center" }}
                 >
-                  <span>{searchLoading ? "Поиск..." : "Найти"}</span>
-                </button>
-
-                {searchMode && (
-                  <button
-                    type="button"
-                    className="manager-requests-filterBtn"
-                    onClick={clearSearch}
+                  <input
+                    value={searchNumber}
+                    onChange={(e) => setSearchNumber(e.target.value)}
+                    placeholder="№ заявки"
+                    inputMode="numeric"
                     style={{
-                      background: "#fff",
+                      height: 38,
+                      borderRadius: 10,
                       border: "1px solid #cbd5e1",
-                      color: "#111827",
+                      padding: "0 12px",
+                      background: "rgba(255,255,255,0.9)",
+                      minWidth: 140,
                     }}
+                  />
+
+                  <button
+                    type="submit"
+                    className="manager-requests-filterBtn"
+                    disabled={searchLoading}
                   >
-                    Сбросить
+                    <span>{searchLoading ? "Поиск..." : "Найти"}</span>
                   </button>
-                )}
-              </form>
+
+                  {searchMode && (
+                    <button
+                      type="button"
+                      className="manager-requests-filterBtn"
+                      onClick={clearSearch}
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #cbd5e1",
+                        color: "#111827",
+                      }}
+                    >
+                      Сбросить
+                    </button>
+                  )}
+                </form>
+              )}
 
               <button
                 className="manager-requests-filterBtn"
@@ -498,113 +663,147 @@ const ManagerRequestsBoard = () => {
           {isLoading ? (
             <div className="manager-requests-loaderBox">
               <div className="manager-requests-spinner"></div>
-              <p className="manager-requests-loaderText">
-                Синхронизация данных...
-              </p>
+              <p className="manager-requests-loaderText">Загрузка...</p>
             </div>
           ) : (
             <>
               <main className="manager-requests-grid">
-                {requests.map((req) => (
-                  <article
-                    key={req.id}
-                    className={`manager-request-card ${
-                      req.priority === "Высокий"
-                        ? "manager-request-card--high"
-                        : ""
-                    }`}
-                  >
-                    <div className="manager-request-cardBody">
-                      <div className="manager-request-topRow">
-                        <span className="manager-request-id">
-                          #
-                          {req.number ||
-                            req.id.toString().substring(0, 6).toUpperCase()}
-                        </span>
+                {requests.map((req) => {
+                  const assignedToThisEmployee = req?.isAssigned === true;
+                  const isAssigning = assigningRequestId === req.id;
 
-                        <time className="manager-request-date">
-                          {new Date(req.createAt).toLocaleString("ru-RU", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </time>
+                  return (
+                    <article
+                      key={req.id}
+                      className={`manager-request-card ${
+                        req.priority === "Высокий"
+                          ? "manager-request-card--high"
+                          : ""
+                      }`}
+                    >
+                      <div className="manager-request-cardBody">
+                        <div className="manager-request-topRow">
+                          <span className="manager-request-id">
+                            #
+                            {req.number ||
+                              req.id.toString().substring(0, 6).toUpperCase()}
+                          </span>
+
+                          <time className="manager-request-date">
+                            {new Date(req.createAt).toLocaleString("ru-RU", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </time>
+                        </div>
+
+                        <h3 className="manager-request-title">
+                          {req.typeOfProblem?.title || "Заявка"}
+                        </h3>
+
+                        <p className="manager-request-description">
+                          {req.description || "Описание отсутствует."}
+                        </p>
+
+                        <div className="manager-request-badges">
+                          <span className="manager-request-status">
+                            {req.status || "—"}
+                          </span>
+
+                          <span
+                            className={`manager-request-priority ${
+                              req.priority === "Высокий"
+                                ? "manager-request-priority--high"
+                                : ""
+                            }`}
+                          >
+                            {req.priority || "—"}
+                          </span>
+                        </div>
+
+                        <div className="manager-request-actions">
+                          <button
+                            type="button"
+                            className="manager-request-btn manager-request-btn--secondary"
+                            onClick={() => openDetails(req)}
+                          >
+                            Просмотр
+                          </button>
+
+                          <button
+                            type="button"
+                            className="manager-request-btn manager-request-btn--secondary"
+                            onClick={() => openEmployeesModal(req)}
+                          >
+                            Сотрудники
+                          </button>
+
+                          {/* Назначить показываем только в assignable */}
+                          {mode === "assignable" && (
+                            <button
+                              type="button"
+                              className={`manager-request-btn ${
+                                assignedToThisEmployee
+                                  ? "manager-request-btn--secondary"
+                                  : "manager-request-btn--primary"
+                              }`}
+                              onClick={() => handleAssignToThisEmployee(req)}
+                              disabled={assignedToThisEmployee || isAssigning}
+                              style={
+                                assignedToThisEmployee
+                                  ? {
+                                      background: "#94a3b8",
+                                      borderColor: "#94a3b8",
+                                      cursor: "not-allowed",
+                                      opacity: 0.9,
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {assignedToThisEmployee
+                                ? "Назначена"
+                                : isAssigning
+                                  ? "Назначение..."
+                                  : "Назначить"}
+                            </button>
+                          )}
+                        </div>
                       </div>
-
-                      <h3 className="manager-request-title">
-                        {req.typeOfProblem?.title || "Обращение в сервис"}
-                      </h3>
-
-                      <p className="manager-request-description">
-                        {req.description ||
-                          "Клиент не предоставил детальное описание проблемы."}
-                      </p>
-
-                      <div className="manager-request-badges">
-                        <span className="manager-request-status">
-                          {req.status || "В очереди"}
-                        </span>
-
-                        <span
-                          className={`manager-request-priority ${
-                            req.priority === "Высокий"
-                              ? "manager-request-priority--high"
-                              : ""
-                          }`}
-                        >
-                          {req.priority || "Обычный"}
-                        </span>
-                      </div>
-
-                      <div className="manager-request-actions">
-                        <button
-                          type="button"
-                          className="manager-request-btn manager-request-btn--secondary"
-                          onClick={() => openDetails(req)}
-                        >
-                          Просмотр
-                        </button>
-
-                        <button
-                          type="button"
-                          className="manager-request-btn manager-request-btn--primary"
-                          onClick={() => openEmployeesModal(req)}
-                        >
-                          Сотрудники
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </main>
 
-              {!searchMode && totalPages > 1 && (
-                <nav className="manager-requests-pagination">
-                  <button
-                    type="button"
-                    className="manager-requests-pageBtn"
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
-                  >
-                    ← Назад
-                  </button>
+              {/* пагинация работает и для assigned, и для assignable; отключаем только при поиске */}
+              {!(mode === "assignable" && searchMode) &&
+                (pagination.TotalPages || 1) > 1 && (
+                  <nav className="manager-requests-pagination">
+                    <button
+                      type="button"
+                      className="manager-requests-pageBtn"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      ← Назад
+                    </button>
 
-                  <div className="manager-requests-pageCounter">
-                    <span>{currentPage}</span> / {totalPages}
-                  </div>
+                    <div className="manager-requests-pageCounter">
+                      <span>{currentPage}</span> / {pagination.TotalPages || 1}
+                    </div>
 
-                  <button
-                    type="button"
-                    className="manager-requests-pageBtn"
-                    disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(currentPage + 1)}
-                  >
-                    Вперед →
-                  </button>
-                </nav>
-              )}
+                    <button
+                      type="button"
+                      className="manager-requests-pageBtn"
+                      disabled={currentPage === (pagination.TotalPages || 1)}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      Вперед →
+                    </button>
+                  </nav>
+                )}
             </>
           )}
 
@@ -613,6 +812,9 @@ const ManagerRequestsBoard = () => {
             onClose={() => setIsFilterOpen(false)}
             onApply={handleApplyFilters}
             currentFilters={filters}
+            disabledStatuses={
+              mode === "assignable" ? ["Выполнена", "Отклонена"] : undefined
+            }
           />
 
           <RequestDetailsForManagerModal
@@ -625,7 +827,7 @@ const ManagerRequestsBoard = () => {
             photoLoading={photoLoading}
           />
 
-          {/* MODAL: Employees */}
+          {/* MODAL: Employees for request */}
           {employeesModalOpen && (
             <div
               style={{
@@ -679,23 +881,6 @@ const ManagerRequestsBoard = () => {
                   </button>
                 </div>
 
-                {isFinalRequestStatus && (
-                  <div
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: 12,
-                      background: "#f1f5f9",
-                      color: "#334155",
-                      fontSize: 13,
-                      marginBottom: 10,
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    У заявки статус «{employeesRequestStatus}». Удаление
-                    сотрудников запрещено.
-                  </div>
-                )}
-
                 {employeesLoading ? (
                   <div style={{ padding: 12, color: "#64748b" }}>
                     Загрузка...
@@ -709,15 +894,12 @@ const ManagerRequestsBoard = () => {
                     {employeesForRequest.map((e) => {
                       const isRemoving =
                         removingAssignmentId === e.assignmentId;
-
                       const online =
                         e.isAvailable === true
                           ? true
                           : e.isAvailable === false
                             ? false
                             : null;
-
-                      const deleteDisabled = isFinalRequestStatus || isRemoving;
 
                       return (
                         <div
@@ -847,24 +1029,16 @@ const ManagerRequestsBoard = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveEmployeeFromRequest(e)}
-                            disabled={deleteDisabled}
-                            title={
-                              isFinalRequestStatus
-                                ? "Нельзя удалять сотрудников у выполненной/отклонённой заявки"
-                                : "Удалить назначение"
-                            }
+                            disabled={isRemoving}
+                            title="Удалить назначение"
                             style={{
                               width: 36,
                               height: 36,
                               borderRadius: 12,
                               border: "1px solid #fecaca",
-                              background: deleteDisabled
-                                ? "#f1f5f9"
-                                : "#fff1f2",
-                              color: deleteDisabled ? "#94a3b8" : "#e11d48",
-                              cursor: deleteDisabled
-                                ? "not-allowed"
-                                : "pointer",
+                              background: isRemoving ? "#ffe4e6" : "#fff1f2",
+                              color: "#e11d48",
+                              cursor: isRemoving ? "not-allowed" : "pointer",
                               fontSize: 18,
                               fontWeight: 900,
                               lineHeight: "36px",
@@ -937,4 +1111,4 @@ const ManagerRequestsBoard = () => {
   );
 };
 
-export default ManagerRequestsBoard;
+export default EmployeeAssignableRequestsBoard;

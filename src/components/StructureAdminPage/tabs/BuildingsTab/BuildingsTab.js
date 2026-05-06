@@ -16,6 +16,7 @@ export default function BuildingsTab({
   onEditBuilding,
 }) {
   const MAX_LEN = 20;
+  const [errors, setErrors] = useState({}); // Состояние для ошибок валидации
 
   const cut = useMemo(
     () => (s) => {
@@ -33,47 +34,112 @@ export default function BuildingsTab({
   const [expandedId, setExpandedId] = useState(null);
   const toggle = (id) => setExpandedId((prev) => (prev === id ? null : id));
 
+  // Валидация перед отправкой
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (buildingForm.name.trim().length < 2) {
+      newErrors.name = "Минимум 2 символа";
+    }
+    if (
+      buildingForm.description &&
+      buildingForm.description.trim().length < 2
+    ) {
+      newErrors.description = "Минимум 2 символа";
+    }
+    if (buildingForm.address && buildingForm.address.trim().length < 2) {
+      newErrors.address = "Минимум 2 символа";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onSubmitBuilding(e);
+  };
+
   return (
     <div className="structure-buildings-tab">
       <div className="sa-tabGrid">
         <div className="sa-pane">
           <SectionCard title="Создать здание">
-            <form onSubmit={onSubmitBuilding} className="sa-form">
+            <form onSubmit={handleSubmit} className="sa-form">
               <div className="sbt-form-group">
-                <label className="sbt-form-label">Название</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="sbt-form-label">Название</label>
+                  <span style={{ fontSize: "10px", color: "#888" }}>
+                    {buildingForm.name.length}/20
+                  </span>
+                </div>
                 <input
-                  className="sbt-form-input"
+                  className={`sbt-form-input ${errors.name ? "input-error" : ""}`}
                   value={buildingForm.name}
-                  onChange={(e) =>
-                    setBuildingForm((p) => ({ ...p, name: e.target.value }))
-                  }
+                  maxLength={20}
+                  onChange={(e) => {
+                    setBuildingForm((p) => ({ ...p, name: e.target.value }));
+                    if (errors.name) setErrors((p) => ({ ...p, name: null }));
+                  }}
                   required
                 />
+                {errors.name && (
+                  <span className="sbt-error-text">{errors.name}</span>
+                )}
               </div>
 
               <div className="sbt-form-group">
-                <label className="sbt-form-label">Описание</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="sbt-form-label">Описание</label>
+                  <span style={{ fontSize: "10px", color: "#888" }}>
+                    {buildingForm.description?.length || 0}/100
+                  </span>
+                </div>
                 <input
-                  className="sbt-form-input"
+                  className={`sbt-form-input ${errors.description ? "input-error" : ""}`}
                   value={buildingForm.description}
-                  onChange={(e) =>
+                  maxLength={100}
+                  onChange={(e) => {
                     setBuildingForm((p) => ({
                       ...p,
                       description: e.target.value,
-                    }))
-                  }
+                    }));
+                    if (errors.description)
+                      setErrors((p) => ({ ...p, description: null }));
+                  }}
                 />
+                {errors.description && (
+                  <span className="sbt-error-text">{errors.description}</span>
+                )}
               </div>
 
               <div className="sbt-form-group">
-                <label className="sbt-form-label">Адрес</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="sbt-form-label">Адрес</label>
+                  <span style={{ fontSize: "10px", color: "#888" }}>
+                    {buildingForm.address?.length || 0}/100
+                  </span>
+                </div>
                 <input
-                  className="sbt-form-input"
+                  className={`sbt-form-input ${errors.address ? "input-error" : ""}`}
                   value={buildingForm.address}
-                  onChange={(e) =>
-                    setBuildingForm((p) => ({ ...p, address: e.target.value }))
-                  }
+                  maxLength={100}
+                  onChange={(e) => {
+                    setBuildingForm((p) => ({ ...p, address: e.target.value }));
+                    if (errors.address)
+                      setErrors((p) => ({ ...p, address: null }));
+                  }}
                 />
+                {errors.address && (
+                  <span className="sbt-error-text">{errors.address}</span>
+                )}
               </div>
 
               <button

@@ -328,6 +328,12 @@
   box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
 }
 
+.create-request-modal .crm-priority-btn.active.Critical {
+  border-color: #8b5cf6;
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 .create-request-modal .crm-btn-submit:hover {
   background: var(--crm-primary-hover);
   transform: translateY(-1px);

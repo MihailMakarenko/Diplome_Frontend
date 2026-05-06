@@ -1,55 +1,86 @@
 import axios from "axios";
 
-const baseUrl = process.env.REACT_APP_BASE_URL;
+const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:5035/api";
 
-class EmployeeServerApi {
+class EmployeeApi {
   constructor() {
-    this.baseUrl = `${baseUrl}/employees`;
-    const token = localStorage.getItem("accessToken");
-
     this.api = axios.create({
-      baseURL: this.baseUrl,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : "",
-      },
+      baseURL: `${baseUrl}/employees`,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    // токен всегда актуальный
+    this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("accessToken");
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+      return config;
     });
   }
 
-  async GetEmployees(pageNumber, pageSize) {
+  parsePagination(response) {
+    const header = response?.headers?.["x-pagination"];
+    if (!header) return null;
     try {
-      const response = await this.api.get("", {
-        params: {
-          PageNumber: pageNumber,
-          PageSize: pageSize,
-        },
-      });
+      return JSON.parse(header);
+    } catch (e) {
+      console.error("Ошибка парсинга x-pagination:", e);
+      return null;
+    }
+  }
 
-      let paginationMeta = null;
-      const paginationHeader = response.headers["x-pagination"];
+  extractErrorMessage(error, fallback) {
+    return (
+      error?.response?.data?.message || error?.response?.data?.title || fallback
+    );
+  }
 
-      if (paginationHeader) {
-        try {
-          paginationMeta = JSON.parse(paginationHeader);
-        } catch (e) {
-          console.error("Ошибка парсинга заголовка x-pagination:", e);
-        }
+  async GetEmployees(pageNumber = 1, pageSize = 20, filters = {}) {
+    try {
+      const params = {
+        PageNumber: pageNumber,
+        PageSize: pageSize,
+      };
+
+      // isAvailable
+      if (filters.isAvailable !== undefined && filters.isAvailable !== null) {
+        params.isAvailable = filters.isAvailable; // true/false
       }
+
+      // isBlocked (NEW)
+      if (filters.isBlocked !== undefined && filters.isBlocked !== null) {
+        params.isBlocked = filters.isBlocked; // true/false
+      }
+
+      // TypeOfProblemId
+      if (filters.typeOfProblemId) {
+        params.TypeOfProblemId = filters.typeOfProblemId;
+      }
+
+      // Иерархия: разрешён только один из BuildingId/FloorId/LocationId
+      if (filters.buildingId) params.BuildingId = filters.buildingId;
+      if (filters.floorId) params.FloorId = filters.floorId;
+      if (filters.locationId) params.LocationId = filters.locationId;
+
+      // Поиск по фамилии (SecondName)
+      if (filters.secondName && filters.secondName.trim().length > 0) {
+        params.SecondName = filters.secondName.trim();
+      }
+
+      const response = await this.api.get("", { params });
 
       return {
         success: true,
-        employees: response.data,
-        pagination: paginationMeta,
+        employees: response.data || [],
+        pagination: this.parsePagination(response),
       };
     } catch (error) {
-      console.error("EmployeeApi Error:", error);
-
-      const errorMessage =
-        error.response?.data?.message || "Ошибка получения сотрудников";
-
+      console.error("GetEmployees Error:", error);
       return {
         success: false,
-        message: errorMessage,
+        message: this.extractErrorMessage(
+          error,
+          "Ошибка получения сотрудников",
+        ),
         employees: [],
         pagination: null,
       };
@@ -59,37 +90,22 @@ class EmployeeServerApi {
   async GetRequestsForEmployee(employeeId, pageNumber = 1, pageSize = 50) {
     try {
       const response = await this.api.get(`/${employeeId}/requests`, {
-        params: {
-          PageNumber: pageNumber,
-          PageSize: pageSize,
-        },
+        params: { PageNumber: pageNumber, PageSize: pageSize },
       });
-
-      let paginationMeta = null;
-      const paginationHeader = response.headers["x-pagination"];
-
-      if (paginationHeader) {
-        try {
-          paginationMeta = JSON.parse(paginationHeader);
-        } catch (e) {
-          console.error("Ошибка парсинга заголовка x-pagination:", e);
-        }
-      }
 
       return {
         success: true,
-        requests: response.data,
-        pagination: paginationMeta,
+        requests: response.data || [],
+        pagination: this.parsePagination(response),
       };
     } catch (error) {
       console.error("GetRequestsForEmployee Error:", error);
-
-      const errorMessage =
-        error.response?.data?.message || "Ошибка получения заявок сотрудника";
-
       return {
         success: false,
-        message: errorMessage,
+        message: this.extractErrorMessage(
+          error,
+          "Ошибка получения заявок сотрудника",
+        ),
         requests: [],
         pagination: null,
       };
@@ -102,18 +118,15 @@ class EmployeeServerApi {
         isAvailable,
       });
 
-      return {
-        success: true,
-        data: response.data,
-      };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error("UpdateEmployeeAvailability Error:", error);
-
       return {
         success: false,
-        message:
-          error.response?.data?.message ||
+        message: this.extractErrorMessage(
+          error,
           "Не удалось обновить доступность сотрудника",
+        ),
       };
     }
   }
@@ -124,18 +137,15 @@ class EmployeeServerApi {
         `/${employeeId}/current-building/${buildingId}`,
       );
 
-      return {
-        success: true,
-        data: response.data,
-      };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error("UpdateCurrentBuilding Error:", error);
-
       return {
         success: false,
-        message:
-          error.response?.data?.message ||
+        message: this.extractErrorMessage(
+          error,
           "Не удалось обновить текущее здание сотрудника",
+        ),
       };
     }
   }
@@ -146,40 +156,32 @@ class EmployeeServerApi {
         `/${employeeId}/default-building/${buildingId}`,
       );
 
-      return {
-        success: true,
-        data: response.data,
-      };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error("UpdateDefaultBuilding Error:", error);
-
       return {
         success: false,
-        message:
-          error.response?.data?.message ||
+        message: this.extractErrorMessage(
+          error,
           "Не удалось обновить здание по умолчанию",
+        ),
       };
     }
   }
 
   async GetEmployeeById(employeeId) {
     try {
-      console.log("strtrstrtrrtsr");
       const response = await this.api.get(`/${employeeId}`);
-      console.log(response.data);
-      return {
-        success: true,
-        data: response.data,
-      };
+      return { success: true, data: response.data };
     } catch (error) {
       console.error("GetEmployeeById Error:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Ошибка получения сотрудника",
+        message: this.extractErrorMessage(error, "Ошибка получения сотрудника"),
         data: null,
       };
     }
   }
 }
 
-export default EmployeeServerApi;
+export default EmployeeApi;

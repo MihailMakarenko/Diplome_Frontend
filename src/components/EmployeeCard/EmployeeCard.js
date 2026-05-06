@@ -1,27 +1,10 @@
 import React from "react";
 import "./EmployeeCard.css";
-import { IconMapPin, IconHome, IconSettings, IconPlusCircle } from "../Icons";
+import { IconMapPin, IconHome, IconSettings } from "../Icons";
 
-const EmployeeCard = ({
-  emp,
-  tasks,
-  onOpenSettings,
-  onViewDetails,
-  onAssignNewTask,
-}) => {
+const EmployeeCard = ({ emp, onOpenSettings, onViewDetails }) => {
   const isOnline = emp.status === "Online";
   const statusLabel = isOnline ? "На работе" : "Не на месте";
-
-  const normalizePriority = (priority) => {
-    if (!priority) return "low";
-
-    const low = priority.toLowerCase();
-
-    if (low === "high" || low === "высокий") return "high";
-    if (low === "medium" || low === "средний") return "medium";
-
-    return "low";
-  };
 
   return (
     <div className="employee-card-component">
@@ -62,7 +45,7 @@ const EmployeeCard = ({
             </div>
             <div>
               <span className="loc-label">База:</span>{" "}
-              <span>{emp.defaultLocation}</span>
+              <span>{emp.defaultLocation || "—"}</span>
             </div>
           </div>
         </div>
@@ -76,55 +59,8 @@ const EmployeeCard = ({
         </div>
 
         <div className="tasks-preview-container">
-          <div>
-            <div className="tasks-header">В работе ({tasks.length})</div>
-
-            <div className="task-preview-list">
-              {tasks.length > 0 ? (
-                tasks.map((task) => {
-                  return (
-                    <div key={task.id} className="task-mini-item">
-                      <div className="task-header">
-                        <span className="task-id">#{task.number}</span>
-                        <span className="task-category">
-                          {task.category || "Другое"}
-                        </span>
-                      </div>
-
-                      <div className="task-title">{task.title}</div>
-
-                      <div className="task-footer">
-                        <span className="task-date">📅 {task.date}</span>
-
-                        <div className="task-priority">
-                          <span
-                            className={`priority-dot priority-${normalizePriority(
-                              task.priority,
-                            )}`}
-                          ></span>
-                          <span className="task-priority-label priority-label">
-                            {task.priority || "Низкий"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="no-tasks">Нет активных задач</div>
-              )}
-            </div>
-
-            <button
-              className="btn-assign-task"
-              onClick={() => onAssignNewTask(emp)}
-            >
-              <IconPlusCircle /> Назначить заявку
-            </button>
-          </div>
-
           <button className="btn-view-more" onClick={() => onViewDetails(emp)}>
-            Подробнее
+            К заявкам
           </button>
         </div>
       </div>

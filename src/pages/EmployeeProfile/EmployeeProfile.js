@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./EmployeeProfile.css";
 
 import UserApi from "../../apiServices/usersApi";
@@ -7,6 +7,9 @@ import CommentsApi from "../../apiServices/commentsApi";
 import EmployeeAssignedRequestsApi from "../../apiServices/employeeAssignedRequestsApi";
 import EmployeeApi from "../../apiServices/employeeApi";
 import BuildingApi from "../../apiServices/buildingApi";
+import AppFooter from "../../components/AppFooter/AppFooter";
+import Header from "../../components/Header/Header";
+import avatar from "../../imgs/avatar.jpg";
 
 import {
   IconPhone,
@@ -20,6 +23,14 @@ import {
 
 import RequestFiltersModal from "../../components/RequestFilters/RequestFiltersModal";
 import RequestDetailsForManagerModal from "../../components/RequestDetailsForManager/RequestDetailsForManager";
+
+function isUuid(value) {
+  if (!value) return false;
+  const s = String(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    s,
+  );
+}
 
 function EmployeeProfile() {
   const [profileLoading, setProfileLoading] = useState(true);
@@ -63,11 +74,12 @@ function EmployeeProfile() {
 
   const [buildings, setBuildings] = useState([]);
 
-  const [employeeId, setEmployeeId] = useState(
-    localStorage.getItem("employeeId") || "",
-  );
+  // ✅ FIX: берём employeeId из localStorage только если это UUID
+  const [employeeId, setEmployeeId] = useState(() => {
+    const stored = localStorage.getItem("employeeId");
+    return isUuid(stored) ? stored : "";
+  });
 
-  const [employeeData, setEmployeeData] = useState(null);
   const [isAvailable, setIsAvailable] = useState(false);
   const [currentBuildingId, setCurrentBuildingId] = useState("");
   const [defaultBuildingId, setDefaultBuildingId] = useState("");
@@ -88,8 +100,7 @@ function EmployeeProfile() {
     patronymic: "",
     phone: "",
     email: "",
-    avatar:
-      "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+    avatar: avatar,
   });
 
   const userApi = useMemo(() => new UserApi(), []);
@@ -111,6 +122,9 @@ function EmployeeProfile() {
     "Отклонена",
   ];
 
+  // защита от "гонки" ответов
+  const reqSeqRef = useRef(0);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -126,9 +140,7 @@ function EmployeeProfile() {
             patronymic: fullNameParts[2] || "",
             phone: p.phoneNumber || "",
             email: p.email || "",
-            avatar:
-              p.profilePhotoUrl ||
-              "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+            avatar: p.profilePhotoUrl || avatar,
           });
 
           setHasTelegram(!!p.tgUser);
@@ -140,13 +152,26 @@ function EmployeeProfile() {
                 : null,
           );
 
-          const profileEmployeeId =
-            p.employeeId || p.employee?.id || p.employee?.employeeId || "";
+          // ✅ FIX: приоритет GUID из employee.id / employee.employeeId, а не p.employeeId (который у тебя бывает "1")
+          const candidateIds = [
+            p.employee?.id,
+            p.employee?.employeeId,
+            p.employeeId,
+          ]
+            .filter(Boolean)
+            .map((x) => String(x));
 
-          if (profileEmployeeId) {
-            const normalizedEmployeeId = String(profileEmployeeId);
-            setEmployeeId(normalizedEmployeeId);
-            localStorage.setItem("employeeId", normalizedEmployeeId);
+          const guid = candidateIds.find((x) => isUuid(x)) || "";
+
+          if (guid) {
+            setEmployeeId(guid);
+            localStorage.setItem("employeeId", guid);
+          } else {
+            // если в LS лежало что-то невалидное (например "1") — очищаем
+            const stored = localStorage.getItem("employeeId");
+            if (stored && !isUuid(stored))
+              localStorage.removeItem("employeeId");
+            setEmployeeId("");
           }
         }
       } catch (e) {
@@ -169,18 +194,15 @@ function EmployeeProfile() {
         if (employeeRes.success && employeeRes.data) {
           const emp = employeeRes.data;
 
-          setEmployeeData(emp);
           setIsAvailable(!!emp.isAvailable);
 
           const currentId =
-            emp.currentBuilding?.id !== undefined &&
-            emp.currentBuilding?.id !== null
+            emp.currentBuilding?.id != null
               ? String(emp.currentBuilding.id)
               : "";
 
           const defaultId =
-            emp.defaultBuilding?.id !== undefined &&
-            emp.defaultBuilding?.id !== null
+            emp.defaultBuilding?.id != null
               ? String(emp.defaultBuilding.id)
               : "";
 
@@ -263,6 +285,15 @@ function EmployeeProfile() {
   };
 
   const fetchRequests = async () => {
+    // ✅ FIX: не делаем запросы, пока employeeId не валидный GUID
+    if (!employeeId || !isUuid(employeeId)) {
+      setRequests([]);
+      setTotalPages(1);
+      setTotalCount(0);
+      return;
+    }
+
+    const seq = ++reqSeqRef.current;
     setRequestsLoading(true);
 
     try {
@@ -270,7 +301,10 @@ function EmployeeProfile() {
         currentPage,
         itemsPerPage,
         filters,
+        employeeId, // ✅ если сервис поддерживает 4-й аргумент (если нет — он просто будет игнорироваться)
       );
+
+      if (seq !== reqSeqRef.current) return;
 
       if (res.success && res.data) {
         const rows = Array.isArray(res.data) ? res.data : [];
@@ -285,24 +319,24 @@ function EmployeeProfile() {
         setTotalCount(0);
       }
     } catch (e) {
+      if (seq !== reqSeqRef.current) return;
       console.error("Requests error:", e);
       setRequests([]);
       setTotalPages(1);
       setTotalCount(0);
     } finally {
-      setRequestsLoading(false);
+      if (seq === reqSeqRef.current) setRequestsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, filters]);
+  }, [employeeId, currentPage, filters]);
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(1);
-    setIsFilterOpen(false);
   };
 
   const startEditSettings = () => {
@@ -335,7 +369,6 @@ function EmployeeProfile() {
           );
           return;
         }
-
         if (!draftDefaultBuildingId) {
           alert(
             "Чтобы отметить сотрудника как доступного, выберите здание по умолчанию",
@@ -349,7 +382,6 @@ function EmployeeProfile() {
           employeeId,
           draftIsAvailable,
         );
-
         if (!availabilityRes.success) {
           alert(availabilityRes.message || "Не удалось обновить доступность");
           return;
@@ -361,7 +393,6 @@ function EmployeeProfile() {
           employeeId,
           draftCurrentBuildingId,
         );
-
         if (!currentBuildingRes.success) {
           alert(
             currentBuildingRes.message || "Не удалось обновить текущее здание",
@@ -375,7 +406,6 @@ function EmployeeProfile() {
           employeeId,
           draftDefaultBuildingId,
         );
-
         if (!defaultBuildingRes.success) {
           alert(
             defaultBuildingRes.message ||
@@ -394,20 +424,12 @@ function EmployeeProfile() {
       if (employeeRes.success && employeeRes.data) {
         const emp = employeeRes.data;
 
-        setEmployeeData(emp);
         setIsAvailable(!!emp.isAvailable);
 
         const currentId =
-          emp.currentBuilding?.id !== undefined &&
-          emp.currentBuilding?.id !== null
-            ? String(emp.currentBuilding.id)
-            : "";
-
+          emp.currentBuilding?.id != null ? String(emp.currentBuilding.id) : "";
         const defaultId =
-          emp.defaultBuilding?.id !== undefined &&
-          emp.defaultBuilding?.id !== null
-            ? String(emp.defaultBuilding.id)
-            : "";
+          emp.defaultBuilding?.id != null ? String(emp.defaultBuilding.id) : "";
 
         setCurrentBuildingId(currentId);
         setDefaultBuildingId(defaultId);
@@ -473,17 +495,15 @@ function EmployeeProfile() {
         commentsApi.GetCommentsForRequest(req.realId),
       ]);
 
-      let newPhotos = [];
-      if (photosRes.success && photosRes.data) {
-        newPhotos = photosRes.data.map((item) => item.photoUrl);
-      }
+      const newPhotos =
+        photosRes.success && Array.isArray(photosRes.data)
+          ? photosRes.data.map((item) => item.photoUrl)
+          : [];
 
-      let newComments = [];
-      if (commentsRes.success && commentsRes.data) {
-        newComments = commentsRes.data.map((c) => ({
-          text: c.text || c.content,
-        }));
-      }
+      const newComments =
+        commentsRes.success && Array.isArray(commentsRes.data)
+          ? commentsRes.data.map((c) => ({ text: c.text || c.content }))
+          : [];
 
       setSelectedRequest((prev) => ({
         ...prev,
@@ -544,10 +564,7 @@ function EmployeeProfile() {
 
       if (res.success) {
         if (selectedRequest?.realId === selectedReqForStatus.realId) {
-          setSelectedRequest((prev) => ({
-            ...prev,
-            status: newStatus,
-          }));
+          setSelectedRequest((prev) => ({ ...prev, status: newStatus }));
         }
 
         setSelectedReqForStatus((prev) =>
@@ -654,12 +671,7 @@ function EmployeeProfile() {
     <div className="employee-profile-page">
       <div className="aurora-bg"></div>
 
-      <header className="app-header">
-        <div className="brand-logo">ServiceDesk Employee</div>
-        <div className="header-actions">
-          <button className="btn btn-header">Выйти</button>
-        </div>
-      </header>
+      <Header></Header>
 
       <div className="layout-container">
         <aside className="glass-panel profile-panel">
@@ -669,8 +681,7 @@ function EmployeeProfile() {
             className="avatar-img"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src =
-                "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+              e.target.src = avatar;
             }}
           />
 
@@ -936,6 +947,8 @@ function EmployeeProfile() {
             </div>
           </div>
         )}
+
+      <AppFooter />
     </div>
   );
 }

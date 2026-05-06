@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./EmployeeWorkspacesModal.css";
 import EmployeeWorkspacesServerApi from "../../apiServices/employeeWorkspaceApi";
+import WorkspaceServerApi from "../../apiServices/workspaceApi";
 import { IconBuilding, IconHome, IconMapPin } from "../Icons";
 
 const PAGE_SIZE = 6;
@@ -179,7 +180,8 @@ function ConfirmDeleteModal({
 }
 
 export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
-  const api = useMemo(() => new EmployeeWorkspacesServerApi(), []);
+  const employeeApi = useMemo(() => new EmployeeWorkspacesServerApi(), []);
+  const workspaceApi = useMemo(() => new WorkspaceServerApi(), []);
 
   const [mode, setMode] = useState(MODE.ASSIGNED);
   const [assignedLevel, setAssignedLevel] = useState(LEVEL.BUILDINGS);
@@ -259,199 +261,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     </div>
   );
 
-  const loadAssigned = async (level, page) => {
-    if (!employee?.id) return;
-
-    setAssignedLoading(true);
-    setAssignedError("");
-
-    try {
-      let res;
-
-      if (level === LEVEL.BUILDINGS) {
-        res = await api.GetBuildingWorkspacesForEmployee(
-          employee.id,
-          page,
-          PAGE_SIZE,
-        );
-      } else if (level === LEVEL.FLOORS) {
-        res = await api.GetFloorWorkspacesForEmployee(
-          employee.id,
-          page,
-          PAGE_SIZE,
-        );
-      } else {
-        res = await api.GetLocationWorkspacesForEmployee(
-          employee.id,
-          page,
-          PAGE_SIZE,
-        );
-      }
-
-      if (!res?.success) {
-        setAssignedItems([]);
-        setAssignedTotalPages(1);
-        setAssignedError(res?.message || "Не удалось загрузить назначения");
-        return;
-      }
-
-      setAssignedItems(res.assignments || []);
-      setAssignedTotalPages(totalPagesFrom(res.pagination) || 1);
-    } catch (e) {
-      console.error(e);
-      setAssignedItems([]);
-      setAssignedTotalPages(1);
-      setAssignedError("Не удалось загрузить назначения");
-    } finally {
-      setAssignedLoading(false);
-    }
-  };
-
-  const preloadBuildingsWA = async () => {
-    if (!employee?.id) return;
-    const res = await api.GetBuildingsWithAssignmentForEmployee(
-      employee.id,
-      1,
-      1000,
-    );
-    if (res?.success) setBuildingsWA(res.items || []);
-  };
-
-  const preloadFloorsWA = async (buildingId) => {
-    if (!employee?.id || !buildingId) return;
-    const res = await api.GetFloorsWithAssignmentForEmployee(
-      employee.id,
-      buildingId,
-      1,
-      1000,
-    );
-    if (res?.success) setFloorsWA(res.items || []);
-  };
-
-  const loadWithAssignment = async (level, page) => {
-    if (!employee?.id) return;
-
-    setWaLoading(true);
-    setWaError("");
-
-    try {
-      let res;
-
-      if (level === LEVEL.BUILDINGS) {
-        res = await api.GetBuildingsWithAssignmentForEmployee(
-          employee.id,
-          page,
-          PAGE_SIZE,
-        );
-      } else if (level === LEVEL.FLOORS) {
-        if (!ctxBuildingId) {
-          setWaItems([]);
-          setWaTotalPages(1);
-          setWaError("Выберите здание");
-          setWaLoading(false);
-          return;
-        }
-
-        res = await api.GetFloorsWithAssignmentForEmployee(
-          employee.id,
-          ctxBuildingId,
-          page,
-          PAGE_SIZE,
-        );
-      } else {
-        if (!ctxBuildingId || !ctxFloorId) {
-          setWaItems([]);
-          setWaTotalPages(1);
-          setWaError("Выберите здание и этаж");
-          setWaLoading(false);
-          return;
-        }
-
-        res = await api.GetLocationsWithAssignmentForEmployee(
-          employee.id,
-          ctxBuildingId,
-          ctxFloorId,
-          page,
-          PAGE_SIZE,
-        );
-      }
-
-      if (!res?.success) {
-        setWaItems([]);
-        setWaTotalPages(1);
-        setWaError(res?.message || "Не удалось загрузить список");
-        return;
-      }
-
-      setWaItems(res.items || []);
-      setWaTotalPages(totalPagesFrom(res.pagination) || 1);
-    } catch (e) {
-      console.error(e);
-      setWaItems([]);
-      setWaTotalPages(1);
-      setWaError("Не удалось загрузить список");
-    } finally {
-      setWaLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isOpen || !employee?.id) return;
-
-    setMode(MODE.ASSIGNED);
-    setAssignedLevel(LEVEL.BUILDINGS);
-    setAssignLevel(LEVEL.BUILDINGS);
-
-    setCtxBuildingId("");
-    setCtxFloorId("");
-    setBuildingsWA([]);
-    setFloorsWA([]);
-
-    resetAssigned();
-    resetWithAssignment();
-
-    setDesire("Постоянно");
-    setDeleteModalOpen(false);
-    setDeleteTarget(null);
-    setDeleteLoading(false);
-
-    loadAssigned(LEVEL.BUILDINGS, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, employee?.id]);
-
-  useEffect(() => {
-    if (!isOpen || !employee?.id) return;
-    if (mode !== MODE.ASSIGNED) return;
-    loadAssigned(assignedLevel, assignedPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, assignedLevel, assignedPage]);
-
-  useEffect(() => {
-    if (!isOpen || !employee?.id) return;
-    if (mode !== MODE.ASSIGN) return;
-
-    preloadBuildingsWA();
-    resetWithAssignment();
-    setWaPage(1);
-    loadWithAssignment(assignLevel, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
-
-  useEffect(() => {
-    if (!isOpen || !employee?.id) return;
-    if (mode !== MODE.ASSIGN) return;
-
-    resetWithAssignment();
-    setWaPage(1);
-    loadWithAssignment(assignLevel, 1);
-
-    if (assignLevel === LEVEL.FLOORS || assignLevel === LEVEL.LOCATIONS) {
-      if (ctxBuildingId) preloadFloorsWA(ctxBuildingId);
-      if (assignLevel === LEVEL.FLOORS) setCtxFloorId("");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assignLevel, ctxBuildingId, ctxFloorId]);
-
   const assignedBuildingLabel = (a) => {
     const b = a?.workspace?.building;
     return b?.address ? `${b?.name} — ${b?.address}` : b?.name || "Здание";
@@ -486,7 +295,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
         title: b?.name,
         sub: b?.address,
         isAssigned: !!x.isAssigned,
-        workspaceId: x.workspaceId,
       };
     }
 
@@ -497,7 +305,6 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
         title: `Этаж ${f?.floorNumber}`,
         sub: f?.description || "",
         isAssigned: !!x.isAssigned,
-        workspaceId: x.workspaceId,
       };
     }
 
@@ -507,9 +314,281 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       title: l?.name,
       sub: l?.description || "",
       isAssigned: !!x.isAssigned,
-      workspaceId: x.workspaceId,
       isAudience: !!l?.isAudience,
     };
+  };
+
+  const filterOnlyActualWorkspaces = async (level, items) => {
+    try {
+      if (!items?.length) return [];
+
+      if (level === LEVEL.BUILDINGS) {
+        const wsRes = await workspaceApi.GetBuildings(1, 1000);
+        if (!wsRes?.success) return items;
+
+        const actualIds = new Set(
+          (wsRes.items || [])
+            .filter((x) => x?.isWorkspace)
+            .map((x) => x?.building?.id)
+            .filter(Boolean),
+        );
+
+        return items.filter((x) => actualIds.has(x?.building?.id));
+      }
+
+      if (level === LEVEL.FLOORS) {
+        if (!ctxBuildingId) return [];
+
+        const wsRes = await workspaceApi.GetFloors(ctxBuildingId, 1, 1000);
+        if (!wsRes?.success) return items;
+
+        const actualIds = new Set(
+          (wsRes.items || [])
+            .filter((x) => x?.isWorkspace)
+            .map((x) => x?.floor?.id)
+            .filter(Boolean),
+        );
+
+        return items.filter((x) => actualIds.has(x?.floor?.id));
+      }
+
+      if (!ctxBuildingId || !ctxFloorId) return [];
+
+      const wsRes = await workspaceApi.GetLocations(
+        ctxBuildingId,
+        ctxFloorId,
+        1,
+        1000,
+      );
+      if (!wsRes?.success) return items;
+
+      const actualIds = new Set(
+        (wsRes.items || [])
+          .filter((x) => x?.isWorkspace)
+          .map((x) => x?.location?.id)
+          .filter(Boolean),
+      );
+
+      return items.filter((x) => actualIds.has(x?.location?.id));
+    } catch (e) {
+      console.error("Ошибка фильтрации актуальных рабочих зон", e);
+      return items;
+    }
+  };
+
+  const loadAssigned = async (level, page) => {
+    if (!employee?.id) return;
+
+    setAssignedLoading(true);
+    setAssignedError("");
+
+    try {
+      let res;
+
+      if (level === LEVEL.BUILDINGS) {
+        res = await employeeApi.GetBuildingWorkspacesForEmployee(
+          employee.id,
+          page,
+          PAGE_SIZE,
+        );
+      } else if (level === LEVEL.FLOORS) {
+        res = await employeeApi.GetFloorWorkspacesForEmployee(
+          employee.id,
+          page,
+          PAGE_SIZE,
+        );
+      } else {
+        res = await employeeApi.GetLocationWorkspacesForEmployee(
+          employee.id,
+          page,
+          PAGE_SIZE,
+        );
+      }
+
+      if (!res?.success) {
+        setAssignedItems([]);
+        setAssignedTotalPages(1);
+        setAssignedError(res?.message || "Не удалось загрузить назначения");
+        return;
+      }
+
+      setAssignedItems(res.assignments || []);
+      setAssignedTotalPages(totalPagesFrom(res.pagination) || 1);
+    } catch (e) {
+      console.error(e);
+      setAssignedItems([]);
+      setAssignedTotalPages(1);
+      setAssignedError("Не удалось загрузить назначения");
+    } finally {
+      setAssignedLoading(false);
+    }
+  };
+
+  const preloadBuildingsWA = async () => {
+    if (!employee?.id) return;
+
+    try {
+      const assignRes = await employeeApi.GetBuildingsWithAssignmentForEmployee(
+        employee.id,
+        1,
+        1000,
+      );
+
+      if (!assignRes?.success) {
+        setBuildingsWA([]);
+        return;
+      }
+
+      const employeeBuildings = assignRes.items || [];
+
+      if (assignLevel === LEVEL.BUILDINGS) {
+        const wsRes = await workspaceApi.GetBuildings(1, 1000);
+
+        const actualBuildingIds = new Set(
+          (wsRes?.items || [])
+            .filter((x) => x?.isWorkspace)
+            .map((x) => x?.building?.id)
+            .filter(Boolean),
+        );
+
+        setBuildingsWA(
+          employeeBuildings.filter((x) =>
+            actualBuildingIds.has(x?.building?.id),
+          ),
+        );
+        return;
+      }
+
+      const availableBuildings = [];
+
+      for (const item of employeeBuildings) {
+        const buildingId = item?.building?.id;
+        if (!buildingId) continue;
+
+        const floorsRes = await workspaceApi.GetFloors(buildingId, 1, 1000);
+        const hasWorkspaceFloors = (floorsRes?.items || []).some(
+          (x) => x?.isWorkspace,
+        );
+
+        if (hasWorkspaceFloors) {
+          availableBuildings.push(item);
+        }
+      }
+
+      setBuildingsWA(availableBuildings);
+    } catch (e) {
+      console.error(e);
+      setBuildingsWA([]);
+    }
+  };
+
+  const preloadFloorsWA = async (buildingId) => {
+    if (!employee?.id || !buildingId) return;
+
+    try {
+      const [assignRes, wsRes] = await Promise.all([
+        employeeApi.GetFloorsWithAssignmentForEmployee(
+          employee.id,
+          buildingId,
+          1,
+          1000,
+        ),
+        workspaceApi.GetFloors(buildingId, 1, 1000),
+      ]);
+
+      if (!assignRes?.success) {
+        setFloorsWA([]);
+        return;
+      }
+
+      const actualIds = new Set(
+        (wsRes?.items || [])
+          .filter((x) => x?.isWorkspace)
+          .map((x) => x?.floor?.id)
+          .filter(Boolean),
+      );
+
+      const filtered = (assignRes.items || []).filter((x) =>
+        actualIds.has(x?.floor?.id),
+      );
+
+      setFloorsWA(filtered);
+    } catch (e) {
+      console.error(e);
+      setFloorsWA([]);
+    }
+  };
+
+  const loadWithAssignment = async (level, page) => {
+    if (!employee?.id) return;
+
+    setWaLoading(true);
+    setWaError("");
+
+    try {
+      let res;
+
+      if (level === LEVEL.BUILDINGS) {
+        res = await employeeApi.GetBuildingsWithAssignmentForEmployee(
+          employee.id,
+          page,
+          PAGE_SIZE,
+        );
+      } else if (level === LEVEL.FLOORS) {
+        if (!ctxBuildingId) {
+          setWaItems([]);
+          setWaTotalPages(1);
+          setWaError("Выберите здание");
+          setWaLoading(false);
+          return;
+        }
+
+        res = await employeeApi.GetFloorsWithAssignmentForEmployee(
+          employee.id,
+          ctxBuildingId,
+          page,
+          PAGE_SIZE,
+        );
+      } else {
+        if (!ctxBuildingId || !ctxFloorId) {
+          setWaItems([]);
+          setWaTotalPages(1);
+          setWaError("Выберите здание и этаж");
+          setWaLoading(false);
+          return;
+        }
+
+        res = await employeeApi.GetLocationsWithAssignmentForEmployee(
+          employee.id,
+          ctxBuildingId,
+          ctxFloorId,
+          page,
+          PAGE_SIZE,
+        );
+      }
+
+      if (!res?.success) {
+        setWaItems([]);
+        setWaTotalPages(1);
+        setWaError(res?.message || "Не удалось загрузить список");
+        return;
+      }
+
+      const filteredItems = await filterOnlyActualWorkspaces(
+        level,
+        res.items || [],
+      );
+
+      setWaItems(filteredItems);
+      setWaTotalPages(totalPagesFrom(res.pagination) || 1);
+    } catch (e) {
+      console.error(e);
+      setWaItems([]);
+      setWaTotalPages(1);
+      setWaError("Не удалось загрузить список");
+    } finally {
+      setWaLoading(false);
+    }
   };
 
   const toggleSelect = (id) => {
@@ -531,19 +610,82 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     setWaError("");
 
     try {
+      let workspaceDirectory = [];
+
+      if (assignLevel === LEVEL.BUILDINGS) {
+        const wsRes = await workspaceApi.GetBuildings(1, 1000);
+        if (!wsRes?.success) {
+          throw new Error(
+            wsRes?.message || "Не удалось получить список рабочих зон зданий",
+          );
+        }
+        workspaceDirectory = (wsRes.items || []).filter((x) => x?.isWorkspace);
+      } else if (assignLevel === LEVEL.FLOORS) {
+        if (!ctxBuildingId) {
+          throw new Error("Не выбрано здание");
+        }
+
+        const wsRes = await workspaceApi.GetFloors(ctxBuildingId, 1, 1000);
+        if (!wsRes?.success) {
+          throw new Error(
+            wsRes?.message || "Не удалось получить список рабочих зон этажей",
+          );
+        }
+        workspaceDirectory = (wsRes.items || []).filter((x) => x?.isWorkspace);
+      } else {
+        if (!ctxBuildingId || !ctxFloorId) {
+          throw new Error("Не выбраны здание и этаж");
+        }
+
+        const wsRes = await workspaceApi.GetLocations(
+          ctxBuildingId,
+          ctxFloorId,
+          1,
+          1000,
+        );
+        if (!wsRes?.success) {
+          throw new Error(
+            wsRes?.message || "Не удалось получить список рабочих зон мест",
+          );
+        }
+        workspaceDirectory = (wsRes.items || []).filter((x) => x?.isWorkspace);
+      }
+
       for (const id of ids) {
         const item = waItems.find((x) => waRow(x).id === id);
-        const row = waRow(item);
-        console.log(row);
-        if (!row.workspaceId) {
+        if (!item) continue;
+
+        let workspaceId = "";
+
+        if (assignLevel === LEVEL.BUILDINGS) {
+          const buildingId = item?.building?.id;
+          const match = workspaceDirectory.find(
+            (w) => w?.building?.id === buildingId,
+          );
+          workspaceId = match?.id || "";
+        } else if (assignLevel === LEVEL.FLOORS) {
+          const floorId = item?.floor?.id;
+          const match = workspaceDirectory.find(
+            (w) => w?.floor?.id === floorId,
+          );
+          workspaceId = match?.id || "";
+        } else {
+          const locationId = item?.location?.id;
+          const match = workspaceDirectory.find(
+            (w) => w?.location?.id === locationId,
+          );
+          workspaceId = match?.id || "";
+        }
+
+        if (!workspaceId) {
           throw new Error(
-            "Невозможно назначить: backend должен вернуть workspaceId в with-assignment DTO.",
+            "Не удалось определить workspaceId для выбранного элемента",
           );
         }
 
-        const res = await api.CreateEmployeeWorkspaceAssignment(
+        const res = await employeeApi.CreateEmployeeWorkspaceAssignment(
           employee.id,
-          row.workspaceId,
+          workspaceId,
           { desire },
         );
 
@@ -624,7 +766,7 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
     setAssignedError("");
 
     try {
-      const res = await api.DeleteEmployeeWorkspaceAssignment(
+      const res = await employeeApi.DeleteEmployeeWorkspaceAssignment(
         employee.id,
         deleteTarget.workspaceId,
         deleteTarget.assignmentId,
@@ -648,6 +790,64 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
       setDeleteLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen || !employee?.id) return;
+
+    setMode(MODE.ASSIGNED);
+    setAssignedLevel(LEVEL.BUILDINGS);
+    setAssignLevel(LEVEL.BUILDINGS);
+
+    setCtxBuildingId("");
+    setCtxFloorId("");
+    setBuildingsWA([]);
+    setFloorsWA([]);
+
+    resetAssigned();
+    resetWithAssignment();
+
+    setDesire("Постоянно");
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+
+    loadAssigned(LEVEL.BUILDINGS, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, employee?.id]);
+
+  useEffect(() => {
+    if (!isOpen || !employee?.id) return;
+    if (mode !== MODE.ASSIGNED) return;
+    loadAssigned(assignedLevel, assignedPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, assignedLevel, assignedPage]);
+
+  useEffect(() => {
+    if (!isOpen || !employee?.id) return;
+    if (mode !== MODE.ASSIGN) return;
+
+    preloadBuildingsWA();
+    resetWithAssignment();
+    setWaPage(1);
+    loadWithAssignment(assignLevel, 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  useEffect(() => {
+    if (!isOpen || !employee?.id) return;
+    if (mode !== MODE.ASSIGN) return;
+
+    resetWithAssignment();
+    setWaPage(1);
+    loadWithAssignment(assignLevel, 1);
+    preloadBuildingsWA();
+
+    if (assignLevel === LEVEL.FLOORS || assignLevel === LEVEL.LOCATIONS) {
+      if (ctxBuildingId) preloadFloorsWA(ctxBuildingId);
+      if (assignLevel === LEVEL.FLOORS) setCtxFloorId("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignLevel, ctxBuildingId, ctxFloorId]);
 
   if (!isOpen) return null;
 
@@ -758,15 +958,8 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
                     if (assignedLevel === LEVEL.BUILDINGS) {
                       return (
                         <div key={a.id} className="empws2-item">
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              justifyContent: "space-between",
-                              gap: 12,
-                            }}
-                          >
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="empws2-itemTop">
+                            <div className="empws2-itemContent">
                               <div className="empws2-itemTitle">
                                 {assignedBuildingLabel(a)}
                               </div>
@@ -780,18 +973,10 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
                             <button
                               type="button"
+                              className="empws2-deleteBtn"
                               onClick={() => openDeleteConfirm(a)}
                               title="Удалить назначение"
                               aria-label="Удалить назначение"
-                              style={{
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                                fontSize: 18,
-                                lineHeight: 1,
-                                color: "#dc2626",
-                                padding: "4px 6px",
-                              }}
                             >
                               🗑️
                             </button>
@@ -803,15 +988,8 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
                     if (assignedLevel === LEVEL.FLOORS) {
                       return (
                         <div key={a.id} className="empws2-item">
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              justifyContent: "space-between",
-                              gap: 12,
-                            }}
-                          >
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="empws2-itemTop">
+                            <div className="empws2-itemContent">
                               <div className="empws2-itemTitle">
                                 {assignedFloorLabel(a)}
                               </div>
@@ -825,18 +1003,10 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
                             <button
                               type="button"
+                              className="empws2-deleteBtn"
                               onClick={() => openDeleteConfirm(a)}
                               title="Удалить назначение"
                               aria-label="Удалить назначение"
-                              style={{
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                                fontSize: 18,
-                                lineHeight: 1,
-                                color: "#dc2626",
-                                padding: "4px 6px",
-                              }}
                             >
                               🗑️
                             </button>
@@ -851,15 +1021,8 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
                     return (
                       <div key={a.id} className="empws2-item">
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            justifyContent: "space-between",
-                            gap: 12,
-                          }}
-                        >
-                          <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="empws2-itemTop">
+                          <div className="empws2-itemContent">
                             <div className="empws2-itemRow">
                               <div className="empws2-itemTitle">
                                 {open ? title : cut20(title)}
@@ -897,18 +1060,10 @@ export default function EmployeeWorkspacesModal({ isOpen, onClose, employee }) {
 
                           <button
                             type="button"
+                            className="empws2-deleteBtn"
                             onClick={() => openDeleteConfirm(a)}
                             title="Удалить назначение"
                             aria-label="Удалить назначение"
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              fontSize: 18,
-                              lineHeight: 1,
-                              color: "#dc2626",
-                              padding: "4px 6px",
-                            }}
                           >
                             🗑️
                           </button>

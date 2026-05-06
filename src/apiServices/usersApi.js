@@ -19,6 +19,26 @@ class UserServerApi {
     });
   }
 
+  async updateUser(id, userData) {
+    try {
+      const response = await this.api.put(`/${id}`, userData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Ошибка обновления:", error);
+
+      // Достаем текст ошибки из JSON, который прислал сервер
+      let message =
+        error.response?.data?.Message ||
+        error.response?.data?.message ||
+        "Ошибка обновления данных";
+
+      return {
+        success: false,
+        message: message,
+      };
+    }
+  }
+
   async activateUser(id) {
     try {
       await this.api.patch(`/${id}/activate`);
@@ -35,7 +55,6 @@ class UserServerApi {
     }
   }
 
-  // Деактивация пользователя (Блокировка)
   async deactivateUser(id) {
     try {
       await this.api.patch(`/${id}/deactivate`);
@@ -68,7 +87,6 @@ class UserServerApi {
     }
   }
 
-  // Получение профиля текущего пользователя
   async getMyProfile() {
     try {
       const token = localStorage.getItem("accessToken");
@@ -228,45 +246,66 @@ class UserServerApi {
 
   // Внутри класса UserApi
 
-  async getUsersWithPagination(pageNumber, pageSize) {
+  async getUsersWithPagination(pageNumber = 1, pageSize = 10, filters = {}) {
     try {
-      // Используем params для автоматического кодирования URL (более надежно)
-      const response = await this.api.get("", {
-        params: {
-          PageNumber: pageNumber,
-          PageSize: pageSize,
-        },
-      });
+      const params = { PageNumber: pageNumber, PageSize: pageSize };
 
-      // 1. Пытаемся достать и распарсить заголовок пагинации
-      let paginationMeta = null;
-      const paginationHeader = response.headers["x-pagination"];
+      // bool?
+      if (filters.isBlocked !== undefined && filters.isBlocked !== null)
+        params.isBlocked = filters.isBlocked;
 
-      if (paginationHeader) {
+      if (
+        filters.emailConfirmed !== undefined &&
+        filters.emailConfirmed !== null
+      )
+        params.emailConfirmed = filters.emailConfirmed;
+
+      if (filters.hasEmployee !== undefined && filters.hasEmployee !== null)
+        params.hasEmployee = filters.hasEmployee;
+
+      if (filters.hasTgUser !== undefined && filters.hasTgUser !== null)
+        params.hasTgUser = filters.hasTgUser;
+
+      // string?
+      if (filters.Email) params.Email = filters.Email;
+      if (filters.PhoneNumber) params.PhoneNumber = filters.PhoneNumber;
+      if (filters.SecondName) params.SecondName = filters.SecondName;
+
+      // dates
+      if (filters.CreatedFrom) params.CreatedFrom = filters.CreatedFrom;
+      if (filters.CreatedTo) params.CreatedTo = filters.CreatedTo;
+
+      // sort (RequestParameters.OrderBy)
+      if (filters.OrderBy) params.OrderBy = filters.OrderBy;
+
+      const response = await this.api.get("", { params });
+
+      // ====== parse X-Pagination ======
+      let pagination = null;
+      const header = response?.headers?.["x-pagination"];
+      if (header) {
         try {
-          paginationMeta = JSON.parse(paginationHeader);
+          pagination = JSON.parse(header);
         } catch (e) {
-          console.error("Ошибка парсинга заголовка x-pagination:", e);
+          console.error("Ошибка парсинга x-pagination:", e);
         }
       }
 
-      // 2. Возвращаем чистый нормализованный объект
       return {
         success: true,
-        users: response.data, // Сами данные
-        pagination: paginationMeta, // Объект пагинации или null
+        users: response.data || [],
+        pagination,
       };
     } catch (error) {
-      console.error("UserApi Error:", error);
-
-      const errorMessage =
-        error.response?.data?.message || "Ошибка получения пользователей";
-
+      console.error("getUsersWithPagination error:", error);
       return {
         success: false,
-        message: errorMessage,
         users: [],
         pagination: null,
+        message:
+          error?.response?.data?.message ||
+          error?.response?.data?.title ||
+          "Не удалось загрузить пользователей",
       };
     }
   }
@@ -315,137 +354,6 @@ class UserServerApi {
       throw new Error(errorMessage); // Пробрасываем ошибку
     }
   }
-
-  // async getPDFUserHistory(userId) {
-  //   try {
-  //     console.log(`Запрос PDF истории для пользователя ${userId}...`);
-
-  //     const response = await this.api.get(`/generateUserHistoryPdf/${userId}`, {
-  //       responseType: "blob", // Используем blob для PDF
-  //       headers: {
-  //         Accept: "application/pdf",
-  //       },
-  //     });
-
-  //     if (response.status !== 200) {
-  //       throw new Error(`Ошибка сервера: статус ${response.status}`);
-  //     }
-
-  //     console.log("PDF успешно получен");
-  //     return response.data; // Возвращаем blob
-  //   } catch (error) {
-  //     let errorMessage = "Произошла ошибка";
-
-  //     if (error.response) {
-  //       switch (error.response.status) {
-  //         case 400:
-  //           errorMessage =
-  //             "Неверный запрос: ID пользователя должен быть числом";
-  //           break;
-  //         case 404:
-  //           errorMessage = "Пользователь не найден";
-  //           break;
-  //         case 500:
-  //           errorMessage = "Ошибка генерации отчета на сервере";
-  //           break;
-  //         default:
-  //           errorMessage = `Ошибка сервера: статус ${error.response.status}`;
-  //       }
-  //     } else if (error.request) {
-  //       errorMessage = "Нет ответа от сервера";
-  //     } else {
-  //       errorMessage = error.message;
-  //     }
-
-  //     console.error("Ошибка при получении PDF:", errorMessage);
-  //     throw new Error(errorMessage);
-  //   }
-  // }
-
-  // async deactivateUser(userId) {
-  //   try {
-  //     console.log(`Запрос PDF истории для пользователя ${userId}...`);
-
-  //     const response = await this.api.patch(`/deactivateUser/${userId}`);
-
-  //     if (response.status !== 200) {
-  //       throw new Error(`Ошибка сервера: статус ${response.status}`);
-  //     }
-  //     return response.data; // Возвращаем blob
-  //   } catch (error) {
-  //     let errorMessage = "Произошла ошибка";
-
-  //     if (error.response) {
-  //       switch (error.response.status) {
-  //         case 400:
-  //           errorMessage =
-  //             "Неверный запрос: ID пользователя должен быть числом";
-  //           break;
-  //         case 404:
-  //           errorMessage = "Пользователь не найден";
-  //           break;
-  //         case 500:
-  //           errorMessage = "Ошибка генерации отчета на сервере";
-  //           break;
-  //         default:
-  //           errorMessage = `Ошибка сервера: статус ${error.response.status}`;
-  //       }
-  //     } else if (error.request) {
-  //       errorMessage = "Нет ответа от сервера";
-  //     } else {
-  //       errorMessage = error.message;
-  //     }
-
-  //     console.error("Ошибка при получении PDF:", errorMessage);
-  //     throw new Error(errorMessage);
-  //   }
-  // }
-
-  // async deleteNotActivatedUsers() {
-  //   try {
-  //     console.log("Запрос на удаление неактивированных пользователей...");
-
-  //     // Отправляем DELETE запрос на сервер
-  //     const response = await this.api.delete("/not-activated");
-
-  //     if (response.status !== 200) {
-  //       throw new Error(`Ошибка сервера: статус ${response.status}`);
-  //     }
-
-  //     // Успешное удаление
-  //     console.log("Пользователи удалены", response.data);
-  //     return response.data;
-  //   } catch (error) {
-  //     let errorMessage = "Произошла ошибка при удалении пользователей";
-
-  //     // Обработка различных ошибок
-  //     if (error.response) {
-  //       switch (error.response.status) {
-  //         case 401:
-  //           errorMessage = "Требуется авторизация";
-  //           break;
-  //         case 403:
-  //           errorMessage = "Недостаточно прав для выполнения операции";
-  //           break;
-  //         case 404:
-  //           errorMessage = "Нет пользователей для удаления";
-  //           break;
-  //         case 500:
-  //           errorMessage = "Ошибка на сервере при удалении пользователей";
-  //           break;
-  //         default:
-  //           errorMessage = `Ошибка сервера: ${error.response.status}`;
-  //       }
-  //     } else if (error.request) {
-  //       errorMessage = "Сервер не отвечает";
-  //     } else {
-  //       errorMessage = error.message;
-  //     }
-
-  //     console.error("Ошибка удаления:", errorMessage);
-  //     throw new Error(errorMessage);
-  //   }
-  // }
 }
 
 export default UserServerApi;

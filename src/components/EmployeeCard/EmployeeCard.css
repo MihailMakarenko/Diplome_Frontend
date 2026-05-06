@@ -1,21 +1,20 @@
 .employee-card-component {
-  --ecc-primary: #6366f1;
-  --ecc-primary-hover: #4f46e5;
-  --ecc-secondary: #ec4899;
-  --ecc-success: #10b981;
+  --ecc-primary: #4f46e5;
+  --ecc-primary-hover: #4338ca;
+  --ecc-success: #16a34a;
   --ecc-warning: #f59e0b;
   --ecc-danger: #ef4444;
 
-  --ecc-text-main: #1e293b;
+  --ecc-text-main: #0f172a;
   --ecc-text-muted: #64748b;
-  --ecc-text-soft: #94a3b8;
+  --ecc-border: rgba(15, 23, 42, 0.08);
 
-  --ecc-glass-bg: rgba(255, 255, 255, 0.75);
-  --ecc-glass-border: rgba(255, 255, 255, 0.6);
+  --ecc-bg: rgba(255, 255, 255, 0.88);
+  --ecc-bg-2: rgba(255, 255, 255, 0.62);
 
-  --ecc-radius-lg: 24px;
-  --ecc-radius-md: 16px;
-  --ecc-radius-sm: 12px;
+  --ecc-radius-lg: 18px;
+  --ecc-radius-md: 14px;
+  --ecc-radius-sm: 10px;
 }
 
 .employee-card-component *,
@@ -25,108 +24,126 @@
 }
 
 .employee-card-component .employee-card {
-  background: var(--ecc-glass-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--ecc-glass-border);
-  border-radius: var(--ecc-radius-lg);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+
+  background: linear-gradient(180deg, var(--ecc-bg), rgba(255, 255, 255, 0.78));
+  border: 1px solid var(--ecc-border);
+  border-radius: var(--ecc-radius-lg);
+
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
   height: 100%;
-  min-height: 480px;
+  min-height: 320px;
+
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.07),
+    0 2px 10px rgba(15, 23, 42, 0.05);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .employee-card-component .employee-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 32px rgba(15, 23, 42, 0.1),
+    0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
+/* Статусная полоска (слева) — сделаем тоньше и чуть мягче */
 .employee-card-component .card-status-strip {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 4px;
+  opacity: 0.95;
 }
 
 .employee-card-component .status-Online {
-  background: var(--ecc-success);
+  background: linear-gradient(180deg, #22c55e, #16a34a);
 }
 
 .employee-card-component .status-Offline {
-  background: var(--ecc-danger);
+  background: linear-gradient(180deg, #fb7185, #ef4444);
 }
 
 .employee-card-component .status-Busy {
-  background: var(--ecc-warning);
+  background: linear-gradient(180deg, #fbbf24, #f59e0b);
 }
 
 .employee-card-component .emp-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: 10px;
-  gap: 12px;
+  padding-left: 8px;
+  gap: 10px;
 }
 
 .employee-card-component .emp-profile {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .employee-card-component .emp-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px; /* вместо круга: современнее */
   object-fit: cover;
-  border: 2px solid white;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
 }
 
 .employee-card-component .emp-names h3 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.02rem;
+  font-weight: 800;
   color: var(--ecc-text-main);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
 }
 
 .employee-card-component .status-chip {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
   text-transform: uppercase;
   white-space: nowrap;
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .employee-card-component .chip-Online {
-  background: #d1fae5;
-  color: #059669;
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
 }
 
 .employee-card-component .chip-Offline {
-  background: #fee2e2;
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
 }
 
 .employee-card-component .chip-Busy {
-  background: #fef3c7;
-  color: #d97706;
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
 }
 
 .employee-card-component .locations-block {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--ecc-bg-2);
+  border: 1px solid rgba(15, 23, 42, 0.06);
   padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--ecc-radius-md);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -136,26 +153,26 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   color: var(--ecc-text-main);
 }
 
 .employee-card-component .loc-icon {
   color: var(--ecc-text-muted);
-  width: 16px;
+  width: 18px;
   display: flex;
   justify-content: center;
 }
 
 .employee-card-component .loc-label {
   color: var(--ecc-text-muted);
-  font-size: 0.75rem;
-  margin-right: 5px;
-  font-weight: 600;
+  font-size: 0.74rem;
+  margin-right: 6px;
+  font-weight: 700;
 }
 
 .employee-card-component .current-location {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .employee-card-component .current-location.online {
@@ -163,209 +180,84 @@
 }
 
 .employee-card-component .current-location.offline {
-  color: var(--ecc-text-soft);
+  color: var(--ecc-text-muted);
 }
 
 .employee-card-component .zones-compact {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+
+  font-size: 0.86rem;
   color: var(--ecc-text-muted);
-  border-top: 1px dashed #cbd5e1;
+
+  border-top: 1px dashed rgba(15, 23, 42, 0.12);
   padding-top: 10px;
 }
 
 .employee-card-component .btn-icon-edit {
-  background: none;
-  border: none;
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.14);
   cursor: pointer;
   color: var(--ecc-primary);
-  padding: 4px;
-  border-radius: 6px;
-  transition: 0.2s;
+  padding: 6px;
+  border-radius: 10px;
+  transition: 0.18s ease;
 }
 
 .employee-card-component .btn-icon-edit:hover {
-  background: #e0e7ff;
+  background: rgba(79, 70, 229, 0.14);
+  border-color: rgba(79, 70, 229, 0.22);
 }
 
+/* Контейнер теперь просто держит кнопку у низа */
 .employee-card-component .tasks-preview-container {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  align-items: flex-end;
 }
 
-.employee-card-component .tasks-header {
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--ecc-text-muted);
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.employee-card-component .task-preview-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.employee-card-component .task-mini-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #f1f5f9;
-}
-
-.employee-card-component .task-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.employee-card-component .task-id {
-  background: #e0e7ff;
-  color: var(--ecc-primary);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-  font-size: 0.75rem;
-}
-
-.employee-card-component .task-category {
-  font-size: 0.7rem;
-  color: var(--ecc-text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: right;
-}
-
-.employee-card-component .task-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--ecc-text-main);
-  line-height: 1.3;
-}
-
-.employee-card-component .task-footer {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-  border-top: 1px dashed #f1f5f9;
-  padding-top: 6px;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.employee-card-component .task-date {
-  font-size: 0.75rem;
-  color: var(--ecc-text-muted);
-}
-
-.employee-card-component .task-priority {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.employee-card-component .priority-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.employee-card-component .priority-dot.priority-high,
-.employee-card-component .priority-dot.high,
-.employee-card-component .priority-dot.высокий {
-  background-color: #ef4444;
-}
-
-.employee-card-component .priority-dot.priority-medium,
-.employee-card-component .priority-dot.medium,
-.employee-card-component .priority-dot.средний {
-  background-color: #f59e0b;
-}
-
-.employee-card-component .priority-dot.priority-low,
-.employee-card-component .priority-dot.low {
-  background-color: #10b981;
-}
-
-.employee-card-component .priority-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.employee-card-component .no-tasks {
-  font-size: 0.85rem;
-  color: var(--ecc-text-soft);
-  font-style: italic;
-  padding: 5px;
-}
-
-.employee-card-component .btn-assign-task {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  background: white;
-  border: 1px dashed var(--ecc-primary);
-  color: var(--ecc-primary);
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.employee-card-component .btn-assign-task:hover {
-  background: #e0e7ff;
-  border-style: solid;
-}
-
+/* Кнопка "К заявкам" */
 .employee-card-component .btn-view-more {
   width: 100%;
-  margin-top: 15px;
-  padding: 10px;
-  background: white;
-  border: 1px solid var(--ecc-primary);
+  margin-top: 8px;
+  padding: 11px 12px;
+
+  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.9));
+  border: 1px solid rgba(79, 70, 229, 0.35);
   color: var(--ecc-primary);
-  border-radius: 8px;
-  font-weight: 600;
+
+  border-radius: 12px;
+  font-weight: 800;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.18s ease;
+
+  box-shadow: 0 10px 18px rgba(79, 70, 229, 0.1);
 }
 
 .employee-card-component .btn-view-more:hover {
-  background: var(--ecc-primary);
-  color: white;
+  background: linear-gradient(
+    180deg,
+    rgba(79, 70, 229, 0.08),
+    rgba(79, 70, 229, 0.04)
+  );
+  border-color: rgba(79, 70, 229, 0.55);
+  transform: translateY(-1px);
 }
 
+/* Мобильная адаптация */
 @media (max-width: 768px) {
   .employee-card-component .employee-card {
-    min-height: auto;
+    min-height: 260px;
+    padding: 14px;
   }
 
   .employee-card-component .emp-header {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: flex-start;
   }
 
-  .employee-card-component .task-footer {
-    flex-direction: column;
-    align-items: flex-start;
+  .employee-card-component .emp-names h3 {
+    max-width: 100%;
   }
 }

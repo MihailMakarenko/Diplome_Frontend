@@ -24,6 +24,7 @@ export default function LocationsTab({
   onDeleteLocation,
 }) {
   const MAX_LEN = 20;
+  const [errors, setErrors] = useState({});
 
   const cut = useMemo(
     () => (s) => {
@@ -34,11 +35,43 @@ export default function LocationsTab({
   );
 
   const isLong = useMemo(() => (s) => (s?.length ?? 0) > MAX_LEN, []);
-
   const canExpandLocation = (l) => isLong(l?.name) || isLong(l?.description);
 
   const [expandedId, setExpandedId] = useState(null);
   const toggle = (id) => setExpandedId((prev) => (prev === id ? null : id));
+
+  // ✅ ВАЛИДАЦИЯ
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    const nameLen = locationForm.name?.trim().length || 0;
+    const descLen = locationForm.description?.trim().length || 0;
+
+    if (nameLen < 2 || nameLen > 30) {
+      newErrors.name = "Название должно быть от 2 до 30 символов";
+    }
+
+    if (descLen < 2 || descLen > 200) {
+      newErrors.description = "Описание должно быть от 2 до 200 символов";
+    }
+
+    if (!selectedBuildingId) {
+      newErrors.building = "Выберите здание";
+    }
+
+    if (!selectedFloorId) {
+      newErrors.floor = "Выберите этаж";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onSubmitLocation(e);
+  };
 
   return (
     <div className="structure-locations-tab">
@@ -49,9 +82,12 @@ export default function LocationsTab({
               <div className="slt-form-group">
                 <label className="slt-form-label">Здание</label>
                 <select
-                  className="slt-form-select"
+                  className={`slt-form-select ${errors.building ? "sa-inputError" : ""}`}
                   value={selectedBuildingId}
-                  onChange={(e) => setSelectedBuildingId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedBuildingId(e.target.value);
+                    setErrors((p) => ({ ...p, building: null }));
+                  }}
                 >
                   <option value="">-- Выберите здание --</option>
                   {buildings.map((b) => (
@@ -60,14 +96,20 @@ export default function LocationsTab({
                     </option>
                   ))}
                 </select>
+                {errors.building && (
+                  <span className="sa-errorText">{errors.building}</span>
+                )}
               </div>
 
               <div className="slt-form-group">
                 <label className="slt-form-label">Этаж</label>
                 <select
-                  className="slt-form-select"
+                  className={`slt-form-select ${errors.floor ? "sa-inputError" : ""}`}
                   value={selectedFloorId}
-                  onChange={(e) => setSelectedFloorId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedFloorId(e.target.value);
+                    setErrors((p) => ({ ...p, floor: null }));
+                  }}
                   disabled={!selectedBuildingId}
                 >
                   <option value="">-- Выберите этаж --</option>
@@ -77,20 +119,35 @@ export default function LocationsTab({
                     </option>
                   ))}
                 </select>
+                {errors.floor && (
+                  <span className="sa-errorText">{errors.floor}</span>
+                )}
               </div>
             </div>
 
-            <form onSubmit={onSubmitLocation} className="sa-form">
+            <form onSubmit={handleSubmit} className="sa-form">
               <div className="slt-form-group">
-                <label className="slt-form-label">Название</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="slt-form-label">Название</label>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>
+                    {locationForm.name?.length || 0}/30
+                  </span>
+                </div>
                 <input
-                  className="slt-form-input"
+                  className={`slt-form-input ${errors.name ? "sa-inputError" : ""}`}
                   value={locationForm.name}
-                  onChange={(e) =>
-                    setLocationForm((p) => ({ ...p, name: e.target.value }))
-                  }
+                  maxLength={30}
+                  onChange={(e) => {
+                    setLocationForm((p) => ({ ...p, name: e.target.value }));
+                    setErrors((p) => ({ ...p, name: null }));
+                  }}
                   required
                 />
+                {errors.name && (
+                  <span className="sa-errorText">{errors.name}</span>
+                )}
               </div>
 
               <div className="slt-form-group">
@@ -113,17 +170,30 @@ export default function LocationsTab({
               </div>
 
               <div className="slt-form-group">
-                <label className="slt-form-label">Описание</label>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <label className="slt-form-label">Описание</label>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>
+                    {locationForm.description?.length || 0}/200
+                  </span>
+                </div>
                 <input
-                  className="slt-form-input"
+                  className={`slt-form-input ${errors.description ? "sa-inputError" : ""}`}
                   value={locationForm.description}
-                  onChange={(e) =>
+                  maxLength={200}
+                  onChange={(e) => {
                     setLocationForm((p) => ({
                       ...p,
                       description: e.target.value,
-                    }))
-                  }
+                    }));
+                    setErrors((p) => ({ ...p, description: null }));
+                  }}
+                  required
                 />
+                {errors.description && (
+                  <span className="sa-errorText">{errors.description}</span>
+                )}
               </div>
 
               <button
@@ -144,6 +214,7 @@ export default function LocationsTab({
           </SectionCard>
         </div>
 
+        {/* СПИСОК */}
         <div className="sa-pane">
           <SectionCard title="Список мест">
             {!selectedFloorId ? (
@@ -185,10 +256,6 @@ export default function LocationsTab({
                                         type="button"
                                         className="sa-expanderBtn"
                                         onClick={() => toggle(l.id)}
-                                        aria-expanded={open}
-                                        aria-label={
-                                          open ? "Свернуть" : "Развернуть"
-                                        }
                                       >
                                         <span
                                           className={`sa-caret ${open ? "open" : ""}`}

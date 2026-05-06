@@ -1,0 +1,188 @@
+/* AppFooter.css — Warm & Soft Color Palette + Footer Background */
+
+.app-footer {
+  width: 100%;
+  margin-top: 20px;
+  padding: 0 24px;
+  box-sizing: border-box;
+
+  /* Более белый фон */
+  background: linear-gradient(180deg, #ffffff 0%, #fdfcf9 100%);
+  border-top: 1px solid #eee6dd;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.app-footer__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+
+  /* линия перенесена в .app-footer, чтобы не дублировалась */
+  border-top: none;
+  background: transparent;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 13px;
+  color: #6b5b4e;
+}
+
+/* Бренд */
+.app-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.app-footer__university {
+  font-weight: 700;
+  color: #3d2e22;
+  letter-spacing: 0.3px;
+}
+
+.app-footer__divider-dot {
+  color: #c4b4a4;
+  font-weight: 400;
+}
+
+.app-footer__dept {
+  color: #6b5b4e;
+}
+
+/* Инфо блок с иконками */
+.app-footer__info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.app-footer__contact,
+.app-footer__schedule {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #5c4e41;
+  text-decoration: none;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.app-footer__contact:hover {
+  color: #b8683c;
+}
+
+.app-footer__contact svg,
+.app-footer__schedule svg {
+  opacity: 0.65;
+  stroke: #8b735a;
+}
+
+.app-footer__contact:hover svg {
+  stroke: #b8683c;
+}
+
+.app-footer__separator {
+  color: #d4c5b6;
+  font-weight: 300;
+  user-select: none;
+}
+
+/* Мета данные (правая часть) */
+.app-footer__meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-footer__version {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f5ede4;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b6f54;
+  letter-spacing: 0.2px;
+}
+
+.app-footer__author {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.app-footer__author-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #a48d78;
+  font-weight: 500;
+}
+
+.app-footer__year {
+  color: #a48d78;
+}
+
+/* Адаптив */
+@media (max-width: 900px) {
+  .app-footer {
+    padding: 0 20px;
+  }
+
+  .app-footer__container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .app-footer__info {
+    width: 100%;
+  }
+
+  .app-footer__meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-footer {
+    padding: 0 16px;
+  }
+
+  .app-footer__container {
+    padding: 16px 0;
+  }
+
+  .app-footer__info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .app-footer__separator {
+    display: none;
+  }
+
+  .app-footer__meta {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .app-footer__author {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

@@ -1,38 +1,33 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "react-router-dom";
+import Select from "react-select";
 import "./EmployeeSettingsPage.css";
 import { toast } from "react-toastify";
 import EmployeeTypeOfProblemServerApi from "../../apiServices/employeeTypeOfProblemApi";
 import EmployeeWorkspacesModal from "../../components/EmployeeWorkspacesModal/EmployeeWorkspacesModal";
 
 const ASSIGNED_PAGE_SIZE = 3;
+const ASSIGNABLE_PAGE_SIZE = 20;
 
 function EmployeeSettingsPage() {
   const [searchParams] = useSearchParams();
 
   const employeeId =
     searchParams.get("employeeId") || "66666666-6666-6666-6666-666666666666";
-
   const fullName = searchParams.get("fullName") || "Иванов Иван Иванович";
 
   const api = useMemo(() => new EmployeeTypeOfProblemServerApi(), []);
 
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
 
+  // -------- Assigned (уже назначенные) ----------
   const [assignedProblemTypes, setAssignedProblemTypes] = useState([]);
-  const [allProblemTypes, setAllProblemTypes] = useState([]);
-
-  const [loadingAssigned, setLoadingAssigned] = useState(false);
-  const [loadingAllTypes, setLoadingAllTypes] = useState(false);
-  const [submittingAssign, setSubmittingAssign] = useState(false);
-  const [deletingId, setDeletingId] = useState("");
-
-  const [selectedProblemTypeId, setSelectedProblemTypeId] = useState("");
-  const [skills, setSkills] = useState(0);
-  const [desire, setDesire] = useState(0);
-
-  const [pageError, setPageError] = useState("");
-
   const [assignedPage, setAssignedPage] = useState(1);
   const [assignedPagination, setAssignedPagination] = useState({
     CurrentPage: 1,
@@ -42,6 +37,33 @@ function EmployeeSettingsPage() {
     HasPrevious: false,
     HasNext: false,
   });
+  const [loadingAssigned, setLoadingAssigned] = useState(false);
+  const [pageError, setPageError] = useState("");
+
+  // -------- Assignable (доступные для назначения) ----------
+  const [assignableProblemTypes, setAssignableProblemTypes] = useState([]);
+  const [assignablePage, setAssignablePage] = useState(1);
+  const [assignablePagination, setAssignablePagination] = useState({
+    CurrentPage: 1,
+    TotalPages: 1,
+    PageSize: ASSIGNABLE_PAGE_SIZE,
+    TotalCount: 0,
+    HasPrevious: false,
+    HasNext: false,
+  });
+  const [loadingAssignable, setLoadingAssignable] = useState(false);
+
+  // -------- Form ----------
+  const [selectedProblemTypeId, setSelectedProblemTypeId] = useState("");
+  const [skills, setSkills] = useState(1);
+  const [desire, setDesire] = useState(1);
+
+  const [submittingAssign, setSubmittingAssign] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
+
+  // защита от гонок ответов
+  const assignedReqSeq = useRef(0);
+  const assignableReqSeq = useRef(0);
 
   const employee = useMemo(
     () => ({
@@ -52,68 +74,77 @@ function EmployeeSettingsPage() {
     [employeeId, fullName],
   );
 
-  const getTotalPagesFrom = (pagination) => {
-    return (
-      pagination?.TotalPages ??
-      pagination?.totalPages ??
-      pagination?.total_pages ??
-      1
-    );
+  const normalizeRate = (value) => {
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) return 0;
+    return Math.max(0, Math.min(5, numeric));
   };
 
-  const getCurrentPageFrom = (pagination) => {
-    return (
-      pagination?.CurrentPage ??
-      pagination?.currentPage ??
-      pagination?.current_page ??
-      assignedPage
-    );
+  const resetAssignForm = () => {
+    setSelectedProblemTypeId("");
+    setSkills(1);
+    setDesire(1);
   };
 
-  const getTotalCountFrom = (pagination, fallbackLength = 0) => {
-    return (
-      pagination?.TotalCount ??
-      pagination?.totalCount ??
-      pagination?.total_count ??
-      fallbackLength
-    );
-  };
+  // ------------------ LOAD ASSIGNED ------------------
+  const loadAssignedProblemTypes = useCallback(
+    async (page) => {
+      if (!employeeId) return;
 
-  const getPageSizeFrom = (pagination) => {
-    return (
-      pagination?.PageSize ??
-      pagination?.pageSize ??
-      pagination?.page_size ??
-      ASSIGNED_PAGE_SIZE
-    );
-  };
+      const seq = ++assignedReqSeq.current;
 
-  const getHasPreviousFrom = (pagination, currentPage) => {
-    if (pagination?.HasPrevious != null) return pagination.HasPrevious;
-    if (pagination?.hasPrevious != null) return pagination.hasPrevious;
-    return currentPage > 1;
-  };
+      setLoadingAssigned(true);
+      setPageError("");
 
-  const getHasNextFrom = (pagination, currentPage, totalPages) => {
-    if (pagination?.HasNext != null) return pagination.HasNext;
-    if (pagination?.hasNext != null) return pagination.hasNext;
-    return currentPage < totalPages;
-  };
+      try {
+        const res = await api.getEmployeeProblemTypes(
+          employeeId,
+          page,
+          ASSIGNED_PAGE_SIZE,
+        );
 
-  const loadAssignedProblemTypes = async (page = assignedPage) => {
-    if (!employeeId) return;
+        if (seq !== assignedReqSeq.current) return;
 
-    setLoadingAssigned(true);
-    setPageError("");
+        if (!res.success) {
+          setAssignedProblemTypes([]);
+          setAssignedPagination({
+            CurrentPage: 1,
+            TotalPages: 1,
+            PageSize: ASSIGNED_PAGE_SIZE,
+            TotalCount: 0,
+            HasPrevious: false,
+            HasNext: false,
+          });
+          setPageError(
+            res.message || "Не удалось загрузить назначенные типы проблем",
+          );
+          return;
+        }
 
-    try {
-      const res = await api.getEmployeeProblemTypes(
-        employeeId,
-        page,
-        ASSIGNED_PAGE_SIZE,
-      );
+        const items = Array.isArray(res.data) ? res.data : [];
+        const p = res.pagination || {};
 
-      if (!res.success) {
+        const currentPage = p.CurrentPage ?? p.currentPage ?? page;
+        const totalPages = p.TotalPages ?? p.totalPages ?? 1;
+        const totalCount = p.TotalCount ?? p.totalCount ?? items.length;
+        const pageSize = p.PageSize ?? p.pageSize ?? ASSIGNED_PAGE_SIZE;
+
+        const hasPrev = p.HasPrevious ?? p.hasPrevious ?? currentPage > 1;
+        const hasNext = p.HasNext ?? p.hasNext ?? currentPage < totalPages;
+
+        setAssignedProblemTypes(items);
+        setAssignedPagination({
+          CurrentPage: currentPage,
+          TotalPages: totalPages,
+          PageSize: pageSize,
+          TotalCount: totalCount,
+          HasPrevious: hasPrev,
+          HasNext: hasNext,
+        });
+      } catch (e) {
+        if (seq !== assignedReqSeq.current) return;
+
+        console.error(e);
         setAssignedProblemTypes([]);
         setAssignedPagination({
           CurrentPage: 1,
@@ -123,106 +154,152 @@ function EmployeeSettingsPage() {
           HasPrevious: false,
           HasNext: false,
         });
-        setPageError(
-          res.message || "Не удалось загрузить назначенные типы проблем",
-        );
-        return;
+        setPageError("Ошибка загрузки назначенных типов проблем");
+      } finally {
+        if (seq === assignedReqSeq.current) setLoadingAssigned(false);
       }
-
-      const items = Array.isArray(res.data) ? res.data : [];
-      const pagination = res.pagination || {};
-
-      const currentPage = getCurrentPageFrom(pagination);
-      const totalPages = getTotalPagesFrom(pagination);
-      const totalCount = getTotalCountFrom(pagination, items.length);
-      const pageSize = getPageSizeFrom(pagination);
-
-      setAssignedProblemTypes(items);
-      setAssignedPagination({
-        CurrentPage: currentPage,
-        TotalPages: totalPages,
-        PageSize: pageSize,
-        TotalCount: totalCount,
-        HasPrevious: getHasPreviousFrom(pagination, currentPage),
-        HasNext: getHasNextFrom(pagination, currentPage, totalPages),
-      });
-    } catch (error) {
-      console.error(error);
-      setAssignedProblemTypes([]);
-      setAssignedPagination({
-        CurrentPage: 1,
-        TotalPages: 1,
-        PageSize: ASSIGNED_PAGE_SIZE,
-        TotalCount: 0,
-        HasPrevious: false,
-        HasNext: false,
-      });
-      setPageError("Ошибка загрузки назначенных типов проблем");
-    } finally {
-      setLoadingAssigned(false);
-    }
-  };
-
-  const loadAllProblemTypes = async () => {
-    setLoadingAllTypes(true);
-
-    try {
-      const res = await api.getAllProblemTypes();
-
-      if (!res.success) {
-        setAllProblemTypes([]);
-        toast.error(res.message || "Не удалось загрузить все типы проблем");
-        return;
-      }
-
-      setAllProblemTypes(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error(error);
-      setAllProblemTypes([]);
-      toast.error("Ошибка загрузки списка типов проблем");
-    } finally {
-      setLoadingAllTypes(false);
-    }
-  };
-
-  useEffect(() => {
-    setAssignedPage(1);
-  }, [employeeId]);
-
-  useEffect(() => {
-    loadAssignedProblemTypes(assignedPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeId, assignedPage]);
-
-  useEffect(() => {
-    loadAllProblemTypes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeId]);
-
-  const assignedTypeIds = useMemo(
-    () =>
-      new Set(
-        assignedProblemTypes.map((x) => x?.typeOfProblem?.id).filter(Boolean),
-      ),
-    [assignedProblemTypes],
+    },
+    [api, employeeId],
   );
 
-  const availableProblemTypes = useMemo(() => {
-    return allProblemTypes.filter((type) => !assignedTypeIds.has(type.id));
-  }, [allProblemTypes, assignedTypeIds]);
+  // ------------------ LOAD ASSIGNABLE ------------------
+  const loadAssignableProblemTypes = useCallback(
+    async (page) => {
+      if (!employeeId) return;
 
-  const normalizeRate = (value) => {
-    const numeric = Number(value);
-    if (Number.isNaN(numeric)) return 0;
-    return Math.max(0, Math.min(5, numeric));
+      const seq = ++assignableReqSeq.current;
+
+      setLoadingAssignable(true);
+
+      try {
+        const res = await api.getAssignableProblemTypes(
+          employeeId,
+          page,
+          ASSIGNABLE_PAGE_SIZE,
+        );
+
+        if (seq !== assignableReqSeq.current) return;
+
+        if (!res.success) {
+          toast.error(
+            res.message || "Не удалось загрузить доступные типы проблем",
+          );
+          if (page === 1) setAssignableProblemTypes([]);
+          return;
+        }
+
+        const items = Array.isArray(res.data) ? res.data : [];
+        const p = res.pagination || {};
+
+        const currentPage = p.CurrentPage ?? p.currentPage ?? page;
+        const totalPages = p.TotalPages ?? p.totalPages ?? 1;
+        const totalCount = p.TotalCount ?? p.totalCount ?? items.length;
+        const pageSize = p.PageSize ?? p.pageSize ?? ASSIGNABLE_PAGE_SIZE;
+
+        const hasPrev = p.HasPrevious ?? p.hasPrevious ?? currentPage > 1;
+        const hasNext = p.HasNext ?? p.hasNext ?? currentPage < totalPages;
+
+        setAssignablePagination({
+          CurrentPage: currentPage,
+          TotalPages: totalPages,
+          PageSize: pageSize,
+          TotalCount: totalCount,
+          HasPrevious: hasPrev,
+          HasNext: hasNext,
+        });
+
+        setAssignableProblemTypes((prev) => {
+          if (page === 1) return items;
+
+          // append + unique by id
+          const map = new Map(prev.map((x) => [x.id, x]));
+          for (const it of items) map.set(it.id, it);
+          return Array.from(map.values());
+        });
+
+        setAssignablePage(currentPage);
+      } catch (e) {
+        if (seq !== assignableReqSeq.current) return;
+
+        console.error(e);
+        toast.error("Ошибка загрузки доступных типов проблем");
+        if (page === 1) setAssignableProblemTypes([]);
+      } finally {
+        if (seq === assignableReqSeq.current) setLoadingAssignable(false);
+      }
+    },
+    [api, employeeId],
+  );
+
+  const reloadAssignableFirstPage = useCallback(async () => {
+    setAssignablePage(1);
+    setAssignableProblemTypes([]);
+    await loadAssignableProblemTypes(1);
+  }, [loadAssignableProblemTypes]);
+
+  // -------- Effects --------
+
+  // При смене сотрудника: сброс
+  useEffect(() => {
+    setAssignedPage(1);
+    setAssignablePage(1);
+    setAssignableProblemTypes([]);
+    resetAssignForm();
+    setPageError("");
+  }, [employeeId]);
+
+  // Назначенные грузим ТОЛЬКО по employeeId + assignedPage
+  useEffect(() => {
+    loadAssignedProblemTypes(assignedPage);
+  }, [employeeId, assignedPage, loadAssignedProblemTypes]);
+
+  // Доступные: первая страница при смене сотрудника
+  useEffect(() => {
+    loadAssignableProblemTypes(1);
+  }, [employeeId, loadAssignableProblemTypes]);
+
+  // -------- Pagination controls (assigned) --------
+  const handleAssignedPageChange = (direction) => {
+    if (direction === "prev" && assignedPagination.HasPrevious) {
+      setAssignedPage((prev) => prev - 1);
+    }
+    if (direction === "next" && assignedPagination.HasNext) {
+      setAssignedPage((prev) => prev + 1);
+    }
   };
 
-  const resetAssignForm = () => {
-    setSelectedProblemTypeId("");
-    setSkills(0);
-    setDesire(0);
+  const renderRateOptions = () => {
+    const values = [1, 2, 3, 4, 5];
+    return values.map((value) => (
+      <option key={value} value={value}>
+        {value}
+      </option>
+    ));
   };
 
+  // -------- react-select options --------
+  const assignableOptions = useMemo(() => {
+    return assignableProblemTypes.map((type) => ({
+      value: type.id,
+      label: `${type.title} (${type.basePriority})`,
+      type,
+    }));
+  }, [assignableProblemTypes]);
+
+  const selectedOption = useMemo(() => {
+    return (
+      assignableOptions.find((o) => o.value === selectedProblemTypeId) || null
+    );
+  }, [assignableOptions, selectedProblemTypeId]);
+
+  const selectStyles = useMemo(
+    () => ({
+      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    }),
+    [],
+  );
+
+  // -------- Assign --------
   const handleAssignProblemType = async (e) => {
     e.preventDefault();
 
@@ -257,9 +334,17 @@ function EmployeeSettingsPage() {
 
       toast.success("Тип проблемы успешно назначен");
       resetAssignForm();
-      setAssignedPage(1);
-      await loadAssignedProblemTypes(1);
-      await loadAllProblemTypes();
+
+      // Обновляем назначенные:
+      // если уже на 1 странице — вручную перезагрузим (иначе useEffect не сработает)
+      if (assignedPage === 1) {
+        await loadAssignedProblemTypes(1);
+      } else {
+        setAssignedPage(1); // useEffect загрузит
+      }
+
+      // Обновляем доступные
+      await reloadAssignableFirstPage();
     } catch (error) {
       console.error(error);
       toast.error("Ошибка при назначении типа проблемы");
@@ -268,6 +353,7 @@ function EmployeeSettingsPage() {
     }
   };
 
+  // -------- Delete assigned --------
   const handleDeleteAssignedProblemType = async (assignment) => {
     const assignmentId = assignment?.id;
     const typeOfProblemId = assignment?.typeOfProblem?.id;
@@ -280,10 +366,20 @@ function EmployeeSettingsPage() {
     const confirmed = window.confirm(
       `Удалить тип проблемы "${assignment?.typeOfProblem?.title || "Без названия"}" у сотрудника?`,
     );
-
     if (!confirmed) return;
 
     setDeletingId(assignmentId);
+
+    // optimistic: убрать сразу из UI
+    const wasOnlyOneOnPage = assignedProblemTypes.length === 1;
+
+    setAssignedProblemTypes((prev) =>
+      prev.filter((x) => x.id !== assignmentId),
+    );
+    setAssignedPagination((prev) => ({
+      ...prev,
+      TotalCount: Math.max(0, (prev.TotalCount || 0) - 1),
+    }));
 
     try {
       const res = await api.deleteEmployeeProblemType(
@@ -294,43 +390,30 @@ function EmployeeSettingsPage() {
 
       if (!res.success) {
         toast.error(res.message || "Не удалось удалить назначение");
+        // откат: просто перезагрузим текущую страницу
+        await loadAssignedProblemTypes(assignedPage);
         return;
       }
 
       toast.success("Назначение успешно удалено");
 
-      const nextPage =
-        assignedProblemTypes.length === 1 && assignedPage > 1
-          ? assignedPage - 1
-          : assignedPage;
+      // Если страница стала пустой и есть предыдущая — перейдём назад
+      if (wasOnlyOneOnPage && assignedPage > 1) {
+        setAssignedPage((p) => p - 1); // useEffect загрузит
+      } else {
+        // Иначе нужно догрузить “хвост”, чтобы страница заполнилась
+        await loadAssignedProblemTypes(assignedPage);
+      }
 
-      setAssignedPage(nextPage);
-      await loadAssignedProblemTypes(nextPage);
-      await loadAllProblemTypes();
+      // доступные обновим
+      await reloadAssignableFirstPage();
     } catch (error) {
       console.error(error);
       toast.error("Ошибка при удалении назначения");
+      // откат: перезагрузка
+      await loadAssignedProblemTypes(assignedPage);
     } finally {
       setDeletingId("");
-    }
-  };
-
-  const renderRateOptions = () => {
-    const values = [0, 1, 2, 3, 4, 5];
-    return values.map((value) => (
-      <option key={value} value={value}>
-        {value}
-      </option>
-    ));
-  };
-
-  const handleAssignedPageChange = (direction) => {
-    if (direction === "prev" && assignedPagination.HasPrevious) {
-      setAssignedPage((prev) => prev - 1);
-    }
-
-    if (direction === "next" && assignedPagination.HasNext) {
-      setAssignedPage((prev) => prev + 1);
     }
   };
 
@@ -343,9 +426,6 @@ function EmployeeSettingsPage() {
               Настройка сотрудника
             </div>
             <h1 className="employee-settings-page__title">{fullName}</h1>
-            <div className="employee-settings-page__subtitle">
-              ID сотрудника: {employeeId}
-            </div>
           </div>
 
           <div className="employee-settings-page__header-actions">
@@ -377,6 +457,7 @@ function EmployeeSettingsPage() {
           </div>
 
           <div className="employee-settings-page__grid">
+            {/* ---------- Assign new ---------- */}
             <div className="employee-settings-page__card">
               <div className="employee-settings-page__card-title">
                 Назначить новый тип проблемы
@@ -388,21 +469,32 @@ function EmployeeSettingsPage() {
               >
                 <div className="employee-settings-page__field">
                   <label className="employee-settings-page__label">
-                    Тип проблемы
+                    Тип проблемы (доступные для назначения)
                   </label>
-                  <select
-                    className="employee-settings-page__select"
-                    value={selectedProblemTypeId}
-                    onChange={(e) => setSelectedProblemTypeId(e.target.value)}
-                    disabled={loadingAllTypes || submittingAssign}
-                  >
-                    <option value="">-- Выберите тип проблемы --</option>
-                    {availableProblemTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {type.title} ({type.basePriority})
-                      </option>
-                    ))}
-                  </select>
+
+                  <Select
+                    value={selectedOption}
+                    onChange={(opt) =>
+                      setSelectedProblemTypeId(opt?.value || "")
+                    }
+                    options={assignableOptions}
+                    isLoading={loadingAssignable}
+                    isDisabled={loadingAssignable || submittingAssign}
+                    placeholder="-- Выберите тип проблемы --"
+                    maxMenuHeight={240}
+                    menuPortalTarget={document.body}
+                    styles={selectStyles}
+                    noOptionsMessage={() =>
+                      loadingAssignable
+                        ? "Загрузка..."
+                        : "Нет доступных типов проблем"
+                    }
+                    onMenuScrollToBottom={() => {
+                      if (loadingAssignable) return;
+                      if (!assignablePagination.HasNext) return;
+                      loadAssignableProblemTypes(assignablePage + 1);
+                    }}
+                  />
                 </div>
 
                 <div className="employee-settings-page__field-row">
@@ -437,27 +529,20 @@ function EmployeeSettingsPage() {
 
                 {selectedProblemTypeId ? (
                   <div className="employee-settings-page__selected-info">
-                    {(() => {
-                      const selected = availableProblemTypes.find(
-                        (x) => x.id === selectedProblemTypeId,
-                      );
-
-                      if (!selected) return null;
-
-                      return (
-                        <>
-                          <div className="employee-settings-page__selected-title">
-                            {selected.title}
-                          </div>
-                          <div className="employee-settings-page__selected-priority">
-                            Базовый приоритет: {selected.basePriority}
-                          </div>
-                          <div className="employee-settings-page__selected-description">
-                            {selected.description || "Описание отсутствует"}
-                          </div>
-                        </>
-                      );
-                    })()}
+                    {selectedOption?.type ? (
+                      <>
+                        <div className="employee-settings-page__selected-title">
+                          {selectedOption.type.title}
+                        </div>
+                        <div className="employee-settings-page__selected-priority">
+                          Базовый приоритет: {selectedOption.type.basePriority}
+                        </div>
+                        <div className="employee-settings-page__selected-description">
+                          {selectedOption.type.description ||
+                            "Описание отсутствует"}
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -467,7 +552,7 @@ function EmployeeSettingsPage() {
                     className="employee-settings-page__btn employee-settings-page__btn--primary"
                     disabled={
                       submittingAssign ||
-                      loadingAllTypes ||
+                      loadingAssignable ||
                       !selectedProblemTypeId
                     }
                   >
@@ -486,6 +571,7 @@ function EmployeeSettingsPage() {
               </form>
             </div>
 
+            {/* ---------- Assigned list ---------- */}
             <div className="employee-settings-page__card">
               <div
                 className="employee-settings-page__card-title"
@@ -499,11 +585,7 @@ function EmployeeSettingsPage() {
               >
                 <span>Уже назначенные типы проблем</span>
                 <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#64748b",
-                  }}
+                  style={{ fontSize: 14, fontWeight: 600, color: "#64748b" }}
                 >
                   Всего: {assignedPagination.TotalCount}
                 </span>
@@ -598,22 +680,13 @@ function EmployeeSettingsPage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: 14,
-                        color: "#64748b",
-                      }}
-                    >
+                    <div style={{ fontSize: 14, color: "#64748b" }}>
                       Страница {assignedPagination.CurrentPage} из{" "}
                       {assignedPagination.TotalPages || 1}
                     </div>
 
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
+                      style={{ display: "flex", alignItems: "center", gap: 10 }}
                     >
                       <button
                         type="button"

@@ -8,13 +8,15 @@ import UserTelegramApi from "../../apiServices/userTelegramApi";
 
 import RequestDetailsModal from "../../components/RequestDetailsModal/RequestDetailsModal";
 import CreateRequestModal from "../../components/CreateRequestModal/CreateRequestModal";
+import AppFooter from "../../components/AppFooter/AppFooter";
+import Header from "../../components/Header/Header";
+import avatar from "../../imgs/avatar.jpg";
 
 import {
   IconPhone,
   IconMail,
   IconEdit,
   IconTelegram,
-  IconPlus,
   IconMessage,
   IconCatIT,
   IconCatEquip,
@@ -22,6 +24,15 @@ import {
 } from "../../components/Icons";
 
 function UserProfile() {
+  const [editData, setEditData] = useState({
+    firstName: "",
+    lastName: "",
+    patronymic: "",
+    phone: "",
+  });
+
+  const [editErrors, setEditErrors] = useState({});
+  const [editLoading, setEditLoading] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [selectedReq, setSelectedReq] = useState(null);
   const [tempComment, setTempComment] = useState("");
@@ -49,8 +60,7 @@ function UserProfile() {
     email: "",
     telegramId: null,
     tgUser: null,
-    avatar:
-      "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+    avatar: avatar,
   });
 
   const [requests, setRequests] = useState([]);
@@ -79,9 +89,14 @@ function UserProfile() {
           email: p.email || "",
           telegramId: p.tgUser?.chatId || null,
           tgUser: p.tgUser || null,
-          avatar:
-            p.profilePhotoUrl ||
-            "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+          avatar: p.profilePhotoUrl || avatar,
+        });
+
+        setEditData({
+          firstName: fullNameParts[1] || "",
+          lastName: fullNameParts[0] || "",
+          patronymic: fullNameParts[2] || "",
+          phone: p.phoneNumber || "",
         });
       }
     } catch (e) {
@@ -93,6 +108,7 @@ function UserProfile() {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchRequests = async () => {
@@ -118,6 +134,19 @@ function UserProfile() {
           const locationStr =
             parts.length > 0 ? parts.join(", ") : "Не указано";
 
+          // ✅ отображаем статус как пришёл с сервера
+          const statusLabel = req.status || "Не указан";
+
+          // ✅ оставляем классы для существующих стилей
+          const statusClass =
+            statusLabel === "Создана"
+              ? "New"
+              : statusLabel === "В работе"
+                ? "Work"
+                : statusLabel === "Завершена"
+                  ? "Done"
+                  : "New";
+
           return {
             id: req.number,
             realId: req.id,
@@ -134,14 +163,11 @@ function UserProfile() {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
-            status:
-              req.status === "Создана"
-                ? "New"
-                : req.status === "В работе"
-                  ? "Work"
-                  : req.status === "Завершена"
-                    ? "Done"
-                    : "New",
+
+            // ✅ важно: статус-текст и статус-класс раздельно
+            status: statusLabel,
+            statusClass: statusClass,
+
             priority: req.priority,
             building: loc?.floor?.building?.name || "—",
             floor:
@@ -307,9 +333,75 @@ function UserProfile() {
     }
   };
 
-  const handleUpdateProfile = (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setActiveModal(null);
+
+    const errors = {};
+
+    if (!editData.lastName || editData.lastName.trim().length < 2) {
+      errors.lastName = "Фамилия минимум 2 символа";
+    }
+
+    if (!editData.firstName || editData.firstName.trim().length < 2) {
+      errors.firstName = "Имя минимум 2 символа";
+    }
+
+    if (!editData.patronymic || editData.patronymic.trim().length < 2) {
+      errors.patronymic = "Отчество минимум 2 символа";
+    }
+
+    if (!editData.phone || editData.phone.trim().length < 7) {
+      errors.phone = "Некорректный номер телефона";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      return;
+    }
+
+    setEditErrors({});
+    setEditLoading(true);
+
+    try {
+      const result = await userServerApi.updateUser(user.id, {
+        firstName: editData.firstName.trim(),
+        lastName: editData.lastName.trim(),
+        secondName: editData.patronymic.trim(),
+        phoneNumber: editData.phone.trim(),
+      });
+
+      if (result.success) {
+        setActiveModal(null);
+        await fetchProfile();
+      } else {
+        const msg = result.message;
+
+        if (
+          msg?.includes?.("entity changes") ||
+          msg?.includes?.("saving") ||
+          msg?.includes?.("23505")
+        ) {
+          setEditErrors({
+            phone: "Этот номер телефона уже занят другим пользователем",
+          });
+        } else {
+          setEditErrors({
+            server: msg,
+          });
+        }
+      }
+    } catch (error) {
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        "Ошибка сервера";
+
+      setEditErrors({
+        server: serverMessage,
+      });
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleAddTelegram = async () => {
@@ -383,20 +475,10 @@ function UserProfile() {
     <div className="user-profile-page">
       <div className="aurora-bg"></div>
 
-      <header className="app-header">
-        <div className="brand-logo">
-          <IconPlus /> ServiceDesk
-        </div>
-        <div className="header-actions">
-          <button
-            className="btn btn-primary"
-            onClick={() => setActiveModal("create")}
-          >
-            Создать заявку
-          </button>
-          <button className="btn btn-header">Выйти</button>
-        </div>
-      </header>
+      <Header
+        showCreateButton={true}
+        onCreateClick={() => setActiveModal("create")}
+      />
 
       <div className="layout-container">
         <aside className="glass-panel profile-panel">
@@ -406,8 +488,7 @@ function UserProfile() {
             className="avatar-img"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src =
-                "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+              e.target.src = avatar;
             }}
           />
 
@@ -549,7 +630,13 @@ function UserProfile() {
                         <span>•</span>
                         <span style={{ display: "flex", alignItems: "center" }}>
                           <span
-                            className={`priority-dot p-${req.priority === "Высокий" ? "High" : req.priority === "Средний" ? "Medium" : "Low"}`}
+                            className={`priority-dot p-${
+                              req.priority === "Высокий"
+                                ? "High"
+                                : req.priority === "Средний"
+                                  ? "Medium"
+                                  : "Low"
+                            }`}
                           ></span>
                           {req.priority}
                         </span>
@@ -557,7 +644,9 @@ function UserProfile() {
                     </div>
 
                     <div className="req-actions-col">
-                      <span className={`status-badge-pill ${req.status}`}>
+                      {/* ✅ класс для стилей */}
+                      <span className={`status-badge-pill ${req.statusClass}`}>
+                        {/* ✅ текст статуса как от сервера */}
                         {req.status}
                       </span>
 
@@ -568,7 +657,8 @@ function UserProfile() {
                         Подробнее
                       </button>
 
-                      {req.status !== "Done" && (
+                      {/* ✅ проверка по statusClass, чтобы не сломалось */}
+                      {req.statusClass !== "Done" && (
                         <button
                           className="btn-write-text"
                           onClick={() => {
@@ -685,34 +775,135 @@ function UserProfile() {
       {activeModal === "editProfile" && (
         <div className="modal-overlay" onClick={() => setActiveModal(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>Редактирование</h3>
-            <form onSubmit={handleUpdateProfile}>
-              <div className="form-grid">
+            <h3>Редактирование профиля</h3>
+
+            {editErrors.server && (
+              <div
+                style={{
+                  color: "#ef4444",
+                  marginBottom: 15,
+                  textAlign: "center",
+                }}
+              >
+                {editErrors.server}
+              </div>
+            )}
+
+            <form
+              onSubmit={handleUpdateProfile}
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
+              <div className="form-group-labeled">
+                <label
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "5px",
+                    display: "block",
+                    color: "#64748b",
+                  }}
+                >
+                  Фамилия
+                </label>
                 <input
-                  name="lastName"
                   className="input-glass"
-                  defaultValue={user.lastName}
+                  placeholder="Введите фамилию"
+                  value={editData.lastName}
+                  onChange={(e) =>
+                    setEditData({ ...editData, lastName: e.target.value })
+                  }
                 />
-                <input
-                  name="firstName"
-                  className="input-glass"
-                  defaultValue={user.firstName}
-                />
+                {editErrors.lastName && (
+                  <div style={{ color: "red", fontSize: 11, marginTop: "4px" }}>
+                    {editErrors.lastName}
+                  </div>
+                )}
               </div>
 
-              <input
-                name="email"
-                className="input-glass"
-                defaultValue={user.email}
-                style={{ marginBottom: 15 }}
-              />
+              <div className="form-group-labeled">
+                <label
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "5px",
+                    display: "block",
+                    color: "#64748b",
+                  }}
+                >
+                  Имя
+                </label>
+                <input
+                  className="input-glass"
+                  placeholder="Введите имя"
+                  value={editData.firstName}
+                  onChange={(e) =>
+                    setEditData({ ...editData, firstName: e.target.value })
+                  }
+                />
+                {editErrors.firstName && (
+                  <div style={{ color: "red", fontSize: 11, marginTop: "4px" }}>
+                    {editErrors.firstName}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group-labeled">
+                <label
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "5px",
+                    display: "block",
+                    color: "#64748b",
+                  }}
+                >
+                  Отчество
+                </label>
+                <input
+                  className="input-glass"
+                  placeholder="Введите отчество"
+                  value={editData.patronymic}
+                  onChange={(e) =>
+                    setEditData({ ...editData, patronymic: e.target.value })
+                  }
+                />
+                {editErrors.patronymic && (
+                  <div style={{ color: "red", fontSize: 11, marginTop: "4px" }}>
+                    {editErrors.patronymic}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group-labeled">
+                <label
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "5px",
+                    display: "block",
+                    color: "#64748b",
+                  }}
+                >
+                  Номер телефона
+                </label>
+                <input
+                  className="input-glass"
+                  placeholder="+375XXXXXXXXX"
+                  value={editData.phone}
+                  onChange={(e) =>
+                    setEditData({ ...editData, phone: e.target.value })
+                  }
+                />
+                {editErrors.phone && (
+                  <div style={{ color: "red", fontSize: 11, marginTop: "4px" }}>
+                    {editErrors.phone}
+                  </div>
+                )}
+              </div>
 
               <button
                 type="submit"
                 className="btn btn-primary"
-                style={{ width: "100%" }}
+                style={{ width: "100%", marginTop: 10 }}
+                disabled={editLoading}
               >
-                Сохранить
+                {editLoading ? "Сохранение..." : "Сохранить"}
               </button>
             </form>
           </div>
@@ -747,6 +938,8 @@ function UserProfile() {
           </div>
         </div>
       )}
+
+      <AppFooter />
     </div>
   );
 }

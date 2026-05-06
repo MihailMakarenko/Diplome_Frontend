@@ -1,19 +1,16 @@
 import axios from "axios";
 import qs from "qs";
 
-const baseUrl = process.env.REACT_APP_BASE_URL;
+const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:5035/api";
 
 class RequestServerApi {
   constructor() {
     this.baseUrl = `${baseUrl}/requests`;
 
-    const token = localStorage.getItem("accessToken");
-
     this.api = axios.create({
       baseURL: this.baseUrl,
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : "",
       },
       paramsSerializer: (params) =>
         qs.stringify(params, {
@@ -22,7 +19,11 @@ class RequestServerApi {
         }),
     });
 
+    // чтобы токен всегда был актуальный
     this.api.interceptors.request.use((config) => {
+      const token = localStorage.getItem("accessToken");
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+
       console.log(
         "[REQUEST]",
         config.method?.toUpperCase(),
@@ -30,13 +31,22 @@ class RequestServerApi {
         "params:",
         config.params,
       );
+
       return config;
     });
   }
 
+  extractErrorMessage(error, fallbackMessage) {
+    return (
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      fallbackMessage
+    );
+  }
+
   toUtcString(localValue) {
     const d = new Date(localValue);
-    if (isNaN(d.getTime())) return null;
+    if (Number.isNaN(d.getTime())) return null;
     return d.toISOString();
   }
 
@@ -69,12 +79,9 @@ class RequestServerApi {
       if (filters.floorId) params.FloorId = filters.floorId;
       if (filters.locationId) params.LocationId = filters.locationId;
 
-      // filters.sort — одна строка: "status asc, CreateAt desc"
       if (typeof filters.sort === "string" && filters.sort.trim().length > 0) {
         params.OrderBy = filters.sort.trim();
       }
-
-      console.log("REQUEST PARAMS (before axios):", params);
 
       const response = await this.api.get("", { params });
 
@@ -90,16 +97,37 @@ class RequestServerApi {
 
       return {
         success: true,
-        data: response.data,
+        data: response.data || [],
         pagination: paginationMeta,
       };
     } catch (error) {
       console.error("GetRequests Error:", error);
       return {
         success: false,
-        message: error.response?.data?.message || "Ошибка загрузки заявок",
+        message: this.extractErrorMessage(error, "Ошибка загрузки заявок"),
         data: [],
         pagination: null,
+      };
+    }
+  }
+
+  // NEW: поиск заявки по номеру
+  // GET /api/requests/numbers/{number}
+  async GetRequestByNumber(number) {
+    try {
+      const response = await this.api.get(`/numbers/${number}`);
+
+      return {
+        success: true,
+        data: response.data || null,
+      };
+    } catch (error) {
+      console.error("GetRequestByNumber Error:", error);
+
+      return {
+        success: false,
+        message: this.extractErrorMessage(error, "Заявка не найдена"),
+        data: null,
       };
     }
   }
