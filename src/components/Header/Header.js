@@ -1,15 +1,23 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../imgs/logo-big.png";
 import "./Header.css";
+import { AuthContext } from "../../auth/AuthContext";
 
 const Header = ({ showCreateButton = false, onCreateClick }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useContext(AuthContext);
+
+  // Если мы на странице user/profile — скрываем кнопку "Профиль"
+  const isUserProfilePage =
+    location.pathname === "/user/profile" ||
+    location.pathname.startsWith("/user/profile/");
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     sessionStorage.clear();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   const handleProfile = () => {
@@ -25,16 +33,30 @@ const Header = ({ showCreateButton = false, onCreateClick }) => {
 
       <div className="header-right">
         {showCreateButton && (
-          <button className="header-btn create-btn" onClick={onCreateClick}>
+          <button
+            type="button"
+            className="header-btn create-btn"
+            onClick={onCreateClick}
+          >
             + Создать заявку
           </button>
         )}
 
-        <button className="header-btn profile-btn" onClick={handleProfile}>
-          Профиль
-        </button>
+        {!isUserProfilePage && (
+          <button
+            type="button"
+            className="header-btn profile-btn"
+            onClick={handleProfile}
+          >
+            Профиль
+          </button>
+        )}
 
-        <button className="header-btn logout-btn" onClick={handleLogout}>
+        <button
+          type="button"
+          className="header-btn logout-btn"
+          onClick={handleLogout}
+        >
           Выйти
         </button>
       </div>

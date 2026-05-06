@@ -7,6 +7,7 @@ import CommentsApi from "../../apiServices/commentsApi";
 import EmployeeAssignedRequestsApi from "../../apiServices/employeeAssignedRequestsApi";
 import EmployeeApi from "../../apiServices/employeeApi";
 import BuildingApi from "../../apiServices/buildingApi";
+
 import AppFooter from "../../components/AppFooter/AppFooter";
 import Header from "../../components/Header/Header";
 import avatar from "../../imgs/avatar.jpg";
@@ -30,6 +31,11 @@ function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     s,
   );
+}
+
+function getValidEmployeeIdFromStorage() {
+  const stored = localStorage.getItem("employeeId");
+  return isUuid(stored) ? stored : "";
 }
 
 function EmployeeProfile() {
@@ -74,11 +80,10 @@ function EmployeeProfile() {
 
   const [buildings, setBuildings] = useState([]);
 
-  // ✅ FIX: берём employeeId из localStorage только если это UUID
-  const [employeeId, setEmployeeId] = useState(() => {
-    const stored = localStorage.getItem("employeeId");
-    return isUuid(stored) ? stored : "";
-  });
+  // employeeId берём из localStorage только если это GUID
+  const [employeeId, setEmployeeId] = useState(() =>
+    getValidEmployeeIdFromStorage(),
+  );
 
   const [isAvailable, setIsAvailable] = useState(false);
   const [currentBuildingId, setCurrentBuildingId] = useState("");
@@ -125,6 +130,12 @@ function EmployeeProfile() {
   // защита от "гонки" ответов
   const reqSeqRef = useRef(0);
 
+  const getEffectiveEmployeeId = () => {
+    if (isUuid(employeeId)) return employeeId;
+    return getValidEmployeeIdFromStorage();
+  };
+
+  // --- PROFILE ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -152,7 +163,7 @@ function EmployeeProfile() {
                 : null,
           );
 
-          // ✅ FIX: приоритет GUID из employee.id / employee.employeeId, а не p.employeeId (который у тебя бывает "1")
+          // Пытаемся достать GUID сотрудника из разных полей
           const candidateIds = [
             p.employee?.id,
             p.employee?.employeeId,
@@ -161,13 +172,17 @@ function EmployeeProfile() {
             .filter(Boolean)
             .map((x) => String(x));
 
-          const guid = candidateIds.find((x) => isUuid(x)) || "";
+          const guidFromApi = candidateIds.find((x) => isUuid(x)) || "";
+          const guidFromLs = getValidEmployeeIdFromStorage();
 
-          if (guid) {
-            setEmployeeId(guid);
-            localStorage.setItem("employeeId", guid);
+          if (guidFromApi) {
+            setEmployeeId(guidFromApi);
+            localStorage.setItem("employeeId", guidFromApi);
+          } else if (guidFromLs) {
+            // не затираем корректный employeeId из localStorage
+            setEmployeeId(guidFromLs);
           } else {
-            // если в LS лежало что-то невалидное (например "1") — очищаем
+            // если в localStorage было что-то невалидное — чистим
             const stored = localStorage.getItem("employeeId");
             if (stored && !isUuid(stored))
               localStorage.removeItem("employeeId");
@@ -184,12 +199,15 @@ function EmployeeProfile() {
     fetchProfile();
   }, [userApi]);
 
+  // --- EMPLOYEE SETTINGS LOAD ---
   useEffect(() => {
     const fetchEmployee = async () => {
-      if (!employeeId) return;
+      const effectiveEmployeeId = getEffectiveEmployeeId();
+      if (!effectiveEmployeeId) return;
 
       try {
-        const employeeRes = await employeeApi.GetEmployeeById(employeeId);
+        const employeeRes =
+          await employeeApi.GetEmployeeById(effectiveEmployeeId);
 
         if (employeeRes.success && employeeRes.data) {
           const emp = employeeRes.data;
@@ -200,7 +218,6 @@ function EmployeeProfile() {
             emp.currentBuilding?.id != null
               ? String(emp.currentBuilding.id)
               : "";
-
           const defaultId =
             emp.defaultBuilding?.id != null
               ? String(emp.defaultBuilding.id)
@@ -219,15 +236,15 @@ function EmployeeProfile() {
     };
 
     fetchEmployee();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeId, employeeApi]);
 
+  // --- BUILDINGS ---
   useEffect(() => {
     const loadBuildings = async () => {
       try {
         const res = await buildingApi.getBuildings();
-        if (res.success && res.data) {
-          setBuildings(res.data);
-        }
+        if (res.success && res.data) setBuildings(res.data);
       } catch (e) {
         console.error("Buildings load error:", e);
       }
@@ -285,8 +302,10 @@ function EmployeeProfile() {
   };
 
   const fetchRequests = async () => {
-    // ✅ FIX: не делаем запросы, пока employeeId не валидный GUID
-    if (!employeeId || !isUuid(employeeId)) {
+    const effectiveEmployeeId = getEffectiveEmployeeId();
+
+    // не делаем запросы, пока employeeId не валидный GUID
+    if (!effectiveEmployeeId || !isUuid(effectiveEmployeeId)) {
       setRequests([]);
       setTotalPages(1);
       setTotalCount(0);
@@ -301,7 +320,7 @@ function EmployeeProfile() {
         currentPage,
         itemsPerPage,
         filters,
-        employeeId, // ✅ если сервис поддерживает 4-й аргумент (если нет — он просто будет игнорироваться)
+        effectiveEmployeeId, // если сервис не поддерживает — просто игнорируется
       );
 
       if (seq !== reqSeqRef.current) return;
@@ -354,32 +373,35 @@ function EmployeeProfile() {
   };
 
   const handleSaveSettings = async () => {
-    if (!employeeId) {
-      alert("employeeId не найден");
+    const effectiveEmployeeId = getEffectiveEmployeeId();
+
+    if (!effectiveEmployeeId || !isUuid(effectiveEmployeeId)) {
+      alert("employeeId не найден или имеет неверный формат");
       return;
+    }
+
+    // проверки до лоадера
+    if (draftIsAvailable) {
+      if (!draftCurrentBuildingId) {
+        alert(
+          "Чтобы отметить сотрудника как доступного, выберите текущее здание",
+        );
+        return;
+      }
+      if (!draftDefaultBuildingId) {
+        alert(
+          "Чтобы отметить сотрудника как доступного, выберите здание по умолчанию",
+        );
+        return;
+      }
     }
 
     setEmployeeSettingsLoading(true);
 
     try {
-      if (draftIsAvailable) {
-        if (!draftCurrentBuildingId) {
-          alert(
-            "Чтобы отметить сотрудника как доступного, выберите текущее здание",
-          );
-          return;
-        }
-        if (!draftDefaultBuildingId) {
-          alert(
-            "Чтобы отметить сотрудника как доступного, выберите здание по умолчанию",
-          );
-          return;
-        }
-      }
-
       if (draftIsAvailable !== isAvailable) {
         const availabilityRes = await employeeApi.UpdateEmployeeAvailability(
-          employeeId,
+          effectiveEmployeeId,
           draftIsAvailable,
         );
         if (!availabilityRes.success) {
@@ -390,7 +412,7 @@ function EmployeeProfile() {
 
       if (draftCurrentBuildingId !== currentBuildingId) {
         const currentBuildingRes = await employeeApi.UpdateCurrentBuilding(
-          employeeId,
+          effectiveEmployeeId,
           draftCurrentBuildingId,
         );
         if (!currentBuildingRes.success) {
@@ -403,7 +425,7 @@ function EmployeeProfile() {
 
       if (draftDefaultBuildingId !== defaultBuildingId) {
         const defaultBuildingRes = await employeeApi.UpdateDefaultBuilding(
-          employeeId,
+          effectiveEmployeeId,
           draftDefaultBuildingId,
         );
         if (!defaultBuildingRes.success) {
@@ -415,12 +437,15 @@ function EmployeeProfile() {
         }
       }
 
+      // локально обновим UI
       setIsAvailable(draftIsAvailable);
       setCurrentBuildingId(draftCurrentBuildingId);
       setDefaultBuildingId(draftDefaultBuildingId);
       setIsEditingSettings(false);
 
-      const employeeRes = await employeeApi.GetEmployeeById(employeeId);
+      // подтянем актуальные данные с сервера
+      const employeeRes =
+        await employeeApi.GetEmployeeById(effectiveEmployeeId);
       if (employeeRes.success && employeeRes.data) {
         const emp = employeeRes.data;
 
@@ -596,11 +621,10 @@ function EmployeeProfile() {
   };
 
   const handlePageChange = (direction) => {
-    if (direction === "prev" && currentPage > 1) {
+    if (direction === "prev" && currentPage > 1)
       setCurrentPage((prev) => prev - 1);
-    } else if (direction === "next" && currentPage < totalPages) {
+    else if (direction === "next" && currentPage < totalPages)
       setCurrentPage((prev) => prev + 1);
-    }
   };
 
   const renderRequestCard = (req) => {
@@ -671,7 +695,7 @@ function EmployeeProfile() {
     <div className="employee-profile-page">
       <div className="aurora-bg"></div>
 
-      <Header></Header>
+      <Header />
 
       <div className="layout-container">
         <aside className="glass-panel profile-panel">

@@ -19,7 +19,7 @@ import EmployeeRequestsServerApi from "../../apiServices/employeeRequestsApi";
 import "../ManagerRequestsBoard/ManagerRequestsBoard.css";
 
 const DEFAULT_PAGE_SIZE = 6;
-const DEFAULT_ASSIGNMENT_STATUS = "Назначена";
+const DEFAULT_ASSIGNMENT_STATUS = "Менеджер";
 
 const EmployeeAssignableRequestsBoard = () => {
   const [searchParams] = useSearchParams();
@@ -32,7 +32,7 @@ const EmployeeAssignableRequestsBoard = () => {
   const requestPhotoServerApi = useMemo(() => new RequestPhotoApi(), []);
   const commentsServerApi = useMemo(() => new CommentsApi(), []);
 
-  const [mode, setMode] = useState("assignable");
+  const [mode, setMode] = useState("assignable"); // assignable | assigned
 
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -117,11 +117,10 @@ const EmployeeAssignableRequestsBoard = () => {
 
   const mapAssignedRowsToRequests = (rows) => {
     // endpoint /employees/{id}/requests часто возвращает RequestsEmployee с полем request
-    const mapped = (rows || [])
+    return (rows || [])
       .map((x) => x?.request ?? x?.Request ?? x)
       .filter(Boolean)
-      .map((r) => ({ ...r, isAssigned: true })); // в assigned режиме всегда назначено
-    return mapped;
+      .map((r) => ({ ...r, isAssigned: true }));
   };
 
   const fetchRequests = useCallback(
@@ -210,7 +209,6 @@ const EmployeeAssignableRequestsBoard = () => {
 
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
-
     if (mode !== "assignable") return;
 
     const n = Number(searchNumber);
@@ -264,17 +262,21 @@ const EmployeeAssignableRequestsBoard = () => {
   };
 
   const openDetails = async (req) => {
+    const safeDate = req?.createAt
+      ? new Date(req.createAt).toLocaleString("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—";
+
     const baseMapped = {
       id: req.id,
       number: req.number,
       category: req.typeOfProblem?.title || "Заявка",
-      date: new Date(req.createAt).toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      date: safeDate,
       priority: req.priority,
       status: req.status,
       building: req.location?.floor?.building?.name ?? "—",
@@ -322,14 +324,24 @@ const EmployeeAssignableRequestsBoard = () => {
     }
   };
 
+  // --- ВАЖНО: 1-й вариант (без перезагрузки страницы)
+  // после назначения просто обновляем статус в state, чтобы UI сразу отобразил "Назначена"
   const handleAssignToThisEmployee = async (req) => {
     if (!req?.id || !currentEmployeeId) return;
     if (req.isAssigned === true) return;
 
     setAssigningRequestId(req.id);
 
+    // Optimistic: сразу меняем UI
     setRequests((prev) =>
-      prev.map((r) => (r.id === req.id ? { ...r, isAssigned: true } : r)),
+      prev.map((r) =>
+        r.id === req.id ? { ...r, isAssigned: true, status: "Назначена" } : r,
+      ),
+    );
+
+    // если открыта модалка деталей по этой заявке — тоже обновим
+    setSelectedRequest((prev) =>
+      prev && prev.id === req.id ? { ...prev, status: "Назначена" } : prev,
     );
 
     try {
@@ -340,9 +352,14 @@ const EmployeeAssignableRequestsBoard = () => {
       );
 
       if (!res.success) {
+        // rollback
         setRequests((prev) =>
           prev.map((r) => (r.id === req.id ? { ...r, isAssigned: false } : r)),
         );
+        setSelectedRequest((prev) =>
+          prev && prev.id === req.id ? { ...prev, status: req.status } : prev,
+        );
+
         toast.error(res.message || "Не удалось назначить заявку");
         return;
       }
@@ -350,9 +367,15 @@ const EmployeeAssignableRequestsBoard = () => {
       toast.success("Заявка назначена сотруднику");
     } catch (e) {
       console.error(e);
+
+      // rollback
       setRequests((prev) =>
         prev.map((r) => (r.id === req.id ? { ...r, isAssigned: false } : r)),
       );
+      setSelectedRequest((prev) =>
+        prev && prev.id === req.id ? { ...prev, status: req.status } : prev,
+      );
+
       toast.error("Ошибка назначения заявки");
     } finally {
       setAssigningRequestId("");
@@ -360,7 +383,6 @@ const EmployeeAssignableRequestsBoard = () => {
   };
 
   // ===== Employees modal + delete assignment =====
-
   const mapEmployeeAssignment = (a, idx) => {
     const assignmentId = a?.id || a?.Id;
 
@@ -376,7 +398,7 @@ const EmployeeAssignableRequestsBoard = () => {
     const emp = a?.employee || a?.Employee || {};
     const user = emp?.user || emp?.User || a?.user || a?.User || {};
 
-    const fullName =
+    const empFullName =
       user?.fullName ||
       `${user?.lastName ?? ""} ${user?.firstName ?? ""}`.trim() ||
       a?.employeeName ||
@@ -409,7 +431,7 @@ const EmployeeAssignableRequestsBoard = () => {
       key: assignmentId || employeeIdFromRow || idx,
       assignmentId,
       employeeId: employeeIdFromRow,
-      fullName,
+      fullName: empFullName,
       avatarUrl,
       phone,
       email,
@@ -490,15 +512,13 @@ const EmployeeAssignableRequestsBoard = () => {
     const removingCurrentEmployee = sameGuid(row.employeeId, currentEmployeeId);
     setRemovingAssignmentId(row.assignmentId);
 
-    // optimistic:
-    if (removingCurrentEmployee) {
-      if (mode === "assignable") {
-        setRequests((prev) =>
-          prev.map((r) =>
-            r.id === employeesRequestId ? { ...r, isAssigned: false } : r,
-          ),
-        );
-      }
+    // optimistic: если удаляем текущего сотрудника в assignable-режиме, отметим как не назначенную
+    if (removingCurrentEmployee && mode === "assignable") {
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === employeesRequestId ? { ...r, isAssigned: false } : r,
+        ),
+      );
     }
 
     try {
@@ -524,7 +544,7 @@ const EmployeeAssignableRequestsBoard = () => {
 
       toast.success("Назначение удалено");
 
-      // если удалили текущего сотрудника в режиме assigned — обновим список заявок (заявка должна пропасть)
+      // если удалили текущего сотрудника в assigned режиме — обновим список заявок
       if (removingCurrentEmployee && mode === "assigned") {
         await fetchRequests(currentPage);
       }
@@ -540,6 +560,7 @@ const EmployeeAssignableRequestsBoard = () => {
     } catch (e) {
       console.error(e);
 
+      // rollback optimistic
       if (removingCurrentEmployee && mode === "assignable") {
         setRequests((prev) =>
           prev.map((r) =>
@@ -672,6 +693,22 @@ const EmployeeAssignableRequestsBoard = () => {
                   const assignedToThisEmployee = req?.isAssigned === true;
                   const isAssigning = assigningRequestId === req.id;
 
+                  const shownNumber =
+                    req.number ||
+                    (req.id
+                      ? String(req.id).toString().substring(0, 6).toUpperCase()
+                      : "—");
+
+                  const shownDate = req.createAt
+                    ? new Date(req.createAt).toLocaleString("ru-RU", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "—";
+
                   return (
                     <article
                       key={req.id}
@@ -684,19 +721,11 @@ const EmployeeAssignableRequestsBoard = () => {
                       <div className="manager-request-cardBody">
                         <div className="manager-request-topRow">
                           <span className="manager-request-id">
-                            #
-                            {req.number ||
-                              req.id.toString().substring(0, 6).toUpperCase()}
+                            #{shownNumber}
                           </span>
 
                           <time className="manager-request-date">
-                            {new Date(req.createAt).toLocaleString("ru-RU", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {shownDate}
                           </time>
                         </div>
 

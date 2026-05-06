@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import {
@@ -9,29 +9,32 @@ import {
   FaGraduationCap,
 } from "react-icons/fa";
 import AuthApi from "../../apiServices/authenticationApi.js";
+import { AuthContext } from "../../auth/AuthContext";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+
   const [errors, setErrors] = useState({});
+  const [info, setInfo] = useState(""); // сообщение об успехе forgot password
+
   const [isLoading, setIsLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const authServerApi = useMemo(() => new AuthApi(), []);
   const navigate = useNavigate();
+  const { setToken } = useContext(AuthContext);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateForm = () => {
     const newErrors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!formData.email) {
-      newErrors.email = "Укажите почту";
-    } else if (!emailRegex.test(formData.email)) {
+    if (!formData.email) newErrors.email = "Укажите почту";
+    else if (!emailRegex.test(formData.email))
       newErrors.email = "Неверный формат почты";
-    }
 
-    if (!formData.password) {
-      newErrors.password = "Введите пароль";
-    }
+    if (!formData.password) newErrors.password = "Введите пароль";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -42,13 +45,9 @@ const LoginPage = () => {
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-
-    if (errors.form) {
-      setErrors((prev) => ({ ...prev, form: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    if (errors.form) setErrors((prev) => ({ ...prev, form: "" }));
+    if (info) setInfo("");
   };
 
   const handleSubmit = async (e) => {
@@ -63,20 +62,25 @@ const LoginPage = () => {
         formData.password,
       );
 
-      if (result.success) {
-        console.log("Успешный вход:", result.data);
-
-        if (result.data.token) {
-          localStorage.setItem("authToken", result.data.token);
-        }
-
-        navigate("/manager/panel");
-      } else {
+      if (!result.success) {
         setErrors((prev) => ({
           ...prev,
           form: result.message || "Неверный логин или пароль",
         }));
+        return;
       }
+
+      const accessToken = result.data?.accessToken;
+      if (!accessToken) {
+        setErrors((prev) => ({
+          ...prev,
+          form: "Не получен accessToken от сервера",
+        }));
+        return;
+      }
+
+      setToken(accessToken);
+      navigate("/app", { replace: true });
     } catch (err) {
       console.error("Login error:", err);
       setErrors((prev) => ({
@@ -85,6 +89,47 @@ const LoginPage = () => {
       }));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = (formData.email || "").trim();
+
+    // простая валидация email
+    if (!email) {
+      setErrors((prev) => ({ ...prev, email: "Укажите почту" }));
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      setErrors((prev) => ({ ...prev, email: "Неверный формат почты" }));
+      return;
+    }
+
+    setForgotLoading(true);
+    setInfo("");
+    setErrors((prev) => ({ ...prev, form: "" }));
+
+    try {
+      const res = await authServerApi.forgotPassword(email);
+
+      if (!res.success) {
+        setErrors((prev) => ({
+          ...prev,
+          form: res.message || "Не удалось отправить письмо для сброса пароля",
+        }));
+        return;
+      }
+
+      // backend возвращает строку: "Check ... email..."
+      setInfo(res.message || "Письмо для сброса пароля отправлено");
+    } catch (e) {
+      console.error("ForgotPassword error:", e);
+      setErrors((prev) => ({
+        ...prev,
+        form: "Ошибка сети. Попробуйте позже.",
+      }));
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -126,6 +171,20 @@ const LoginPage = () => {
                 }}
               >
                 {errors.form}
+              </div>
+            )}
+
+            {info && (
+              <div
+                style={{
+                  color: "#16a34a",
+                  marginBottom: "15px",
+                  textAlign: "center",
+                  fontSize: "0.9rem",
+                  fontWeight: "600",
+                }}
+              >
+                {info}
               </div>
             )}
 
@@ -193,11 +252,30 @@ const LoginPage = () => {
             </button>
 
             <footer className="login-footer">
-              <button type="button" className="forgot-password-link">
-                Забыли пароль?
+              <button
+                type="button"
+                className="forgot-password-link"
+                onClick={handleForgotPassword}
+                disabled={forgotLoading}
+                title="Отправить письмо для сброса пароля"
+              >
+                {forgotLoading ? "Отправка..." : "Забыли пароль?"}
               </button>
+
               <span className="divider">|</span>
-              <button type="button" className="help-link">
+
+              <button
+                type="button"
+                className="help-link"
+                onClick={() => {
+                  // можешь заменить на нужный контакт/страницу помощи
+                  setInfo("");
+                  setErrors((prev) => ({
+                    ...prev,
+                    form: "Обратитесь к администратору системы.",
+                  }));
+                }}
+              >
                 Нужна помощь?
               </button>
             </footer>

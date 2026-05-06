@@ -328,6 +328,61 @@ class EmployeeRequestsServerApi {
       };
     }
   }
+
+  // PATCH /api/employees/{employeeId}/requests/{requestId}
+  // body: { "status": "string" }
+  async UpdateRequestStatus(requestId, status, employeeId) {
+    try {
+      const id = employeeId || localStorage.getItem("employeeId");
+
+      if (!id) {
+        return {
+          success: false,
+          message: "employeeId не найден (ни в аргументах, ни в localStorage)",
+          status: 400,
+        };
+      }
+
+      if (!requestId) {
+        return {
+          success: false,
+          message: "requestId не указан",
+          status: 400,
+        };
+      }
+
+      if (!status) {
+        return {
+          success: false,
+          message: "status не указан",
+          status: 400,
+        };
+      }
+
+      const response = await this.api.patch(
+        `/employees/${id}/requests/${requestId}`,
+        { status },
+      );
+
+      return {
+        success: true,
+        data: response.data ?? null,
+        status: response.status,
+      };
+    } catch (error) {
+      console.error("UpdateRequestStatus Error:", error);
+
+      return {
+        success: false,
+        message: this.extractErrorMessage(
+          error,
+          "Ошибка при изменении статуса",
+        ),
+        status: error?.response?.status,
+        error,
+      };
+    }
+  }
 }
 
 export default EmployeeRequestsServerApi;
