@@ -13,18 +13,23 @@ import Header from "../../components/Header/Header";
 import avatar from "../../imgs/avatar.jpg";
 
 import {
+  MdWarningAmber,
+  MdPriorityHigh,
+  MdLowPriority,
+  MdMoreHoriz,
+} from "react-icons/md";
+
+import {
   IconPhone,
   IconMail,
   IconTelegram,
-  IconCatIT,
-  IconCatEquip,
-  IconCatOther,
   IconSearch,
 } from "../../components/Icons";
 
 import RequestFiltersModal from "../../components/RequestFilters/RequestFiltersModal";
 import RequestDetailsForManagerModal from "../../components/RequestDetailsForManager/RequestDetailsForManager";
 
+// -------------------- helpers --------------------
 function isUuid(value) {
   if (!value) return false;
   const s = String(value);
@@ -38,6 +43,37 @@ function getValidEmployeeIdFromStorage() {
   return isUuid(stored) ? stored : "";
 }
 
+function getPriorityDetails(priority) {
+  switch (priority) {
+    case "Критический":
+      return {
+        icon: <MdWarningAmber size={22} />,
+        style: { background: "rgba(239,68,68,0.14)", color: "#ef4444" },
+      };
+    case "Высокий":
+      return {
+        icon: <MdPriorityHigh size={22} />,
+        style: { background: "rgba(245,158,11,0.14)", color: "#f59e0b" },
+      };
+    case "Средний":
+      return {
+        icon: <MdMoreHoriz size={22} />,
+        style: { background: "rgba(59,130,246,0.14)", color: "#3b82f6" },
+      };
+    case "Низкий":
+      return {
+        icon: <MdLowPriority size={22} />,
+        style: { background: "rgba(16,185,129,0.14)", color: "#10b981" },
+      };
+    default:
+      return {
+        icon: <MdMoreHoriz size={22} />,
+        style: { background: "rgba(59,130,246,0.14)", color: "#3b82f6" },
+      };
+  }
+}
+
+// -------------------- component --------------------
 function EmployeeProfile() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
@@ -80,7 +116,6 @@ function EmployeeProfile() {
 
   const [buildings, setBuildings] = useState([]);
 
-  // employeeId берём из localStorage только если это GUID
   const [employeeId, setEmployeeId] = useState(() =>
     getValidEmployeeIdFromStorage(),
   );
@@ -127,7 +162,6 @@ function EmployeeProfile() {
     "Отклонена",
   ];
 
-  // защита от "гонки" ответов
   const reqSeqRef = useRef(0);
 
   const getEffectiveEmployeeId = () => {
@@ -163,7 +197,6 @@ function EmployeeProfile() {
                 : null,
           );
 
-          // Пытаемся достать GUID сотрудника из разных полей
           const candidateIds = [
             p.employee?.id,
             p.employee?.employeeId,
@@ -179,10 +212,8 @@ function EmployeeProfile() {
             setEmployeeId(guidFromApi);
             localStorage.setItem("employeeId", guidFromApi);
           } else if (guidFromLs) {
-            // не затираем корректный employeeId из localStorage
             setEmployeeId(guidFromLs);
           } else {
-            // если в localStorage было что-то невалидное — чистим
             const stored = localStorage.getItem("employeeId");
             if (stored && !isUuid(stored))
               localStorage.removeItem("employeeId");
@@ -304,7 +335,6 @@ function EmployeeProfile() {
   const fetchRequests = async () => {
     const effectiveEmployeeId = getEffectiveEmployeeId();
 
-    // не делаем запросы, пока employeeId не валидный GUID
     if (!effectiveEmployeeId || !isUuid(effectiveEmployeeId)) {
       setRequests([]);
       setTotalPages(1);
@@ -320,7 +350,7 @@ function EmployeeProfile() {
         currentPage,
         itemsPerPage,
         filters,
-        effectiveEmployeeId, // если сервис не поддерживает — просто игнорируется
+        effectiveEmployeeId,
       );
 
       if (seq !== reqSeqRef.current) return;
@@ -380,7 +410,6 @@ function EmployeeProfile() {
       return;
     }
 
-    // проверки до лоадера
     if (draftIsAvailable) {
       if (!draftCurrentBuildingId) {
         alert(
@@ -437,13 +466,11 @@ function EmployeeProfile() {
         }
       }
 
-      // локально обновим UI
       setIsAvailable(draftIsAvailable);
       setCurrentBuildingId(draftCurrentBuildingId);
       setDefaultBuildingId(draftDefaultBuildingId);
       setIsEditingSettings(false);
 
-      // подтянем актуальные данные с сервера
       const employeeRes =
         await employeeApi.GetEmployeeById(effectiveEmployeeId);
       if (employeeRes.success && employeeRes.data) {
@@ -469,28 +496,6 @@ function EmployeeProfile() {
     } finally {
       setEmployeeSettingsLoading(false);
     }
-  };
-
-  const getCategoryDetails = (cat) => {
-    if (
-      cat &&
-      (cat.includes("IT") ||
-        cat.includes("Софт") ||
-        cat.includes("Компьютер") ||
-        cat.includes("Сеть"))
-    ) {
-      return { icon: <IconCatIT />, styleClass: "icon-cat-IT" };
-    }
-
-    if (
-      cat === "Оборудование" ||
-      cat?.includes("техника") ||
-      cat?.includes("Техника")
-    ) {
-      return { icon: <IconCatEquip />, styleClass: "icon-cat-Equipment" };
-    }
-
-    return { icon: <IconCatOther />, styleClass: "icon-cat-Other" };
   };
 
   const openDetails = async (req) => {
@@ -628,12 +633,12 @@ function EmployeeProfile() {
   };
 
   const renderRequestCard = (req) => {
-    const catDetails = getCategoryDetails(req.category);
+    const pr = getPriorityDetails(req.priority);
 
     return (
       <div key={req.realId} className="request-card-grid">
-        <div className={`req-icon-box ${catDetails.styleClass}`}>
-          {catDetails.icon}
+        <div className="req-icon-box" style={pr.style}>
+          {pr.icon}
         </div>
 
         <div className="req-content">

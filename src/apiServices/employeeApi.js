@@ -67,7 +67,7 @@ class EmployeeApi {
       }
 
       const response = await this.api.get("", { params });
-
+      console.log(response);
       return {
         success: true,
         employees: response.data || [],

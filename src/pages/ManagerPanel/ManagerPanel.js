@@ -33,12 +33,25 @@ function readSavedState() {
   }
 }
 
+function buildUserPhotoUrl(user) {
+  const apiBase = process.env.REACT_APP_BASE_URL; // например: http://localhost:5035/api
+  if (!apiBase) return null;
+
+  // у тебя приходит profilePhotoName -> значит фото есть, строим URL на file endpoint
+  if (user?.profilePhotoName && user?.id) {
+    return `${apiBase}/users/${user.id}/photo-file`;
+  }
+
+  // если вдруг бэк вернёт готовый URL
+  if (user?.profilePhotoUrl) return user.profilePhotoUrl;
+
+  return null;
+}
+
 function ManagerPanel() {
   const navigate = useNavigate();
-
   const [activeModal, setActiveModal] = useState(null);
 
-  // ====== Восстанавливаем страницу и фильтры после возврата "назад" ======
   const saved = useMemo(() => readSavedState(), []);
 
   // Дефолтный фильтр — скрывать заблокированных
@@ -58,7 +71,6 @@ function ManagerPanel() {
 
   const closeModal = () => setActiveModal(null);
 
-  // Сохраняем состояние при любых изменениях (чтобы при возврате не слетало)
   useEffect(() => {
     try {
       sessionStorage.setItem(
@@ -107,14 +119,16 @@ function ManagerPanel() {
               `${user.secondName ?? ""} ${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
               "Без имени";
 
+            const photoUrl = buildUserPhotoUrl(user);
+
             return {
-              id: e.id || index + 1,
+              id: e.id || index + 1, // employeeId
               name: fullName,
               role: e.role || "Сотрудник",
               status: e.isAvailable ? "Online" : "Offline",
               currentLocation: currentBuilding || "-",
               defaultLocation: defaultBuilding || "",
-              avatar: user.profilePhotoUrl || avatar,
+              avatar: photoUrl || avatar,
             };
           });
 
@@ -135,7 +149,6 @@ function ManagerPanel() {
     [employeeApi, employeeFilters],
   );
 
-  // грузим при изменении страницы или фильтров
   useEffect(() => {
     loadEmployees(currentPage, itemsPerPage, employeeFilters);
   }, [currentPage, employeeFilters, itemsPerPage, loadEmployees]);
@@ -199,7 +212,7 @@ function ManagerPanel() {
               className="btn btn-primary"
               onClick={() => setActiveModal("createZone")}
             >
-              <IconPlus /> Создать зону
+              <IconPlus /> Рабочие зоны
             </button>
           </div>
         </div>
@@ -250,14 +263,11 @@ function ManagerPanel() {
         )}
       </div>
 
-      {/* Модалка фильтров сотрудников */}
       <EmployeeFiltersModal
         isOpen={activeModal === "employeeFilters"}
         onClose={closeModal}
         initialFilters={employeeFilters}
         onApply={(filters) => {
-          // если пользователь нажал "Применить" с пустыми фильтрами,
-          // то дефолт "не показывать заблокированных" всё равно должен остаться
           const next =
             filters && Object.keys(filters).length
               ? filters
@@ -269,7 +279,6 @@ function ManagerPanel() {
         }}
       />
 
-      {/* Модалка отчетов для менеджера: только заявки, фильтры сразу открыты */}
       <ManagerReportsDownloadModal
         isOpen={activeModal === "reports"}
         onClose={closeModal}

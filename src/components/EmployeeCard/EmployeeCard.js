@@ -1,6 +1,7 @@
 import React from "react";
 import "./EmployeeCard.css";
 import { IconMapPin, IconHome, IconSettings } from "../Icons";
+import avatar from "../../imgs/avatar.jpg";
 
 const EmployeeCard = ({ emp, onOpenSettings, onViewDetails }) => {
   const isOnline = emp.status === "Online";
@@ -13,7 +14,15 @@ const EmployeeCard = ({ emp, onOpenSettings, onViewDetails }) => {
 
         <div className="emp-header">
           <div className="emp-profile">
-            <img src={emp.avatar} alt="" className="emp-avatar" />
+            <img
+              src={emp.avatar || avatar}
+              alt=""
+              className="emp-avatar"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = avatar;
+              }}
+            />
             <div className="emp-names">
               <h3>{emp.name}</h3>
             </div>

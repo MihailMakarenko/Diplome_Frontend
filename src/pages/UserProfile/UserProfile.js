@@ -46,7 +46,7 @@ function UserProfile() {
   const fileInputRef = useRef(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortOption, setSortOption] = useState("dateDesc");
+  const [sortOption, setSortOption] = useState("createAt desc");
   const itemsPerPage = 4;
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -590,9 +590,8 @@ function UserProfile() {
                 setCurrentPage(1);
               }}
             >
-              <option value="dateDesc">Сначала новые</option>
-              <option value="dateAsc">Сначала старые</option>
-              <option value="status">По статусу</option>
+              <option value="createAt desc">Сначала новые</option>
+              <option value="createAt asc">Сначала старые</option>
             </select>
           </div>
 

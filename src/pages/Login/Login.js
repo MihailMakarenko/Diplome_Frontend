@@ -156,7 +156,7 @@ const LoginPage = () => {
             <h1 className="institution-name">
               Университетская Служба Поддержки
             </h1>
-            <p className="system-tagline">Система обработки заявок</p>
+            <p className="system-tagline">Система заявок</p>
           </header>
 
           <form className="login-form" onSubmit={handleSubmit} noValidate>
@@ -260,23 +260,6 @@ const LoginPage = () => {
                 title="Отправить письмо для сброса пароля"
               >
                 {forgotLoading ? "Отправка..." : "Забыли пароль?"}
-              </button>
-
-              <span className="divider">|</span>
-
-              <button
-                type="button"
-                className="help-link"
-                onClick={() => {
-                  // можешь заменить на нужный контакт/страницу помощи
-                  setInfo("");
-                  setErrors((prev) => ({
-                    ...prev,
-                    form: "Обратитесь к администратору системы.",
-                  }));
-                }}
-              >
-                Нужна помощь?
               </button>
             </footer>
           </form>
